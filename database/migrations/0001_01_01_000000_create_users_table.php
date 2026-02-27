@@ -18,6 +18,11 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
+            $table->string('goal');
+            $table->string('cycle_type');
+            $table->dateTime('cycle_start');
+            $table->decimal('balance', 15, 2);
+            $table->string('profile_url');
             $table->timestamps();
         });
 
