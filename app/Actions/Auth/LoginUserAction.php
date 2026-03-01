@@ -19,7 +19,7 @@ class LoginUserAction extends BaseAction
      */
     public function execute(LoginUserDTO $dto): array
     {
-        $user = User::where('email', $dto->email)->first();
+        $user = User::query()->where('email', $dto->email)->first();
 
         if (! $user || ! Hash::check($dto->password, $user->password)) {
             throw ValidationException::withMessages([
@@ -32,6 +32,7 @@ class LoginUserAction extends BaseAction
         return [
             'user' => $user,
             'token' => $token,
+            'requires_onboarding' => $user->isRequireOnboarding(),
         ];
     }
 }
