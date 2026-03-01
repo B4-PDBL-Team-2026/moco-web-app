@@ -4,8 +4,6 @@ namespace App\Actions\Auth;
 
 use App\Actions\BaseAction;
 use App\DTOs\Auth\RegisterUserDTO;
-use App\Enums\CycleType;
-use App\Enums\Goal;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Hash;

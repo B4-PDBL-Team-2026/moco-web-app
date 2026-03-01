@@ -32,7 +32,7 @@ class AuthController extends Controller
             'user' => $result['user'],
             'token' => $result['token'],
             'requires_onboarding' => $result['requires_onboarding'],
-        ], 'Registrasi berhasil.', 201);
+        ], 'Registered successfully.', 201);
     }
 
     public function login(LoginRequest $request, LoginUserAction $action): JsonResponse
@@ -43,7 +43,7 @@ class AuthController extends Controller
         return $this->success([
             'user' => $result['user'],
             'token' => $result['token'],
-        ], 'Login berhasil.');
+        ], 'Logged in successfully.');
     }
 
     public function forgotPassword(ForgotPasswordRequest $request, ForgotPasswordAction $action): JsonResponse
@@ -78,7 +78,7 @@ class AuthController extends Controller
         $user = User::query()->findOrFail($request->route('id'));
 
         if (! hash_equals(sha1($user->getEmailForVerification()), (string) $request->route('hash'))) {
-            return $this->error('Link verifikasi tidak valid.', 403);
+            return $this->error('Verification link is invalid.', 403);
         }
 
         $result = $action->execute($user);

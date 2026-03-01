@@ -23,7 +23,7 @@ class LoginUserAction extends BaseAction
 
         if (! $user || ! Hash::check($dto->password, $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['Email atau password salah'],
+                'email' => ['Email or password is wrong.'],
             ]);
         }
 
