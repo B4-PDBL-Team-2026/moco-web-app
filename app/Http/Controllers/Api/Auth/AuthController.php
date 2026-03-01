@@ -31,7 +31,6 @@ class AuthController extends Controller
         return $this->success([
             'user' => $result['user'],
             'token' => $result['token'],
-            'is_new_user' => $result['is_new_user'],
             'requires_onboarding' => $result['requires_onboarding'],
         ], 'Registrasi berhasil.', 201);
     }

@@ -26,11 +26,6 @@ class RegisterUserAction extends BaseAction
             'name' => $dto->name,
             'email' => $dto->email,
             'password' => Hash::make($dto->password),
-            'goal' => Goal::NORMAL,
-            'cycle_type' => CycleType::MONTHLY,
-            'cycle_start' => now(),
-            'balance' => 0,
-            'profile_url' => '',
         ]);
 
         event(new Registered($user));
@@ -40,7 +35,6 @@ class RegisterUserAction extends BaseAction
         return [
             'user' => $user,
             'token' => $token,
-            'is_new_user' => true,
             'requires_onboarding' => true,
         ];
     }
