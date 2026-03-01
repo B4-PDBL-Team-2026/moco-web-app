@@ -63,4 +63,10 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Transaction::class);
     }
+
+    public function isRequireOnboarding(): bool
+    {
+        return is_null($this->goal) || is_null($this->cycle_type) || is_null($this->cycle_start) || is_null($this->balance);
+    }
+
 }
