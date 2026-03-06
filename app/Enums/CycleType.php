@@ -2,8 +2,6 @@
 
 namespace App\Enums;
 
-
-
 enum CycleType: string
 {
     case WEEKLY = 'weekly';

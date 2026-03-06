@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Web\Auth;
 
-use Inertia\Inertia;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use \App\Http\Controllers\Controller;
+use Inertia\Inertia;
 use Inertia\Response;
 
 class ResetPasswordController extends Controller
