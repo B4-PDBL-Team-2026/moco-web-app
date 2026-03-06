@@ -17,7 +17,7 @@ class VerifyEmailAction extends BaseAction
     {
         if ($user->hasVerifiedEmail()) {
             return [
-                'status' => 'already_verified',
+                'status' => 'success',
                 'message' => 'Email is already verified.',
             ];
         }
