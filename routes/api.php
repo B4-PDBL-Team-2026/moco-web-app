@@ -1,26 +1,10 @@
 <?php
 
-use App\Http\Controllers\Api\Auth\AuthController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\Onboarding\OnboardingController;
 
-
-Route::middleware('auth:sanctum')->group(function () {
-
-    // API untuk Gambar 1 & 2
-    Route::prefix('onboarding')->group(function () {
-        Route::post('/cycle', [OnboardingController::class, 'updateCycle']);
-        Route::post('/balance', [OnboardingController::class, 'updateBalance']);
-    });
-
-    // API Fitur Utama (Hanya bisa diakses jika data onboarding lengkap)
-    Route::middleware('onboarded')->group(function () {
-        // Jika Controller belum ada, baris di bawah ini akan merah.
-        // Kamu bisa ganti sementara dengan function anonim untuk testing:
-        Route::get('/dashboard', function() { return response()->json(['msg' => 'Welcome!']); });
-        Route::get('/transactions', function() { return response()->json(['msg' => 'History']); });
-    });
-});
+Route::post('onboarding', [OnboardingController::class, 'store']);
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);

@@ -10,7 +10,7 @@ class VerifyEmailAction extends BaseAction
 {
     /**
      * Mark the user's email as verified.
-     *
+         *
      * @return array{status: string, message: string}
      */
     public function execute(User $user): array
