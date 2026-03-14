@@ -39,7 +39,7 @@ test('it can not reset password if token is invalid', function () {
     $response->assertJsonPath('message', 'This password reset token is invalid.');
 });
 
-it('it can not reset password if confirmation field not match', function () {
+test('it can not reset password if confirmation field not match', function () {
     $response = $this->postJson('/api/auth/password/reset', [
         'email' => 'test@moco.com',
         'token' => 'token-apa-aja',
@@ -51,7 +51,7 @@ it('it can not reset password if confirmation field not match', function () {
         ->assertJsonValidationErrors(['password'], 'data');
 });
 
-it('it can not reset password if password does not meet criteria', function () {
+test('it can not reset password if password does not meet criteria', function () {
     $response = $this->postJson('/api/auth/password/reset', [
         'email' => 'test@moco.com',
         'token' => 'token-apa-aja',

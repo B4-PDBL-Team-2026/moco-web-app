@@ -6,7 +6,7 @@ use Tests\TestCase;
 
 uses(TestCase::class);
 
-it('menandai email sebagai verified jika user belum diverifikasi', function () {
+it('should mark new registered user email as unverified', function () {
     $userMock = Mockery::mock(User::class)->makePartial();
 
     $userMock->shouldReceive('hasVerifiedEmail')->once()->andReturn(false);
@@ -19,7 +19,7 @@ it('menandai email sebagai verified jika user belum diverifikasi', function () {
         ->and($result['message'])->toBe('Email verified successfully.');
 });
 
-it('mengembalikan pesan success tapi tidak melakukan apa-apa jika email sudah verified sebelumnya', function () {
+it('should return success and do nothing if email already verified', function () {
     $userMock = Mockery::mock(User::class)->makePartial();
     $userMock->shouldReceive('hasVerifiedEmail')->once()->andReturn(true);
     $userMock->shouldNotReceive('markEmailAsVerified');
