@@ -1,8 +1,5 @@
 <?php
 
-use App\Enums\SiklusUang;
-use App\Enums\FixedCostStatus;
-
 test('kalkulasi jatah harian harus benar', function () {
     // Data dummy: Uang saku 1.5jt, Fixed Cost (Sewa) 300rb, Siklus Bulanan (30 hari)
     // Rumus: (1.500.000 - 300.000) / 30 = 40.000
