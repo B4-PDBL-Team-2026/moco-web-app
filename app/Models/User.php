@@ -21,7 +21,7 @@ class User extends Authenticatable implements MustVerifyEmail
      *
      * @var list<string>
      */
-    protected $fillable = ['name', 'email', 'password', 'goal', 'cycle_type', 'cycle_start', 'balance', 'profile_url'];
+    protected $fillable = ['name', 'email', 'password', 'goal', 'cycle_type', 'cycle_start', 'balance', 'allowance_amount', 'has_onboarded', 'profile_url'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -41,6 +41,8 @@ class User extends Authenticatable implements MustVerifyEmail
     protected function casts(): array
     {
         return [
+            'balance' => 'decimal:2',
+            'allowance_amount' => 'decimal:2',
             'goal' => Goal::class,
             'cycle_type' => CycleType::class,
             'cycle_start' => 'datetime',
