@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CycleType;
 use App\Enums\DeductionType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,6 +15,7 @@ class FixedCost extends Model
         'name',
         'deduction_type',
         'amount',
+        'cycle',
         'user_id',
     ];
 
@@ -26,6 +28,7 @@ class FixedCost extends Model
     {
         return [
             'deduction_type' => DeductionType::class,
+            'cycle' => CycleType::class,
             'amount' => 'decimal:2',
         ];
     }
