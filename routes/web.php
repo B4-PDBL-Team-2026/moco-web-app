@@ -1,7 +1,6 @@
 <?php
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\OnboardingController;
 
-Route::get('/', function () {
-    return "Home Page"; // Mengembalikan teks, bukan view
-});
+use App\Http\Controllers\Web\Auth\ResetPasswordController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');

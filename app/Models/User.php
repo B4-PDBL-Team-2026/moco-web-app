@@ -68,5 +68,4 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return is_null($this->goal) || is_null($this->cycle_type) || is_null($this->cycle_start) || is_null($this->balance);
     }
-
 }

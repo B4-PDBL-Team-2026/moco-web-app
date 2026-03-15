@@ -17,8 +17,8 @@ class VerifyEmailAction extends BaseAction
     {
         if ($user->hasVerifiedEmail()) {
             return [
-                'status' => 'already_verified',
-                'message' => 'Email sudah diverifikasi.',
+                'status' => 'success',
+                'message' => 'Email is already verified.',
             ];
         }
 
@@ -28,7 +28,7 @@ class VerifyEmailAction extends BaseAction
 
         return [
             'status' => 'success',
-            'message' => 'Email berhasil diverifikasi.',
+            'message' => 'Email verified successfully.',
         ];
     }
 }
