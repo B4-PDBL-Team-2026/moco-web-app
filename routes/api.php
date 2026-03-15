@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Onboarding\OnboardingController;
 use Illuminate\Support\Facades\Route;
@@ -22,4 +22,16 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 });
 
-Route::resource('transactions', TransactionController::class);
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::get('/transactions', [TransactionController::class, 'index']);
+    Route::post('/transactions', [TransactionController::class, 'store']);
+    Route::get('/transactions/{id}', [TransactionController::class, 'show']);
+    Route::put('/transactions/{id}', [TransactionController::class, 'update']);
+    Route::delete('/transactions/{id}', [TransactionController::class, 'destroy']);
+
+});
+
+Route::get('/verify-email/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+    ->middleware(['signed'])
+    ->name('verification.verify');

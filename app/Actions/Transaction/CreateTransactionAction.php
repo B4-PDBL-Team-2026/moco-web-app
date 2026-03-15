@@ -1,5 +1,4 @@
 <?php
-// app/Actions/Transaction/CreateTransactionAction.php
 
 namespace App\Actions\Transaction;
 
@@ -12,13 +11,12 @@ class CreateTransactionAction
     public function execute(TransactionData $data): Transaction
     {
         return Transaction::create([
+            'user_id'     => auth::id(),
+            'category_id' => $data->category_id,
             'name'        => $data->name,
             'amount'      => $data->amount,
             'type'        => $data->type,
             'note'        => $data->note,
-            'user_id'     => Auth::id(),
-            'category_id' => $data->category_id,
-            'created_at'  => $data->transaction_date,
         ]);
     }
-}
+};

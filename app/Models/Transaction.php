@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-use App\Enums\TransactionType;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Transaction extends Model
 {
-    public $timestamps = false;
+    use HasFactory;
 
     protected $fillable = [
         'name',
@@ -16,25 +15,22 @@ class Transaction extends Model
         'type',
         'note',
         'user_id',
-        'category_id',
+        'category_id'
     ];
 
-    public function user(): BelongsTo
+    public $timestamps = false;
+
+    protected $casts = [
+        'amount' => 'decimal:2'
+    ];
+
+    public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    public function category(): BelongsTo
+    public function category()
     {
         return $this->belongsTo(Category::class);
-    }
-
-    protected function casts(): array
-    {
-        return [
-            'type' => TransactionType::class,
-            'amount' => 'decimal:2',
-            'created_at' => 'datetime',
-        ];
     }
 }
