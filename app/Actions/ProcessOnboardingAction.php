@@ -13,8 +13,9 @@ class ProcessOnboardingAction
 
         $totalFixedCost = 0;
         $totalMemotongSaldo = 0;
+        $fixedCosts = $data['fixed_costs'] ?? [];
 
-        foreach ($data['fixed_costs'] as $item) {
+        foreach ($fixedCosts as $item) {
             $nominal = $item['nominal'];
             $status = FixedCostStatus::from($item['status']);
 
