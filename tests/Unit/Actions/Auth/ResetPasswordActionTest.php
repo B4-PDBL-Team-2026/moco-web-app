@@ -2,9 +2,6 @@
 
 use App\Actions\Auth\ResetPasswordAction;
 use Illuminate\Support\Facades\Password;
-use Tests\TestCase;
-
-uses(TestCase::class);
 
 it('should return success array on success reset password action', function () {
     Password::shouldReceive('reset')

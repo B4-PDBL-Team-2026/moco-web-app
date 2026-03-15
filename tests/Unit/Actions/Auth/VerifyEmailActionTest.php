@@ -2,9 +2,6 @@
 
 use App\Actions\Auth\VerifyEmailAction;
 use App\Models\User;
-use Tests\TestCase;
-
-uses(TestCase::class);
 
 it('should mark new registered user email as unverified', function () {
     $userMock = Mockery::mock(User::class)->makePartial();
