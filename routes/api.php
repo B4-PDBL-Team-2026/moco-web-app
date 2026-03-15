@@ -1,13 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\Onboarding\OnboardingController;
 use Illuminate\Support\Facades\Route;
-
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-*/
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
@@ -20,7 +15,8 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/user', function (\Illuminate\Http\Request $request) {
-        return $request->user();
+    Route::controller(OnboardingController::class)->prefix('onboarding')->group(function () {
+        Route::get('/', 'show');
+        Route::post('/', 'store');
     });
 });

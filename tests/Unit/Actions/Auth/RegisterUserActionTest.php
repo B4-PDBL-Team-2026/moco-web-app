@@ -4,12 +4,8 @@ use App\Actions\Auth\RegisterUserAction;
 use App\DTOs\Auth\RegisterUserDTO;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
-use Tests\TestCase;
-
-uses(TestCase::class, RefreshDatabase::class);
 
 test('it registers a user successfully', function () {
     // Arrange

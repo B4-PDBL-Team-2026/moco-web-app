@@ -3,12 +3,8 @@
 use App\Actions\Auth\LoginUserAction;
 use App\DTOs\Auth\LoginUserDTO;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
-use Tests\TestCase;
-
-uses(TestCase::class, RefreshDatabase::class);
 
 test('it logs in a user successfully with correct credentials', function () {
     // Arrange

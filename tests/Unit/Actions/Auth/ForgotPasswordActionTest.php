@@ -3,8 +3,6 @@
 use App\Actions\Auth\ForgotPasswordAction;
 use Illuminate\Support\Facades\Password;
 
-uses(\Tests\TestCase::class);
-
 it('send reset password link correctly', function () {
     // Mocking facade
     Password::shouldReceive('sendResetLink')

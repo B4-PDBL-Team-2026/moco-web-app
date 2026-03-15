@@ -21,8 +21,10 @@ return new class extends Migration
             $table->string('goal')->nullable();
             $table->string('cycle_type')->nullable();
             $table->dateTime('cycle_start')->nullable();
+            $table->decimal('allowance_amount', 15, 2)->nullable();
             $table->decimal('balance', 15, 2)->nullable();
             $table->string('profile_url')->nullable();
+            $table->boolean('has_onboarded')->default(false);
             $table->timestamps();
         });
 
