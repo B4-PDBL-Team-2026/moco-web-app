@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Actions;
+namespace App\Actions\Onboarding;
 
 use App\DTOs\Onboarding\StoreOnboardingUserDTO;
-use App\Enums\CycleType;
+use App\Enums\DeductionType;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class ProcessOnboardingAction
@@ -16,10 +17,23 @@ class ProcessOnboardingAction
     public function execute(User $user, StoreOnboardingUserDTO $dto): void
     {
         DB::transaction(function () use ($user, $dto) {
+            $totalInDeduction = collect($dto->fixedCosts)
+                ->filter(fn ($fixedCost) => $fixedCost->deductionType === DeductionType::IN)
+                ->sum(fn ($fixedCost) => $fixedCost->amount);
+
+            if ($totalInDeduction > $dto->allowanceAmount) {
+                throw ValidationException::withMessages([
+                    'fixedCosts' => 'Total of fixed costs exceeds allowance.',
+                ]);
+            }
+
+            $finalBalance = $dto->allowanceAmount - $totalInDeduction;
+
             $user->update([
-                'cycle_type' => $dto->budgetCycle,
-                'balance' => $dto->allowanceAmount,
-                'cycle_start' => \Illuminate\Support\now(),
+                'cycle_type' => $dto->budgetCycle->value,
+                'allowance_amount' => $dto->allowanceAmount,
+                'balance' => $finalBalance,
+                'cycle_start' => now(),
                 'has_onboarded' => true,
             ]);
 
@@ -30,24 +44,12 @@ class ProcessOnboardingAction
                     fn ($item) => [
                         'name' => $item->name,
                         'amount' => $item->amount,
-                        'deduction_type' => $item->deduction_type,
+                        'deduction_type' => $item->deductionType->value,
                         'cycle' => $item->cycle->value,
                     ],
                     $dto->fixedCosts,
                 )
             );
         });
-
-        // $limitHarian = ($allowance - $totalFixedCost) / $cycle->countDays();
-        //
-        // // Hitung Saldo Utama (Uang Saku - pengeluaran status 'In')
-        // $saldoUtama = $allowance - $totalInDeduction;
-        //
-        // return [
-        //     'limit_harian' => $limitHarian,
-        //     'saldo_utama' => $saldoUtama,
-        //     'siklus_teks' => $cycle->value,
-        //     'rekomendasi' => $rekomendasi ?? [],
-        // ];
     }
 }

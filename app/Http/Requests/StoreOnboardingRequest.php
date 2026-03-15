@@ -7,7 +7,7 @@ use App\Enums\DeductionType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
 
-class OnboardingRequest extends FormRequest
+class StoreOnboardingRequest extends FormRequest
 {
     public function authorize(): bool
     {

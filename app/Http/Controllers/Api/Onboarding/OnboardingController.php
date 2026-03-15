@@ -1,30 +1,45 @@
 <?php
-namespace App\Http\Controllers\Api\Onboarding;
-use App\Http\Controllers\Controller;
-use App\Http\Requests\OnboardingRequest;
-use App\Actions\ProcessOnboardingAction;
 
+namespace App\Http\Controllers\Api\Onboarding;
+
+use App\Actions\Onboarding\ProcessOnboardingAction;
+use App\Actions\Onboarding\RetrieveOnboardingDataAction;
+use App\DTOs\Onboarding\StoreOnboardingUserDTO;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreOnboardingRequest;
+use App\Models\User;
+use App\Traits\ApiResponse;
+use Illuminate\Http\JsonResponse;
+use Throwable;
 
 class OnboardingController extends Controller
 {
-    public function store(OnboardingRequest $request, ProcessOnboardingAction $action)
-    {
-        // Menjalankan logika di Action
-        $result  = $action->execute($request->validated());
-        $nominal = $result['limit_harian'];
-        $format  = 'Rp ' . number_format($nominal, 0, ',', '.');
-        // Mengembalikan Response (Langkah 4: Summary)
-        return response()->json([
-            'message' => 'Onboarding Berhasil',
-            'data'    => [
-                'summary' => [
-                    'nominal_harian'   => $nominal,
-                    'format_currency'  => $format,
-                    'saldo_saat_ini'   => $result['saldo_utama'] ?? 0,
-                    'saran_kategori'   => $result['rekomendasi'] ?? [],
-                ],
-            ],
-        ]);
+    use ApiResponse;
 
+    public function show(RetrieveOnboardingDataAction $action): JsonResponse
+    {
+        /** @var User $user */
+        $user = auth()->user();
+
+        $result = $action->execute($user);
+
+        return $this->success($result);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function store(StoreOnboardingRequest $request, ProcessOnboardingAction $action): JsonResponse
+    {
+        $dto = StoreOnboardingUserDTO::fromRequest($request);
+
+        /** @var User $user */
+        $user = auth()->user();
+
+        $action->execute($user, $dto);
+
+        return $this->success(
+            message: 'Onboarding data successfully stored.'
+        );
     }
 }
