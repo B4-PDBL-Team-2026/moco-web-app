@@ -31,7 +31,7 @@ test('authenticated user can create income transaction', function () {
         'categoryId' => $category->id,
     ];
 
-    $response = $this->postJson('/api/transaction/transactions', $payload)->dump();
+    $response = $this->postJson('/api/transaction/transactions', $payload);
 
     $response
         ->assertOk()

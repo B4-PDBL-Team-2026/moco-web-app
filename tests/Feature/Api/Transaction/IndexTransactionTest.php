@@ -25,7 +25,7 @@ test('authenticated user can get paginated transactions', function () {
         'category_id' => $category->id,
     ]);
 
-    $response = $this->getJson('/api/transaction/transactions')->dump();
+    $response = $this->getJson('/api/transaction/transactions');
 
     $response
         ->assertOk()

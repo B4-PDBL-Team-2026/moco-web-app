@@ -26,7 +26,7 @@ test('authenticated user can show own transaction', function () {
         'name' => 'Groceries',
     ]);
 
-    $this->getJson('/api/transaction/transactions/'.$transaction->id)->dump()
+    $this->getJson('/api/transaction/transactions/'.$transaction->id)
         ->assertOk()
         ->assertJsonPath('success', true)
         ->assertJsonPath('message', 'Transaction retrieved successfully.')
