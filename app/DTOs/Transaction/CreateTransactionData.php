@@ -3,6 +3,7 @@
 namespace App\DTOs\Transaction;
 
 use App\Enums\TransactionType;
+use Carbon\CarbonImmutable;
 
 final readonly class CreateTransactionData
 {
@@ -12,18 +13,18 @@ final readonly class CreateTransactionData
         public float $amount,
         public TransactionType $type,
         public ?string $note,
-        public string $transactionDate,
+        public CarbonImmutable $transactionDate,
     ) {}
 
     public static function fromArray(array $data): self
     {
         return new self(
-            categoryId: $data['category_id'],
+            categoryId: (int) $data['categoryId'],
             name: $data['name'],
             amount: $data['amount'],
             type: TransactionType::from($data['type']),
-            note: $data['note'],
-            transactionDate: $data['transaction_date'],
+            note: $data['note'] ?? null,
+            transactionDate: CarbonImmutable::parse($data['transactionDate']),
         );
     }
 }
