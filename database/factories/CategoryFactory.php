@@ -5,8 +5,7 @@ namespace Database\Factories;
 use App\Models\Category;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-//untuk testing
-class CategoryFactory extends Factory
+class ExpenseCategoryFactory extends Factory
 {
     protected $model = Category::class;
 

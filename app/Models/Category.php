@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Factories\HasFactory; //untuk testing
+use Illuminate\Database\Eloquent\Relations\HasMany; // untuk testing
 
-class Category extends Model
+class ExpenseCategory extends Model
 {
-    use HasFactory; //untuk testing
+    use HasFactory;
+
     public $timestamps = false;
 
     protected $fillable = [
