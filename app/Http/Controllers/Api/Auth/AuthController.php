@@ -43,6 +43,7 @@ class AuthController extends Controller
         return $this->success([
             'user' => $result['user'],
             'token' => $result['token'],
+            'requires_onboarding' => $result['requires_onboarding'],
         ], 'Logged in successfully.');
     }
 
