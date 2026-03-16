@@ -5,20 +5,21 @@ namespace Database\Factories;
 use App\Models\Category;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
 
 class TransactionFactory extends Factory
 {
     public function definition(): array
     {
         return [
-            'user_id'     => User::factory(),
+            'user_id' => User::factory(),
             'category_id' => Category::factory(),
-            'name'        => $this->faker->words(3, true),
-            'amount'      => $this->faker->randomFloat(2, 1000, 1000000),
-            'type'        => $this->faker->randomElement(['income', 'expense']),
-            'note'        => $this->faker->optional()->sentence(),
-            'created_at'  => $this->faker->dateTimeBetween('-1 year', 'now'),
+            'name' => $this->faker->words(3, true),
+            'amount' => $this->faker->randomFloat(2, 1000, 1000000),
+            'type' => $this->faker->randomElement(['income', 'expense']),
+            'note' => $this->faker->optional()->sentence(),
+            'transaction_date' => $this->faker->date(),
+            'created_at' => $this->faker->dateTimeBetween('-1 year', 'now'),
+            'updated_at' => $this->faker->dateTimeBetween('-1 year', 'now'),
         ];
     }
 }
