@@ -2,21 +2,21 @@
 
 namespace App\Actions\Transaction;
 
+use App\DTOs\Transaction\FilterTransactionData;
 use App\Models\Transaction;
-use App\Models\User;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class GetAllTransactionAction
 {
-    public function execute(User $user, array $filters): LengthAwarePaginator
+    public function execute(int $userId, FilterTransactionData $data): LengthAwarePaginator
     {
         return Transaction::with('category')
-            ->where('user_id', $user->id)
-            ->when($filters['month'], fn ($query) => $query->whereMonth('transaction_date', $filters['month']))
-            ->when($filters['year'], fn ($query) => $query->whereYear('created_at', $filters['year']))
-            ->when($filters['search'], fn ($query) => $query->where('name', 'like', "%{$filters['search']}%"))
-            ->when($filters['category'], fn ($query) => $query->where('category_id', $filters['category']))
+            ->where('user_id', $userId)
+            ->when($data->month, fn ($query) => $query->whereMonth('transaction_date', $data->month))
+            ->when($data->year, fn ($query) => $query->whereYear('transaction_date', $data->year))
+            ->when($data->search, fn ($query) => $query->where('name', 'like', "%{$data->search}%"))
+            ->when($data->categoryId, fn ($query) => $query->where('category_id', $data->categoryId))
             ->latest()
-            ->paginate(10);
+            ->paginate($data->perPage);
     }
 }

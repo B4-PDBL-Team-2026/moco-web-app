@@ -1,16 +1,41 @@
 <?php
-// app/Actions/Transaction/DeleteTransactionAction.php
 
 namespace App\Actions\Transaction;
 
 use App\Models\Transaction;
+use App\Models\User;
+use App\Services\TransactionBalanceService;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\UnauthorizedException;
+use Throwable;
 
 class DeleteTransactionAction
 {
-    public function execute(Transaction $transaction): void
-    {
-        $transaction->delete();
+    public function __construct(
+        private readonly TransactionBalanceService $transactionBalanceService
+    ) {}
 
-        // Trigger update saldo
+    /**
+     * @throws Throwable
+     */
+    public function execute(User $user, Transaction $transaction): void
+    {
+        DB::transaction(function () use ($user, $transaction) {
+            if ($user->id !== $transaction->user_id) {
+                throw new UnauthorizedException('You are not authorized to perform this action.');
+            }
+
+            $newBalance = $this->transactionBalanceService->reverseTransaction(
+                currentBalance: (string) $user->balance,
+                type: $transaction->type,
+                amount: (string) $transaction->amount
+            );
+
+            $user->update([
+                'balance' => $newBalance,
+            ]);
+
+            $transaction->delete();
+        });
     }
 }
