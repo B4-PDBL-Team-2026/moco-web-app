@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Enums\TransactionType;
 use App\Models\Category;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class ExpenseCategoryFactory extends Factory
+class CategoryFactory extends Factory
 {
     protected $model = Category::class;
 
@@ -13,6 +14,7 @@ class ExpenseCategoryFactory extends Factory
     {
         return [
             'name' => fake()->word(),
+            'type' => fake()->randomElement([TransactionType::INCOME->value, TransactionType::EXPENSE->value]),
         ];
     }
 }
