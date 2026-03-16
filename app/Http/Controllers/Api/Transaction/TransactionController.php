@@ -3,8 +3,13 @@
 namespace App\Http\Controllers\Api\Transaction;
 
 use App\Actions\Transaction\CreateTransactionAction;
+use App\Actions\Transaction\DeleteTransactionAction;
 use App\Actions\Transaction\GetAllTransactionAction;
+use App\Actions\Transaction\GetTransactionDetailAction;
+use App\Actions\Transaction\UpdateTransactionAction;
 use App\DTOs\Transaction\CreateTransactionData;
+use App\DTOs\Transaction\FilterTransactionData;
+use App\DTOs\Transaction\UpdateTransactionData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Transaction\IndexTransactionRequest;
 use App\Http\Requests\Transaction\StoreTransactionRequest;
@@ -12,7 +17,8 @@ use App\Http\Requests\Transaction\UpdateTransactionRequest;
 use App\Models\Transaction;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
+use Throwable;
 
 class TransactionController extends Controller
 {
@@ -20,13 +26,22 @@ class TransactionController extends Controller
 
     public function index(IndexTransactionRequest $request, GetAllTransactionAction $action): JsonResponse
     {
-        $result = $action->execute(auth()->user(), $request->validated());
+        Gate::authorize('view-any', Transaction::class);
+
+        $filterData = FilterTransactionData::fromArray($request->validated());
+
+        $result = $action->execute(auth()->id(), $filterData);
 
         return $this->success($result, 'Transactions retrieved successfully.');
     }
 
+    /**
+     * @throws Throwable
+     */
     public function store(StoreTransactionRequest $request, CreateTransactionAction $action): JsonResponse
     {
+        Gate::authorize('create', Transaction::class);
+
         $dto = CreateTransactionData::fromArray($request->validated());
 
         $result = $action->execute(auth()->user(), $dto);
@@ -37,42 +52,38 @@ class TransactionController extends Controller
         );
     }
 
-    public function show($id): JsonResponse
+    public function show(Transaction $transaction, GetTransactionDetailAction $action): JsonResponse
     {
-        $transaction = Transaction::with('category')
-            ->where('user_id', Auth::id())
-            ->findOrFail($id);
+        Gate::authorize('view', $transaction);
 
-        return response()->json([
-            'success' => true,
-            'data' => $transaction,
-        ]);
+        $result = $action->execute(auth()->user(), $transaction);
+
+        return $this->success($result, 'Transaction retrieved successfully.');
     }
 
-    public function update($id, UpdateTransactionRequest $request): JsonResponse
+    /**
+     * @throws Throwable
+     */
+    public function update(UpdateTransactionRequest $request, Transaction $transaction, UpdateTransactionAction $action): JsonResponse
     {
-        $transaction = Transaction::where('user_id', Auth::id())
-            ->findOrFail($id);
+        Gate::authorize('update', $transaction);
 
-        $transaction->update($request->validated());
+        $dto = UpdateTransactionData::fromArray($request->validated());
 
-        return response()->json([
-            'success' => true,
-            'data' => $transaction,
-            'message' => 'Transaction updated successfully',
-        ]);
+        $result = $action->execute(auth()->user(), $transaction, $dto);
+
+        return $this->success($result, 'Transaction updated successfully.');
     }
 
-    public function destroy($id): JsonResponse
+    /**
+     * @throws Throwable
+     */
+    public function destroy(Transaction $transaction, DeleteTransactionAction $action): JsonResponse
     {
-        $transaction = Transaction::where('user_id', Auth::id())
-            ->findOrFail($id);
+        Gate::authorize('delete', $transaction);
 
-        $transaction->delete();
+        $action->execute(auth()->user(), $transaction);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Transaction deleted successfully',
-        ]);
+        return $this->success(message: 'Transaction deleted successfully.');
     }
 }
