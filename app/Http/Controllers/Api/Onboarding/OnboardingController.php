@@ -6,7 +6,7 @@ use App\Actions\Onboarding\ProcessOnboardingAction;
 use App\Actions\Onboarding\RetrieveOnboardingDataAction;
 use App\DTOs\Onboarding\StoreOnboardingUserDTO;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreOnboardingRequest;
+use App\Http\Requests\Onboarding\StoreOnboardingRequest;
 use App\Models\User;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;

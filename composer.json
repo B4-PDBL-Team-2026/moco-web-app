@@ -16,7 +16,8 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
         "laravel/wayfinder": "^0.1.11",
-        "scalar/laravel": "^0.2.0"
+        "scalar/laravel": "^0.2.0",
+        "ext-bcmath": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

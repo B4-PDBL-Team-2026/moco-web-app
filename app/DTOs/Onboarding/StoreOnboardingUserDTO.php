@@ -4,7 +4,7 @@ namespace App\DTOs\Onboarding;
 
 use App\DTOs\Budget\FixedCostDTO;
 use App\Enums\CycleType;
-use App\Http\Requests\StoreOnboardingRequest;
+use App\Http\Requests\Onboarding\StoreOnboardingRequest;
 
 final readonly class StoreOnboardingUserDTO
 {

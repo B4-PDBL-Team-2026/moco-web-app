@@ -19,7 +19,6 @@ test('it can verify email successfully', function () {
     );
 
     $response = $this->getJson($url);
-    $response->dump();
 
     $response->assertStatus(200)
         ->assertJsonPath('success', true)

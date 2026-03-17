@@ -10,7 +10,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-
 it('requires authentication to store onboarding data', function (): void {
     $payload = [
         'budgetCycle' => CycleType::MONTHLY->value,

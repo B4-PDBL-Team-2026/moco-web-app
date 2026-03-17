@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Onboarding;
 
 use App\Enums\CycleType;
 use App\Enums\DeductionType;

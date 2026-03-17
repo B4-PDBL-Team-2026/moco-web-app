@@ -16,10 +16,15 @@ return new class extends Migration
             $table->string('name', 255);
             $table->decimal('amount', 15, 2);
             $table->string('type');
+            $table->date('transaction_date');
             $table->text('note')->nullable();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamps();
+
+            $table->index(['user_id', 'transaction_date']);
+            $table->index(['user_id', 'category_id', 'transaction_date']);
+            $table->index(['user_id', 'type', 'transaction_date']);
         });
     }
 
@@ -28,6 +33,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('transactions');
     }
 };

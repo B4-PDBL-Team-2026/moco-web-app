@@ -16,7 +16,10 @@ return new class extends Migration
             $table->string('name', 255);
             $table->string('icon')->nullable();
             $table->string('colors', 20)->nullable();
+            $table->string('type');
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade');
+
+            $table->unique(['user_id', 'name']);
         });
     }
 
