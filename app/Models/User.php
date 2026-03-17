@@ -46,6 +46,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'goal' => Goal::class,
             'cycle_type' => CycleType::class,
             'cycle_start' => 'datetime',
+            'has_onboarded' => 'boolean',
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
