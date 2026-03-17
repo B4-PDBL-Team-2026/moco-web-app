@@ -5,12 +5,13 @@ use App\Http\Controllers\Api\Onboarding\OnboardingController;
 use App\Http\Controllers\Api\Transaction\TransactionController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('auth')->group(function () {
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/password/email', [AuthController::class, 'forgotPassword']);
-    Route::post('/password/reset', [AuthController::class, 'resetPassword']);
-    Route::get('/verify-email/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+Route::prefix('auth')->controller(AuthController::class)->group(function () {
+    Route::post('/register', 'register');
+    Route::post('/login', 'login');
+    Route::delete('/logout', 'logout')->middleware('auth:sanctum');
+    Route::post('/password/email', 'forgotPassword');
+    Route::post('/password/reset', 'resetPassword');
+    Route::get('/verify-email/{id}/{hash}', 'verifyEmail')
         ->middleware(['signed'])
         ->name('verification.verify');
 });

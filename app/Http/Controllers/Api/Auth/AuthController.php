@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Auth;
 
 use App\Actions\Auth\ForgotPasswordAction;
 use App\Actions\Auth\LoginUserAction;
+use App\Actions\Auth\LogoutUserAction;
 use App\Actions\Auth\RegisterUserAction;
 use App\Actions\Auth\ResetPasswordAction;
 use App\Actions\Auth\VerifyEmailAction;
@@ -85,5 +86,12 @@ class AuthController extends Controller
         $result = $action->execute($user);
 
         return $this->success(null, $result['message'], 200);
+    }
+
+    public function logout(Request $request, LogoutUserAction $action): JsonResponse
+    {
+        $action->execute($request->user());
+
+        return $this->success(message: 'Successfully logged out.');
     }
 }
