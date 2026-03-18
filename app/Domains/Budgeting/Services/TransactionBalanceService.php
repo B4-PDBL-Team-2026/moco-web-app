@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domains\Transactions\Services;
+namespace App\Domains\Budgeting\Services;
 
 use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\Transaction;
