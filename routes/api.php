@@ -25,10 +25,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Transaction Endpoints
     Route::controller(TransactionController::class)->prefix('transaction')->group(function () {
-        Route::get('/transactions', 'index');
-        Route::post('/transactions', 'store');
-        Route::get('/transactions/{transaction}', 'show');
-        Route::put('/transactions/{transaction}', 'update');
-        Route::delete('/transactions/{transaction}', 'destroy');
+        Route::get('/', 'index');
+        Route::post('/', 'store');
+        Route::get('/{transaction}', 'show');
+        Route::put('/{transaction}', 'update');
+        Route::delete('/{transaction}', 'destroy');
     });
 });
