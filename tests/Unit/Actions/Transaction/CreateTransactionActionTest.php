@@ -1,8 +1,8 @@
 <?php
 
-use App\Actions\Transaction\CreateTransactionAction;
-use App\DTOs\Transaction\CreateTransactionData;
-use App\Enums\TransactionType;
+use App\Domains\Transactions\Actions\CreateTransactionAction;
+use App\Domains\Transactions\DTOs\CreateTransactionData;
+use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\Category;
 use App\Models\Transaction;
 use App\Models\User;

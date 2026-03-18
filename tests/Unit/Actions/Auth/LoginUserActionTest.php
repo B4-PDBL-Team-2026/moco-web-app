@@ -1,7 +1,7 @@
 <?php
 
-use App\Actions\Auth\LoginUserAction;
-use App\DTOs\Auth\LoginUserDTO;
+use App\Domains\Auth\Actions\LoginUserAction;
+use App\Domains\Auth\DTOs\LoginUserDTO;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;

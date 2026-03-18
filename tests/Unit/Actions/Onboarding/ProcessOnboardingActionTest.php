@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use App\Actions\Onboarding\ProcessOnboardingAction;
-use App\DTOs\Budget\FixedCostDTO;
-use App\DTOs\Onboarding\StoreOnboardingUserDTO;
-use App\Enums\CycleType;
-use App\Enums\DeductionType;
+use App\Domains\Budgeting\Actions\CompleteOnboardingAction;
+use App\Domains\Budgeting\DTOs\CompleteOnboardingData;
+use App\Domains\Budgeting\Enums\CycleType;
+use App\Domains\Budgeting\Enums\DeductionType;
+use App\Domains\FixedCosts\DTOs\FixedCostDTO;
 use App\Models\FixedCost;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -34,7 +34,7 @@ it('stores onboarding data and recalculates balance from IN fixed costs only', f
         'has_onboarded' => false,
     ]);
 
-    $dto = new StoreOnboardingUserDTO(
+    $dto = new CompleteOnboardingData(
         budgetCycle: CycleType::MONTHLY,
         allowanceAmount: 3_000_000,
         fixedCosts: [
@@ -53,7 +53,7 @@ it('stores onboarding data and recalculates balance from IN fixed costs only', f
         ],
     );
 
-    app(ProcessOnboardingAction::class)->execute($user, $dto);
+    app(CompleteOnboardingAction::class)->execute($user, $dto);
 
     $user->refresh();
 
@@ -88,7 +88,7 @@ it('replaces previous fixed costs during onboarding re-process', function (): vo
         'cycle' => CycleType::MONTHLY->value,
     ]);
 
-    $dto = new StoreOnboardingUserDTO(
+    $dto = new CompleteOnboardingData(
         budgetCycle: CycleType::MONTHLY,
         allowanceAmount: 1_500_000,
         fixedCosts: [
@@ -101,7 +101,7 @@ it('replaces previous fixed costs during onboarding re-process', function (): vo
         ],
     );
 
-    app(ProcessOnboardingAction::class)->execute($user, $dto);
+    app(CompleteOnboardingAction::class)->execute($user, $dto);
 
     $user->refresh();
 
@@ -117,7 +117,7 @@ it('stores full allowance as balance when there is no IN deduction', function ()
         'has_onboarded' => false,
     ]);
 
-    $dto = new StoreOnboardingUserDTO(
+    $dto = new CompleteOnboardingData(
         budgetCycle: CycleType::MONTHLY,
         allowanceAmount: 2_000_000,
         fixedCosts: [
@@ -130,7 +130,7 @@ it('stores full allowance as balance when there is no IN deduction', function ()
         ],
     );
 
-    app(ProcessOnboardingAction::class)->execute($user, $dto);
+    app(CompleteOnboardingAction::class)->execute($user, $dto);
 
     $user->refresh();
 
@@ -154,7 +154,7 @@ it('throws validation exception when IN deductions exceed allowance and rolls ba
         'cycle' => CycleType::MONTHLY->value,
     ]);
 
-    $dto = new StoreOnboardingUserDTO(
+    $dto = new CompleteOnboardingData(
         budgetCycle: CycleType::MONTHLY,
         allowanceAmount: 100_000,
         fixedCosts: [
@@ -167,7 +167,7 @@ it('throws validation exception when IN deductions exceed allowance and rolls ba
         ],
     );
 
-    expect(fn () => app(ProcessOnboardingAction::class)->execute($user, $dto))
+    expect(fn () => app(CompleteOnboardingAction::class)->execute($user, $dto))
         ->toThrow(ValidationException::class);
 
     $user->refresh();
@@ -185,13 +185,13 @@ it('handles empty fixed costs', function (): void {
         'has_onboarded' => false,
     ]);
 
-    $dto = new StoreOnboardingUserDTO(
+    $dto = new CompleteOnboardingData(
         budgetCycle: CycleType::MONTHLY,
         allowanceAmount: 1_000_000,
         fixedCosts: [],
     );
 
-    app(ProcessOnboardingAction::class)->execute($user, $dto);
+    app(CompleteOnboardingAction::class)->execute($user, $dto);
 
     $user->refresh();
 

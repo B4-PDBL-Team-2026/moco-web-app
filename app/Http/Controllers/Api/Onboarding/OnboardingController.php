@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Api\Onboarding;
 
-use App\Actions\Onboarding\ProcessOnboardingAction;
-use App\Actions\Onboarding\RetrieveOnboardingDataAction;
-use App\DTOs\Onboarding\StoreOnboardingUserDTO;
+use App\Domains\Budgeting\Actions\CompleteOnboardingAction;
+use App\Domains\Budgeting\Actions\GetOnboardingMetadataAction;
+use App\Domains\Budgeting\DTOs\CompleteOnboardingData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Onboarding\StoreOnboardingRequest;
 use App\Models\User;
@@ -16,7 +16,7 @@ class OnboardingController extends Controller
 {
     use ApiResponse;
 
-    public function show(RetrieveOnboardingDataAction $action): JsonResponse
+    public function show(GetOnboardingMetadataAction $action): JsonResponse
     {
         /** @var User $user */
         $user = auth()->user();
@@ -29,9 +29,9 @@ class OnboardingController extends Controller
     /**
      * @throws Throwable
      */
-    public function store(StoreOnboardingRequest $request, ProcessOnboardingAction $action): JsonResponse
+    public function store(StoreOnboardingRequest $request, CompleteOnboardingAction $action): JsonResponse
     {
-        $dto = StoreOnboardingUserDTO::fromRequest($request);
+        $dto = CompleteOnboardingData::fromRequest($request);
 
         /** @var User $user */
         $user = auth()->user();

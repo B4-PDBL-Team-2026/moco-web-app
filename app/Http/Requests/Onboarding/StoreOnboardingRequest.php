@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Onboarding;
 
-use App\Enums\CycleType;
-use App\Enums\DeductionType;
+use App\Domains\Budgeting\Enums\CycleType;
+use App\Domains\Budgeting\Enums\DeductionType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
 

@@ -1,7 +1,7 @@
 <?php
 
-use App\Actions\Transaction\DeleteTransactionAction;
-use App\Enums\TransactionType;
+use App\Domains\Transactions\Actions\DeleteTransactionAction;
+use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\Category;
 use App\Models\Transaction;
 use App\Models\User;

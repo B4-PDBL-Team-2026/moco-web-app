@@ -1,6 +1,6 @@
 <?php
 
-use App\Actions\Auth\VerifyEmailAction;
+use App\Domains\Auth\Actions\VerifyEmailAction;
 use App\Models\User;
 
 it('should mark new registered user email as unverified', function () {

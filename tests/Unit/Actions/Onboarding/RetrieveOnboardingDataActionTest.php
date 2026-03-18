@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Actions\Onboarding\RetrieveOnboardingDataAction;
-use App\Enums\CycleType;
-use App\Enums\DeductionType;
+use App\Domains\Budgeting\Actions\GetOnboardingMetadataAction;
+use App\Domains\Budgeting\Enums\CycleType;
+use App\Domains\Budgeting\Enums\DeductionType;
 use App\Models\FixedCost;
 use App\Models\User;
 
@@ -31,7 +31,7 @@ it('returns onboarding form data and summary', function (): void {
         'cycle' => CycleType::MONTHLY->value,
     ]);
 
-    $result = app(RetrieveOnboardingDataAction::class)->execute($user->fresh());
+    $result = app(GetOnboardingMetadataAction::class)->execute($user->fresh());
 
     expect($result)->toHaveKeys(['form', 'summary'])
         ->and($result['form']['budgetCycle'])->toBe(CycleType::MONTHLY->value)
@@ -58,7 +58,7 @@ it('returns empty fixed costs and zero total when user has no fixed costs', func
         'balance' => 500_000,
     ]);
 
-    $result = app(RetrieveOnboardingDataAction::class)->execute($user->fresh());
+    $result = app(GetOnboardingMetadataAction::class)->execute($user->fresh());
 
     expect($result['form']['fixedCosts'])->toBe([])
         ->and((float) $result['summary']['totalFixedCosts'])->toBe(0.0)
@@ -81,7 +81,7 @@ it('maps each fixed cost in api-friendly shape', function (): void {
         'cycle' => CycleType::MONTHLY->value,
     ]);
 
-    $result = app(RetrieveOnboardingDataAction::class)->execute($user->fresh());
+    $result = app(GetOnboardingMetadataAction::class)->execute($user->fresh());
 
     expect($result['form']['fixedCosts'])->toBe([
         [
@@ -101,7 +101,7 @@ it('returns zero daily limit when cycle type is missing', function (): void {
         'balance' => 600_000,
     ]);
 
-    $result = app(RetrieveOnboardingDataAction::class)->execute($user->fresh());
+    $result = app(GetOnboardingMetadataAction::class)->execute($user->fresh());
 
     expect($result['form']['budgetCycle'])->toBeNull()
         ->and((float) $result['summary']['dailyLimit'])->toBe(0.0);

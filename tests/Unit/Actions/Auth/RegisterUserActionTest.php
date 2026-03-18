@@ -1,7 +1,7 @@
 <?php
 
-use App\Actions\Auth\RegisterUserAction;
-use App\DTOs\Auth\RegisterUserDTO;
+use App\Domains\Auth\Actions\RegisterUserAction;
+use App\Domains\Auth\DTOs\RegisterUserDTO;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Event;

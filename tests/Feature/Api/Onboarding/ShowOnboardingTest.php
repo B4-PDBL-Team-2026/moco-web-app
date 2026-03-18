@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Enums\CycleType;
-use App\Enums\DeductionType;
+use App\Domains\Budgeting\Enums\CycleType;
+use App\Domains\Budgeting\Enums\DeductionType;
 use App\Models\FixedCost;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;

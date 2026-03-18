@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Enums\TransactionType;
+use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\Category;
 use Illuminate\Database\Eloquent\Factories\Factory;
 

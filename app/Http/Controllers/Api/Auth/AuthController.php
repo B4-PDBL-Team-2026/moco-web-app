@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Api\Auth;
 
-use App\Actions\Auth\ForgotPasswordAction;
-use App\Actions\Auth\LoginUserAction;
-use App\Actions\Auth\LogoutUserAction;
-use App\Actions\Auth\RegisterUserAction;
-use App\Actions\Auth\ResetPasswordAction;
-use App\Actions\Auth\VerifyEmailAction;
-use App\DTOs\Auth\LoginUserDTO;
-use App\DTOs\Auth\RegisterUserDTO;
+use App\Domains\Auth\Actions\ForgotPasswordAction;
+use App\Domains\Auth\Actions\LoginUserAction;
+use App\Domains\Auth\Actions\LogoutUserAction;
+use App\Domains\Auth\Actions\RegisterUserAction;
+use App\Domains\Auth\Actions\ResetPasswordAction;
+use App\Domains\Auth\Actions\VerifyEmailAction;
+use App\Domains\Auth\DTOs\LoginUserDTO;
+use App\Domains\Auth\DTOs\RegisterUserDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;

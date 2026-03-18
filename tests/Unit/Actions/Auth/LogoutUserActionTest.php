@@ -1,6 +1,6 @@
 <?php
 
-use App\Actions\Auth\LogoutUserAction;
+use App\Domains\Auth\Actions\LogoutUserAction;
 use App\Models\User;
 use Laravel\Sanctum\PersonalAccessToken;
 

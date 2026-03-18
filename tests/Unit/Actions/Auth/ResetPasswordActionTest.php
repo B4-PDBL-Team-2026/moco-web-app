@@ -1,6 +1,6 @@
 <?php
 
-use App\Actions\Auth\ResetPasswordAction;
+use App\Domains\Auth\Actions\ResetPasswordAction;
 use Illuminate\Support\Facades\Password;
 
 it('should return success array on success reset password action', function () {

@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Api\Transaction;
 
-use App\Actions\Transaction\CreateTransactionAction;
-use App\Actions\Transaction\DeleteTransactionAction;
-use App\Actions\Transaction\GetAllTransactionAction;
-use App\Actions\Transaction\GetTransactionDetailAction;
-use App\Actions\Transaction\UpdateTransactionAction;
-use App\DTOs\Transaction\CreateTransactionData;
-use App\DTOs\Transaction\FilterTransactionData;
-use App\DTOs\Transaction\UpdateTransactionData;
+use App\Domains\Transactions\Actions\CreateTransactionAction;
+use App\Domains\Transactions\Actions\DeleteTransactionAction;
+use App\Domains\Transactions\Actions\GetAllTransactionAction;
+use App\Domains\Transactions\Actions\GetTransactionDetailAction;
+use App\Domains\Transactions\Actions\UpdateTransactionAction;
+use App\Domains\Transactions\DTOs\CreateTransactionData;
+use App\Domains\Transactions\DTOs\FilterTransactionData;
+use App\Domains\Transactions\DTOs\UpdateTransactionData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Transaction\IndexTransactionRequest;
 use App\Http\Requests\Transaction\StoreTransactionRequest;

@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Enums\TransactionType;
+use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\Category;
 use Illuminate\Database\Seeder;
 

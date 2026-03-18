@@ -1,6 +1,6 @@
 <?php
 
-use App\Enums\CycleType;
+use App\Domains\Budgeting\Enums\CycleType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

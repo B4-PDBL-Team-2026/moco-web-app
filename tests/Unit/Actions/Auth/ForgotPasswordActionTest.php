@@ -1,6 +1,6 @@
 <?php
 
-use App\Actions\Auth\ForgotPasswordAction;
+use App\Domains\Auth\Actions\ForgotPasswordAction;
 use Illuminate\Support\Facades\Password;
 
 it('send reset password link correctly', function () {

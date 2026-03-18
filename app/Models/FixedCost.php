@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use App\Enums\CycleType;
-use App\Enums\DeductionType;
+use App\Domains\Budgeting\Enums\CycleType;
+use App\Domains\Budgeting\Enums\DeductionType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 

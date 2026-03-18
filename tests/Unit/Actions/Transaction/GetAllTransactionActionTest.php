@@ -1,8 +1,8 @@
 <?php
 
-use App\Actions\Transaction\GetAllTransactionAction;
-use App\DTOs\Transaction\FilterTransactionData;
-use App\Enums\TransactionType;
+use App\Domains\Transactions\Actions\GetAllTransactionAction;
+use App\Domains\Transactions\DTOs\FilterTransactionData;
+use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\Category;
 use App\Models\Transaction;
 use App\Models\User;

@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use App\Enums\CycleType;
-use App\Enums\Goal;
+use App\Domains\Budgeting\Enums\CycleType;
+use App\Domains\Budgeting\Enums\Goal;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
