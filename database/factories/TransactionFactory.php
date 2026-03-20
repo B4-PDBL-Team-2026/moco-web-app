@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\Category;
+use App\Models\SystemCategory;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -12,7 +12,7 @@ class TransactionFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'category_id' => Category::factory(),
+            'category_id' => SystemCategory::factory(),
             'name' => $this->faker->words(3, true),
             'amount' => $this->faker->randomFloat(2, 1000, 1000000),
             'type' => $this->faker->randomElement(['income', 'expense']),

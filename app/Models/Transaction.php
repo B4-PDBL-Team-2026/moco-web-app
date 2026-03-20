@@ -6,6 +6,7 @@ use App\Domains\Transactions\Enums\TransactionType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Transaction extends Model
 {
@@ -19,6 +20,8 @@ class Transaction extends Model
         'user_id',
         'category_id',
         'transaction_date',
+        'source_type',
+        'effective_at',
     ];
 
     protected $casts = [
@@ -32,8 +35,8 @@ class Transaction extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function category(): BelongsTo
+    public function category(): MorphTo
     {
-        return $this->belongsTo(Category::class);
+        return $this->morphTo();
     }
 }

@@ -13,18 +13,24 @@ return new class extends Migration
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('category_id')->constrained('categories')->cascadeOnDelete();
+            $table->foreignId('fixed_cost_occurrence_id')->nullable()->unique()->constrained()->nullOnDelete();
+
+            $table->string('type'); // income, expense
+            $table->string('kind')->default('manual'); // manual, opening_balance, fixed_cost_payment, adjustment
             $table->string('name', 255);
             $table->decimal('amount', 15, 2);
-            $table->string('type');
             $table->date('transaction_date');
+            $table->timestamp('effective_at')->nullable();
             $table->text('note')->nullable();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
+
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index(['user_id', 'transaction_date']);
-            $table->index(['user_id', 'category_id', 'transaction_date']);
             $table->index(['user_id', 'type', 'transaction_date']);
+            $table->index(['user_id', 'fixed_cost_occurrence_id']);
         });
     }
 
