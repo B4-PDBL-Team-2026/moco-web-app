@@ -5,10 +5,9 @@ namespace App\Models;
 use App\Domains\Transactions\Enums\TransactionType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
-class Category extends Model
+class SystemCategory extends Model
 {
     use HasFactory;
 
@@ -16,23 +15,22 @@ class Category extends Model
 
     protected $fillable = [
         'name',
-        'type',
         'icon',
         'colors',
-        'user_id',
+        'type',
     ];
 
     protected $casts = [
         'type' => TransactionType::class,
     ];
 
-    public function user(): BelongsTo
+    public function transactions(): MorphMany
     {
-        return $this->belongsTo(User::class);
+        return $this->morphMany(Transaction::class, 'category');
     }
 
-    public function transactions(): HasMany
+    public function fixedCostTemplates(): MorphMany
     {
-        return $this->hasMany(Transaction::class);
+        return $this->morphMany(FixedCostTempl::class, 'fixed_cost_template');
     }
 }

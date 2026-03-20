@@ -3,12 +3,12 @@
 namespace Database\Factories;
 
 use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\Category;
+use App\Models\SystemCategory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class CategoryFactory extends Factory
+class SystemCategoryFactory extends Factory
 {
-    protected $model = Category::class;
+    protected $model = SystemCategory::class;
 
     public function definition(): array
     {
