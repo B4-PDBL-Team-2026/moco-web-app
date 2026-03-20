@@ -7,7 +7,7 @@ use App\Domains\Budgeting\Enums\DeductionType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class FixedCost extends Model
+class FixedCostTemplate extends Model
 {
     public $timestamps = false;
 
