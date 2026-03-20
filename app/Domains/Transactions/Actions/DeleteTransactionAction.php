@@ -2,7 +2,7 @@
 
 namespace App\Domains\Transactions\Actions;
 
-use App\Domains\Transactions\Services\TransactionBalanceService;
+use App\Domains\Budgeting\Services\TransactionBalanceService;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Domains\Budgeting\Enums\CycleType;
 use App\Domains\Budgeting\Enums\DeductionType;
-use App\Models\FixedCost;
+use App\Models\FixedCostTemplate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -23,7 +23,7 @@ it('returns onboarding form and summary data for authenticated user', function (
         'has_onboarded' => true,
     ]);
 
-    FixedCost::query()->create([
+    FixedCostTemplate::query()->create([
         'user_id' => $user->id,
         'name' => 'Rent',
         'amount' => 1_000_000,
@@ -31,7 +31,7 @@ it('returns onboarding form and summary data for authenticated user', function (
         'cycle' => CycleType::MONTHLY->value,
     ]);
 
-    FixedCost::query()->create([
+    FixedCostTemplate::query()->create([
         'user_id' => $user->id,
         'name' => 'Internet',
         'amount' => 300_000,
@@ -41,7 +41,7 @@ it('returns onboarding form and summary data for authenticated user', function (
 
     $otherUser = User::factory()->create();
 
-    FixedCost::query()->create([
+    FixedCostTemplate::query()->create([
         'user_id' => $otherUser->id,
         'name' => 'Other User Cost',
         'amount' => 999_999,
@@ -123,7 +123,7 @@ it('only returns authenticated users onboarding data', function (): void {
         'balance' => 8_000_000,
     ]);
 
-    FixedCost::query()->create([
+    FixedCostTemplate::query()->create([
         'user_id' => $user->id,
         'name' => 'User Cost',
         'amount' => 100_000,
@@ -131,7 +131,7 @@ it('only returns authenticated users onboarding data', function (): void {
         'cycle' => CycleType::MONTHLY->value,
     ]);
 
-    FixedCost::query()->create([
+    FixedCostTemplate::query()->create([
         'user_id' => $otherUser->id,
         'name' => 'Other User Cost',
         'amount' => 500_000,

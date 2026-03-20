@@ -10,7 +10,8 @@ final readonly class CompleteOnboardingData
 {
     public function __construct(
         public CycleType $budgetCycle,
-        public float $allowanceAmount,
+        public string $allowanceAmount,
+        public string $dailyCeilingAmount,
         public array $fixedCosts = [],
     ) {}
 
@@ -20,7 +21,8 @@ final readonly class CompleteOnboardingData
 
         return new self(
             budgetCycle: CycleType::from($validated['budgetCycle']),
-            allowanceAmount: (float) $validated['allowanceAmount'],
+            allowanceAmount: (string) $validated['allowanceAmount'],
+            dailyCeilingAmount: (string) $validated['dailyCeilingAmount'],
             fixedCosts: array_map(
                 fn (array $fixedCost) => FixedCostDTO::fromArray($fixedCost),
                 $validated['fixedCosts'] ?? []

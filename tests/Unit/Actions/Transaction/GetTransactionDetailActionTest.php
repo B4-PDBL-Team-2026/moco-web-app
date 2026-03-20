@@ -2,14 +2,14 @@
 
 use App\Domains\Transactions\Actions\GetTransactionDetailAction;
 use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\Category;
+use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
 
 it('returns transaction by id for owner', function () {
     $user = User::factory()->create();
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
@@ -30,7 +30,7 @@ it('fails when transaction does not belong to user', function () {
     $user = User::factory()->create();
     $otherUser = User::factory()->create();
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $otherUser->id,
         'type' => TransactionType::EXPENSE,
     ]);

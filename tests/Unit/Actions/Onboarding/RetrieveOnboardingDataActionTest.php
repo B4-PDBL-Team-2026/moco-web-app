@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Domains\Budgeting\Actions\GetOnboardingMetadataAction;
+use App\Domains\Budgeting\Actions\UpdateInitialBalanceAction;
 use App\Domains\Budgeting\Enums\CycleType;
 use App\Domains\Budgeting\Enums\DeductionType;
-use App\Models\FixedCost;
+use App\Models\FixedCostTemplate;
 use App\Models\User;
 
 it('returns onboarding form data and summary', function (): void {
@@ -15,7 +15,7 @@ it('returns onboarding form data and summary', function (): void {
         'balance' => 2_000_000,
     ]);
 
-    FixedCost::query()->create([
+    FixedCostTemplate::query()->create([
         'user_id' => $user->id,
         'name' => 'Rent',
         'amount' => 1_000_000,
@@ -23,7 +23,7 @@ it('returns onboarding form data and summary', function (): void {
         'cycle' => CycleType::MONTHLY->value,
     ]);
 
-    FixedCost::query()->create([
+    FixedCostTemplate::query()->create([
         'user_id' => $user->id,
         'name' => 'Internet',
         'amount' => 300_000,
@@ -31,7 +31,7 @@ it('returns onboarding form data and summary', function (): void {
         'cycle' => CycleType::MONTHLY->value,
     ]);
 
-    $result = app(GetOnboardingMetadataAction::class)->execute($user->fresh());
+    $result = app(UpdateInitialBalanceAction::class)->execute($user->fresh());
 
     expect($result)->toHaveKeys(['form', 'summary'])
         ->and($result['form']['budgetCycle'])->toBe(CycleType::MONTHLY->value)
@@ -58,7 +58,7 @@ it('returns empty fixed costs and zero total when user has no fixed costs', func
         'balance' => 500_000,
     ]);
 
-    $result = app(GetOnboardingMetadataAction::class)->execute($user->fresh());
+    $result = app(UpdateInitialBalanceAction::class)->execute($user->fresh());
 
     expect($result['form']['fixedCosts'])->toBe([])
         ->and((float) $result['summary']['totalFixedCosts'])->toBe(0.0)
@@ -73,7 +73,7 @@ it('maps each fixed cost in api-friendly shape', function (): void {
         'balance' => 1_000_000,
     ]);
 
-    $fixedCost = FixedCost::query()->create([
+    $fixedCost = FixedCostTemplate::query()->create([
         'user_id' => $user->id,
         'name' => 'Spotify',
         'amount' => 99_999,
@@ -81,7 +81,7 @@ it('maps each fixed cost in api-friendly shape', function (): void {
         'cycle' => CycleType::MONTHLY->value,
     ]);
 
-    $result = app(GetOnboardingMetadataAction::class)->execute($user->fresh());
+    $result = app(UpdateInitialBalanceAction::class)->execute($user->fresh());
 
     expect($result['form']['fixedCosts'])->toBe([
         [
@@ -101,7 +101,7 @@ it('returns zero daily limit when cycle type is missing', function (): void {
         'balance' => 600_000,
     ]);
 
-    $result = app(GetOnboardingMetadataAction::class)->execute($user->fresh());
+    $result = app(UpdateInitialBalanceAction::class)->execute($user->fresh());
 
     expect($result['form']['budgetCycle'])->toBeNull()
         ->and((float) $result['summary']['dailyLimit'])->toBe(0.0);

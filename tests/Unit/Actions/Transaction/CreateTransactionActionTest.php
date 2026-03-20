@@ -3,7 +3,7 @@
 use App\Domains\Transactions\Actions\CreateTransactionAction;
 use App\Domains\Transactions\DTOs\CreateTransactionData;
 use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\Category;
+use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Validation\ValidationException;
@@ -13,7 +13,7 @@ it('creates income transaction and updates user balance', function () {
         'balance' => '1000.00',
     ]);
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::INCOME,
     ]);
@@ -50,7 +50,7 @@ it('creates expense transaction and updates user balance', function () {
         'balance' => '1000.00',
     ]);
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
@@ -77,7 +77,7 @@ it('throws validation exception when category type does not match transaction ty
         'balance' => '1000.00',
     ]);
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
@@ -100,7 +100,7 @@ it('fails when category does not belong to user', function () {
     $user = User::factory()->create();
     $otherUser = User::factory()->create();
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $otherUser->id,
         'type' => TransactionType::INCOME,
     ]);

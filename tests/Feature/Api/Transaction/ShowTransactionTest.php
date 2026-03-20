@@ -1,7 +1,7 @@
 <?php
 
 use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\Category;
+use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
@@ -15,7 +15,7 @@ test('authenticated user can show own transaction', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user);
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
@@ -40,7 +40,7 @@ test('authenticated user cannot show other users transaction', function () {
 
     Sanctum::actingAs($user);
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $otherUser->id,
         'type' => TransactionType::EXPENSE,
     ]);

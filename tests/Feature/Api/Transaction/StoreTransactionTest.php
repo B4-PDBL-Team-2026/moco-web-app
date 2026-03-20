@@ -1,7 +1,7 @@
 <?php
 
 use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\Category;
+use App\Models\SystemCategory;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
 
@@ -17,7 +17,7 @@ test('authenticated user can create income transaction', function () {
 
     Sanctum::actingAs($user);
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::INCOME,
     ]);
@@ -56,7 +56,7 @@ test('authenticated user can create expense transaction', function () {
 
     Sanctum::actingAs($user);
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
@@ -95,7 +95,7 @@ test('store endpoint validates amount must be greater than zero', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user);
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
@@ -117,7 +117,7 @@ test('store endpoint validates type enum', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user);
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
@@ -141,7 +141,7 @@ test('store endpoint validates category belongs to authenticated user', function
 
     Sanctum::actingAs($user);
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $otherUser->id,
         'type' => TransactionType::EXPENSE,
     ]);
@@ -166,7 +166,7 @@ test('store endpoint returns validation error when category type mismatches tran
 
     Sanctum::actingAs($user);
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);

@@ -7,7 +7,7 @@ use App\Domains\Budgeting\DTOs\CompleteOnboardingData;
 use App\Domains\Budgeting\Enums\CycleType;
 use App\Domains\Budgeting\Enums\DeductionType;
 use App\Domains\FixedCosts\DTOs\FixedCostDTO;
-use App\Models\FixedCost;
+use App\Models\FixedCostTemplate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
@@ -80,7 +80,7 @@ it('replaces previous fixed costs during onboarding re-process', function (): vo
         'has_onboarded' => true,
     ]);
 
-    FixedCost::query()->create([
+    FixedCostTemplate::query()->create([
         'user_id' => $user->id,
         'name' => 'Old Cost',
         'amount' => 100_000,
@@ -107,7 +107,7 @@ it('replaces previous fixed costs during onboarding re-process', function (): vo
 
     expect($user->fixedCosts()->count())->toBe(1)
         ->and($user->fixedCosts()->first()->name)->toBe('Internet')
-        ->and(FixedCost::query()->where('name', 'Old Cost')->exists())->toBeFalse()
+        ->and(FixedCostTemplate::query()->where('name', 'Old Cost')->exists())->toBeFalse()
         ->and((float) $user->balance)->toBe(1_200_000.0);
 });
 
@@ -146,7 +146,7 @@ it('throws validation exception when IN deductions exceed allowance and rolls ba
         'has_onboarded' => false,
     ]);
 
-    FixedCost::query()->create([
+    FixedCostTemplate::query()->create([
         'user_id' => $user->id,
         'name' => 'Existing Cost',
         'amount' => 50_000,

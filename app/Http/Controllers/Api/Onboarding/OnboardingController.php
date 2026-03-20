@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\Onboarding;
 
 use App\Domains\Budgeting\Actions\CompleteOnboardingAction;
-use App\Domains\Budgeting\Actions\GetOnboardingMetadataAction;
+use App\Domains\Budgeting\Actions\UpdateInitialBalanceAction;
 use App\Domains\Budgeting\DTOs\CompleteOnboardingData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Onboarding\StoreOnboardingRequest;
@@ -16,7 +16,7 @@ class OnboardingController extends Controller
 {
     use ApiResponse;
 
-    public function show(GetOnboardingMetadataAction $action): JsonResponse
+    public function show(UpdateInitialBalanceAction $action): JsonResponse
     {
         /** @var User $user */
         $user = auth()->user();

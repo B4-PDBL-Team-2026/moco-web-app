@@ -1,7 +1,7 @@
 <?php
 
 use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\Category;
+use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
@@ -15,7 +15,7 @@ test('authenticated user can get paginated transactions', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user);
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
@@ -49,12 +49,12 @@ test('authenticated user only sees their own transactions', function () {
 
     Sanctum::actingAs($user);
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
 
-    $otherCategory = Category::factory()->create([
+    $otherCategory = SystemCategory::factory()->create([
         'user_id' => $otherUser->id,
         'type' => TransactionType::EXPENSE,
     ]);
@@ -100,7 +100,7 @@ test('index endpoint validates category id belongs to user', function () {
 
     Sanctum::actingAs($user);
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $otherUser->id,
     ]);
 
@@ -122,13 +122,13 @@ test('index endpoint can filter by month year search and category', function () 
     $user = User::factory()->create();
     Sanctum::actingAs($user);
 
-    $categoryA = Category::factory()->create([
+    $categoryA = SystemCategory::factory()->create([
         'name' => 'category A',
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
 
-    $categoryB = Category::factory()->create([
+    $categoryB = SystemCategory::factory()->create([
         'name' => 'category B',
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,

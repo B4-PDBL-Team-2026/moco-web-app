@@ -4,7 +4,7 @@ namespace App\Domains\Budgeting\Actions;
 
 use App\Models\User;
 
-class GetOnboardingMetadataAction
+class UpdateInitialBalanceAction
 {
     public function execute(User $user): array
     {

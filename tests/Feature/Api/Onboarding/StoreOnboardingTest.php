@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Domains\Budgeting\Enums\CycleType;
 use App\Domains\Budgeting\Enums\DeductionType;
-use App\Models\FixedCost;
+use App\Models\FixedCostTemplate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -102,7 +102,7 @@ it('replaces previous fixed costs when onboarding is submitted again', function 
         'has_onboarded' => true,
     ]);
 
-    FixedCost::query()->create([
+    FixedCostTemplate::query()->create([
         'user_id' => $user->id,
         'name' => 'Old Cost',
         'amount' => 50_000,
@@ -132,7 +132,7 @@ it('replaces previous fixed costs when onboarding is submitted again', function 
     expect((float) $user->balance)->toBe(1_700_000.0)
         ->and($user->fixedCosts()->count())->toBe(1)
         ->and($user->fixedCosts()->first()->name)->toBe('Internet')
-        ->and(FixedCost::query()->where('name', 'Old Cost')->exists())->toBeFalse();
+        ->and(FixedCostTemplate::query()->where('name', 'Old Cost')->exists())->toBeFalse();
 });
 
 it('returns validation errors when payload is invalid', function (): void {
@@ -172,7 +172,7 @@ it('returns validation error when total IN fixed costs exceeds allowance', funct
         'has_onboarded' => false,
     ]);
 
-    FixedCost::query()->create([
+    FixedCostTemplate::query()->create([
         'user_id' => $user->id,
         'name' => 'Existing Cost',
         'amount' => 100_000,

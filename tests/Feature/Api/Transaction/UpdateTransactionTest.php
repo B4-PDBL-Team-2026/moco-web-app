@@ -1,7 +1,7 @@
 <?php
 
 use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\Category;
+use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
@@ -18,7 +18,7 @@ test('authenticated user can update own transaction', function () {
 
     Sanctum::actingAs($user);
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
@@ -58,12 +58,12 @@ test('authenticated user can update transaction type and category', function () 
 
     Sanctum::actingAs($user);
 
-    $expenseCategory = Category::factory()->create([
+    $expenseCategory = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
 
-    $incomeCategory = Category::factory()->create([
+    $incomeCategory = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::INCOME,
     ]);
@@ -91,7 +91,7 @@ test('update endpoint validates amount when provided', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user);
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
@@ -114,12 +114,12 @@ test('update endpoint validates category belongs to authenticated user', functio
 
     Sanctum::actingAs($user);
 
-    $ownCategory = Category::factory()->create([
+    $ownCategory = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
 
-    $otherCategory = Category::factory()->create([
+    $otherCategory = SystemCategory::factory()->create([
         'user_id' => $otherUser->id,
         'type' => TransactionType::EXPENSE,
     ]);
@@ -140,12 +140,12 @@ test('update endpoint rejects mismatched category type and transaction type', fu
     $user = User::factory()->create();
     Sanctum::actingAs($user);
 
-    $expenseCategory = Category::factory()->create([
+    $expenseCategory = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
 
-    $incomeCategory = Category::factory()->create([
+    $incomeCategory = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::INCOME,
     ]);
@@ -169,7 +169,7 @@ test('authenticated user cannot update other users transaction', function () {
 
     Sanctum::actingAs($user);
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $otherUser->id,
         'type' => TransactionType::EXPENSE,
     ]);

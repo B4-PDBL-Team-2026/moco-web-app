@@ -3,7 +3,7 @@
 use App\Domains\Transactions\Actions\UpdateTransactionAction;
 use App\Domains\Transactions\DTOs\UpdateTransactionData;
 use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\Category;
+use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -14,7 +14,7 @@ it('updates transaction name and note only', function () {
         'balance' => '1000.00',
     ]);
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
@@ -57,7 +57,7 @@ it('updates amount and recalculates balance', function () {
         'balance' => '900.00',
     ]);
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
@@ -97,13 +97,13 @@ it('updates type and recalculates balance', function () {
         'balance' => '900.00',
     ]);
 
-    $expenseCategory = Category::factory()->create([
+    $expenseCategory = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'name' => 'expense tag',
         'type' => TransactionType::EXPENSE,
     ]);
 
-    $incomeCategory = Category::factory()->create([
+    $incomeCategory = SystemCategory::factory()->create([
         'name' => 'income tag',
         'user_id' => $user->id,
         'type' => TransactionType::INCOME,
@@ -144,7 +144,7 @@ it('updates transaction date', function () {
         'balance' => '1000.00',
     ]);
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
@@ -184,12 +184,12 @@ it('throws validation exception when updated category type does not match update
         'balance' => '1000.00',
     ]);
 
-    $expenseCategory = Category::factory()->create([
+    $expenseCategory = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
 
-    $incomeCategory = Category::factory()->create([
+    $incomeCategory = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::INCOME,
     ]);
@@ -225,7 +225,7 @@ it('fails when user tries to update other users transaction', function () {
     $user = User::factory()->create();
     $otherUser = User::factory()->create();
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $otherUser->id,
         'type' => TransactionType::EXPENSE,
     ]);

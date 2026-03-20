@@ -3,7 +3,7 @@
 use App\Domains\Transactions\Actions\GetAllTransactionAction;
 use App\Domains\Transactions\DTOs\FilterTransactionData;
 use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\Category;
+use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
 
@@ -11,12 +11,12 @@ it('returns paginated transactions only for authenticated user', function () {
     $user = User::factory()->create();
     $otherUser = User::factory()->create();
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
 
-    $otherCategory = Category::factory()->create([
+    $otherCategory = SystemCategory::factory()->create([
         'user_id' => $otherUser->id,
         'type' => TransactionType::EXPENSE,
     ]);
@@ -49,7 +49,7 @@ it('returns paginated transactions only for authenticated user', function () {
 it('filters transactions by month', function () {
     $user = User::factory()->create();
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
@@ -84,7 +84,7 @@ it('filters transactions by month', function () {
 it('filters transactions by year using transaction_date', function () {
     $user = User::factory()->create();
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
@@ -119,7 +119,7 @@ it('filters transactions by year using transaction_date', function () {
 it('filters transactions by search keyword', function () {
     $user = User::factory()->create();
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
@@ -155,12 +155,12 @@ it('filters transactions by search keyword', function () {
 it('filters transactions by category id', function () {
     $user = User::factory()->create();
 
-    $categoryA = Category::factory()->create([
+    $categoryA = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
 
-    $categoryB = Category::factory()->create([
+    $categoryB = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
@@ -194,7 +194,7 @@ it('filters transactions by category id', function () {
 it('uses requested per page pagination value', function () {
     $user = User::factory()->create();
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);

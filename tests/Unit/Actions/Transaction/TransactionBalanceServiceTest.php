@@ -1,7 +1,7 @@
 <?php
 
+use App\Domains\Budgeting\Services\TransactionBalanceService;
 use App\Domains\Transactions\Enums\TransactionType;
-use App\Domains\Transactions\Services\TransactionBalanceService;
 use App\Models\Transaction;
 
 it('adds amount to balance for income transaction', function () {

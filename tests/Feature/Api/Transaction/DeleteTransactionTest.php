@@ -1,7 +1,7 @@
 <?php
 
 use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\Category;
+use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
@@ -18,7 +18,7 @@ test('authenticated user can delete own expense transaction and balance is resto
 
     Sanctum::actingAs($user);
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
@@ -49,7 +49,7 @@ test('authenticated user can delete own income transaction and balance is reduce
 
     Sanctum::actingAs($user);
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::INCOME,
     ]);
@@ -73,7 +73,7 @@ test('authenticated user cannot delete other users transaction', function () {
 
     Sanctum::actingAs($user);
 
-    $category = Category::factory()->create([
+    $category = SystemCategory::factory()->create([
         'user_id' => $otherUser->id,
         'type' => TransactionType::EXPENSE,
     ]);
