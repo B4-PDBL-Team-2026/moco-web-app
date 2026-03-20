@@ -4,7 +4,7 @@ namespace App\Domains\Budgeting\Actions;
 
 use App\Domains\Budgeting\DTOs\CompleteOnboardingData;
 use App\Domains\Budgeting\Enums\DeductionType;
-use App\Domains\Budgeting\Services\AllowanceCalculator;
+use App\Domains\Budgeting\Services\AllowanceCalculatorService;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
@@ -14,7 +14,7 @@ use Throwable;
 
 class CompleteOnboardingAction
 {
-    public function __construct(AllowanceCalculator $calculator) {}
+    public function __construct(AllowanceCalculatorService $calculator) {}
 
     /**
      * @throws Throwable

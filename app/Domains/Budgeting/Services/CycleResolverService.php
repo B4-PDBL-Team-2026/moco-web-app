@@ -2,4 +2,4 @@
 
 namespace App\Domains\Budgeting\Services;
 
-class BudgetSnapshotUpdater {}
+class CycleResolverService {}

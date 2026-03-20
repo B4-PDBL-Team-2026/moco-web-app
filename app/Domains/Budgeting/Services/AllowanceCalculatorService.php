@@ -6,7 +6,7 @@ use App\Commons\MoneyService;
 use App\Domains\Budgeting\Enums\CycleType;
 use Carbon\CarbonImmutable;
 
-class AllowanceCalculator
+class AllowanceCalculatorService
 {
     public function calculateInitial(
         string $balance,

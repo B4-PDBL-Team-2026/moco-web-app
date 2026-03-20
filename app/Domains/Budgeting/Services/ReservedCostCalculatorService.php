@@ -2,4 +2,4 @@
 
 namespace App\Domains\Budgeting\Services;
 
-class ReservedCostCalculator {}
+class ReservedCostCalculatorService {}
