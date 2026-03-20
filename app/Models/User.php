@@ -2,8 +2,7 @@
 
 namespace App\Models;
 
-use App\Domains\Budgeting\Enums\CycleType;
-use App\Domains\Budgeting\Enums\Goal;
+use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,7 +12,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
@@ -21,7 +20,7 @@ class User extends Authenticatable implements MustVerifyEmail
      *
      * @var list<string>
      */
-    protected $fillable = ['name', 'email', 'password', 'goal', 'cycle_type', 'cycle_start', 'balance', 'allowance_amount', 'has_onboarded', 'profile_url'];
+    protected $fillable = ['name', 'email', 'password', 'has_onboarded', 'profile_url'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -41,25 +40,15 @@ class User extends Authenticatable implements MustVerifyEmail
     protected function casts(): array
     {
         return [
-            'balance' => 'decimal:2',
-            'allowance_amount' => 'decimal:2',
-            'goal' => Goal::class,
-            'cycle_type' => CycleType::class,
-            'cycle_start' => 'datetime',
             'has_onboarded' => 'boolean',
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
 
-    public function categories(): HasMany
-    {
-        return $this->hasMany(Category::class);
-    }
-
     public function fixedCosts(): HasMany
     {
-        return $this->hasMany(FixedCost::class);
+        return $this->hasMany(FixedCostTemplate::class);
     }
 
     public function transactions(): HasMany
