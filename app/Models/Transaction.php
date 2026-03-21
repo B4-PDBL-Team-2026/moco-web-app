@@ -19,9 +19,11 @@ class Transaction extends Model
         'note',
         'user_id',
         'category_id',
+        'category_type',
         'transaction_date',
-        'source_type',
+        'source',
         'effective_at',
+        'fixed_cost_occurrence_id',
     ];
 
     protected $casts = [

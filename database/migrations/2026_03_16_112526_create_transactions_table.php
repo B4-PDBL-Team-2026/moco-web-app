@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('category_id')->constrained('categories')->cascadeOnDelete();
+            $table->numericMorphs('category');
             $table->foreignId('fixed_cost_occurrence_id')->nullable()->unique()->constrained()->nullOnDelete();
 
             $table->string('type'); // income, expense
-            $table->string('kind')->default('manual'); // manual, opening_balance, fixed_cost_payment, adjustment
+            $table->string('source')->default('manual'); // manual, opening_balance, fixed_cost_payment, adjustment
             $table->string('name', 255);
             $table->decimal('amount', 15, 2);
             $table->date('transaction_date');
