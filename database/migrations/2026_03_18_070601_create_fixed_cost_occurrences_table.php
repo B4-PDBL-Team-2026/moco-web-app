@@ -11,17 +11,27 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('fixed_cost_occurences', function (Blueprint $table) {
+        Schema::create('fixed_cost_occurrences', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('fixed_cost_template_id')->constrained('fixed_cost_templates')->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+
+            $table->foreignId('fixed_cost_template_id')
+                ->constrained('fixed_cost_templates')
+                ->cascadeOnDelete();
+
+            $table->foreignId('user_id')
+                ->constrained('users')
+                ->cascadeOnDelete();
+
             $table->string('cycle_key', 20);  // monthly: 2026-01 (YYYY-MM); weekly: 2026-W12 (YYYY-WWW)
-            $table->string('cycle_type');
+            $table->string('cycle_type'); // monthly | weekly
+
             $table->date('due_date');
-            $table->string('status');
-            $table->decimal('amount', 15, 2);
+            $table->string('status'); // pending | void | paid | overdue
+            $table->decimal('amount', 15);
+
             $table->string('name', 255);
-            $table->text('note')->nullable();
+            $table->string('category_type');
+            $table->unsignedBigInteger('category_id');
             $table->timestamp('paid_at')->nullable();
             $table->timestamp('voided_at')->nullable();
             $table->timestamps();

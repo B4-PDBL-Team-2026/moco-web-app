@@ -3,20 +3,33 @@
 namespace App\Models;
 
 use App\Domains\Budgeting\Enums\CycleType;
-use App\Domains\Budgeting\Enums\DeductionType;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class FixedCostTemplate extends Model
 {
+    use HasFactory;
+
     public $timestamps = false;
 
     protected $fillable = [
         'name',
-        'deduction_type',
         'amount',
-        'cycle',
+        'cycle_type',
+        'is_active',
+        'due_day',
+        'category_id',
+        'category_type',
         'user_id',
+    ];
+
+    protected $casts = [
+        'cycle_type' => CycleType::class,
+        'amount' => 'decimal:2',
+        'is_active' => 'boolean',
+        'due_day' => 'integer',
     ];
 
     public function user(): BelongsTo
@@ -24,12 +37,8 @@ class FixedCostTemplate extends Model
         return $this->belongsTo(User::class);
     }
 
-    protected function casts(): array
+    public function category(): MorphTo
     {
-        return [
-            'deduction_type' => DeductionType::class,
-            'cycle' => CycleType::class,
-            'amount' => 'decimal:2',
-        ];
+        return $this->morphTo();
     }
 }
