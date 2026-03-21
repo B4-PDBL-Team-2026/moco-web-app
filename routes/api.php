@@ -18,10 +18,7 @@ Route::prefix('auth')->controller(AuthController::class)->group(function () {
 
 Route::middleware('auth:sanctum')->group(function () {
     // Onboarding Endpoints
-    Route::controller(OnboardingController::class)->prefix('onboarding')->group(function () {
-        Route::get('/', 'show');
-        Route::post('/', 'store');
-    });
+    Route::post('/onboarding', [OnboardingController::class, 'store']);
 
     // Transaction Endpoints
     Route::controller(TransactionController::class)->prefix('transaction')->group(function () {
