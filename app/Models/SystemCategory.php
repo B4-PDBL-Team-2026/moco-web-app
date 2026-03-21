@@ -31,6 +31,6 @@ class SystemCategory extends Model
 
     public function fixedCostTemplates(): MorphMany
     {
-        return $this->morphMany(FixedCostTempl::class, 'fixed_cost_template');
+        return $this->morphMany(FixedCostTemplate::class, 'fixed_cost_template');
     }
 }
