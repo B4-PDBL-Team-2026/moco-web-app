@@ -3,85 +3,119 @@
 namespace App\Domains\Budgeting\Actions;
 
 use App\Domains\Budgeting\DTOs\CompleteOnboardingData;
-use App\Domains\Budgeting\Enums\DeductionType;
-use App\Domains\Budgeting\Services\AllowanceCalculatorService;
+use App\Domains\Budgeting\DTOs\OnboardingResultData;
+use App\Domains\FixedCosts\Actions\CreateFixedCostTemplateAction;
+use App\Domains\Transactions\Enums\TransactionSource;
+use App\Domains\Transactions\Enums\TransactionType;
+use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
 use Throwable;
 
-class CompleteOnboardingAction
+final readonly class CompleteOnboardingAction
 {
-    public function __construct(AllowanceCalculatorService $calculator) {}
+    public function __construct(
+        private RecalculateBudgetSnapshotAction $recalculateBudgetSnapshotAction,
+        private CreateFixedCostTemplateAction $createFixedCostTemplatesAction,
+    ) {}
 
     /**
      * @throws Throwable
      */
-    public function execute(User $user, CompleteOnboardingData $data): array
+    public function execute(int $userId, CompleteOnboardingData $data): OnboardingResultData
     {
-        DB::transaction(function () use ($user, $data) {
+        $this->validate($data);
+
+        return DB::transaction(function () use ($userId, $data) {
+            $user = User::query()
+                ->whereKey($userId)
+                ->lockForUpdate()
+                ->firstOrFail();
+
             UserBudgetSetting::query()->updateOrCreate(
-                ['user_id' => $user->id],
+                ['user_id' => $userId],
                 [
-                    'cycle_type' => $data->budgetCycle,
-                    'daily_ceiling_amount' => $data->dailyCeilingAmount,
-                ],
+                    'cycle_type' => $data->cycleType->value,
+                    'initial_balance' => $data->initialBalance,
+                    'flooring_limit' => $data->flooringLimit,
+                    'ceiling_limit' => $data->ceilingLimit,
+                    'timezone' => $data->timezone,
+                ]
             );
 
-            Transaction::query()->create([
-                'user_id' => $user->id,
-                'category_id' => $this->resolveInitialBalanceCategoryId($user),
-                'name' => 'Initial Balance',
-                'amount' => $data->initialBalance,
-                'type' => 'income',
-                'source_type' => 'initial_balance',
-                'transaction_date' => now()->toDateString(),
-                'effective_at' => now(),
-            ]);
+            $this->createInitialBalanceTransaction($userId, $data);
 
-            $totalInDeduction = collect($data->fixedCosts)
-                ->filter(fn ($fixedCost) => $fixedCost->deductionType === DeductionType::IN)
-                ->sum(fn ($fixedCost) => $fixedCost->amount);
-
-            if ($totalInDeduction > $data->allowanceAmount) {
-                throw ValidationException::withMessages([
-                    'fixedCosts' => 'Total of fixed costs exceeds allowance.',
-                ]);
+            if ($data->hasFixedCosts()) {
+                $this->createFixedCostTemplatesAction->execute($userId, $data->fixedCosts);
             }
 
-            $finalBalance = $data->allowanceAmount - $totalInDeduction;
+            $snapshot = $this->recalculateBudgetSnapshotAction->execute($userId);
 
-            $user->update([
-                'cycle_type' => $data->budgetCycle->value,
-                'allowance_amount' => $data->allowanceAmount,
-                'balance' => $finalBalance,
-                'cycle_start' => now(),
+            $user->forceFill([
                 'has_onboarded' => true,
-            ]);
+            ])->save();
 
-            $user->fixedCosts()->delete();
-
-            $user->fixedCosts()->createMany(
-                array_map(
-                    fn ($item) => [
-                        'name' => $item->name,
-                        'amount' => $item->amount,
-                        'deduction_type' => $item->deductionType->value,
-                        'cycle' => $item->cycle->value,
-                    ],
-                    $data->fixedCosts,
-                )
+            return new OnboardingResultData(
+                userId: $user->id,
+                cycleType: $data->cycleType->value,
+                currentBalance: (string) $snapshot->current_balance,
+                reservedCost: (string) $snapshot->reserved_cost,
+                dailyAllowance: (string) $snapshot->daily_allowance,
+                cycleKey: $snapshot->current_cycle_key,
+                cycleStartDate: $snapshot->cycle_start_date->toDateString(),
+                cycleEndDate: $snapshot->cycle_end_date->toDateString(),
+                remainingDays: (int) $snapshot->remaining_days,
+                fixedCostsCount: count($data->fixedCosts),
+                hasOnboarded: true,
             );
         });
     }
 
-    private function resolveInitialBalanceCategoryId(User $user): int
+    private function validate(CompleteOnboardingData $data): void
     {
-        return $user->categories()
-            ->where('type', 'income')
-            ->where('name', 'Initial Balance')
-            ->value('id');
+        if ((float) $data->initialBalance < 0) {
+            throw new InvalidArgumentException('Initial balance cannot be negative.');
+        }
+
+        if ((float) $data->flooringLimit < 0) {
+            throw new InvalidArgumentException('Flooring limit cannot be negative.');
+        }
+
+        if (
+            $data->ceilingLimit !== null &&
+            (float) $data->ceilingLimit < (float) $data->flooringLimit
+        ) {
+            throw new InvalidArgumentException('Ceiling limit must be greater than or equal to flooring limit.');
+        }
+    }
+
+    private function createInitialBalanceTransaction(
+        int $userId,
+        CompleteOnboardingData $data,
+    ): void {
+        $exists = Transaction::query()
+            ->where('user_id', $userId)
+            ->where('source', TransactionSource::INITIAL_BALANCE->value)
+            ->exists();
+
+        if ($exists) {
+            return;
+        }
+
+        $initialAllowanceCategory = SystemCategory::query()->where('name', '=', 'Uang saku')->value('id');
+
+        Transaction::query()->create([
+            'user_id' => $userId,
+            'type' => TransactionType::INCOME->value,
+            'source' => TransactionSource::INITIAL_BALANCE->value,
+            'name' => 'initial balance',
+            'amount' => $data->initialBalance,
+            'transaction_date' => now($data->timezone)->toDateString(),
+            'category_id' => $initialAllowanceCategory,
+            'category_type' => SystemCategory::class,
+        ]);
     }
 }
