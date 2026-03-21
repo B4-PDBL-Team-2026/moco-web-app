@@ -6,5 +6,26 @@ use Illuminate\Database\Eloquent\Model;
 
 class UserBudgetSnapshot extends Model
 {
-    //
+    protected $fillable = [
+        'user_id',
+        'current_balance',
+        'reserved_cost',
+        'daily_allowance',
+        'actual_daily_allowance',
+        'current_cycle_key',
+        'cycle_start_date',
+        'cycle_end_date',
+        'remaining_days',
+        'recalculated_at',
+    ];
+
+    protected $casts = [
+        'current_balance' => 'decimal:2',
+        'reserved_cost' => 'decimal:2',
+        'daily_allowance' => 'decimal:2',
+        'actual_daily_allowance' => 'decimal:2',
+        'cycle_start_date' => 'date',
+        'cycle_end_date' => 'date',
+        'recalculated_at' => 'datetime',
+    ];
 }
