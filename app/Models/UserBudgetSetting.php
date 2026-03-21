@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Domains\Budgeting\Enums\CycleType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -9,14 +10,18 @@ class UserBudgetSetting extends Model
 {
     protected $fillable = [
         'user_id',
-        'goal',
         'cycle_type',
-        'cycle_start_date',
-        'daily_ceiling_amount',
+        'ceiling_limit',
+        'flooring_limit',
+        'initial_balance',
+        'timezone',
     ];
 
     protected $casts = [
-        'cycle_start_date' => 'date',
+        'cycle_type' => CycleType::class,
+        'flooring_limit' => 'decimal:2',
+        'ceiling_limit' => 'decimal:2',
+        'initial_balance' => 'decimal:2',
     ];
 
     public function user(): BelongsTo
