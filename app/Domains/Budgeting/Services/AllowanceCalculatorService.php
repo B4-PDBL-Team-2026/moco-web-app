@@ -3,41 +3,45 @@
 namespace App\Domains\Budgeting\Services;
 
 use App\Commons\MoneyService;
-use App\Domains\Budgeting\Enums\CycleType;
-use Carbon\CarbonImmutable;
+use App\Domains\Budgeting\DTOs\DailyAllowanceData;
+use InvalidArgumentException;
 
 class AllowanceCalculatorService
 {
-    public function calculateInitial(
+    public function calculate(
         string $balance,
-        CycleType $cycleType,
-        ?string $dailyCeilingAmount,
-        ?CarbonImmutable $now = null,
-    ): string {
-        $now ??= CarbonImmutable::now();
-
-        $daysRemaining = match ($cycleType) {
-            CycleType::WEEKLY => $this->remainingDaysInWeek($now),
-            CycleType::MONTHLY => $this->remainingDaysInMonth($now),
-        };
-
-        $raw = MoneyService::div($balance, (string) $daysRemaining);
-
-        if ($dailyCeilingAmount !== null) {
-            return MoneyService::min($raw, $dailyCeilingAmount);
+        string $reservedCost,
+        string $ceilingLimit,
+        string $flooringLimit,
+        int $remainingDays,
+    ): DailyAllowanceData {
+        if ($remainingDays <= 0) {
+            throw new InvalidArgumentException('Remaining days must be greater than 0.');
         }
 
-        return $raw;
-    }
+        // fallback to flooring limit
+        if (MoneyService::gte($reservedCost, $balance)) {
+            return new DailyAllowanceData(
+                amount: $flooringLimit,
+                actualAmount: '0',
+            );
+        }
 
-    private function remainingDaysInWeek(CarbonImmutable $date): int
-    {
-        // using ISO week format: Monday = 1, Sunday = 7
-        return 7 - $date->dayOfWeekIso + 1;
-    }
+        $available = MoneyService::sub($balance, $reservedCost);
+        $raw = MoneyService::div($available, (string) $remainingDays);
 
-    private function remainingDaysInMonth(CarbonImmutable $date): int
-    {
-        return $date->daysInMonth - $date->day + 1;
+        // if available daily allowance is less than flooring limit, prefer flooring limit for daily survival
+        if (MoneyService::lt($raw, $flooringLimit)) {
+            return new DailyAllowanceData(
+                amount: MoneyService::max($raw, $flooringLimit),
+                actualAmount: $raw,
+            );
+        } else {
+            // otherwise, avoid excessive daily allowance
+            return new DailyAllowanceData(
+                amount: MoneyService::min($raw, $ceilingLimit),
+                actualAmount: $raw,
+            );
+        }
     }
 }
