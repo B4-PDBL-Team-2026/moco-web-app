@@ -64,6 +64,6 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function isRequireOnboarding(): bool
     {
-        return $this->has_onboarded;
+        return ! $this->has_onboarded;
     }
 }
