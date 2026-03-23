@@ -8,6 +8,8 @@ use App\Domains\FixedCosts\Actions\CreateFixedCostTemplateAction;
 use App\Domains\FixedCosts\Services\FixedCostCycleValidator;
 use App\Domains\Transactions\Enums\TransactionSource;
 use App\Domains\Transactions\Enums\TransactionType;
+use App\Models\FixedCostOccurrence;
+use App\Models\FixedCostTemplate;
 use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
@@ -48,7 +50,7 @@ final readonly class CompleteOnboardingAction
                 ]
             );
 
-            $this->createInitialBalanceTransaction($userId, $data);
+            $this->createOrUpdateInitialBalanceTransaction($userId, $data);
 
             foreach ($data->fixedCosts as $fixedCost) {
                 $this->validateFixedCostCycleCompability->ensureAllowed(
@@ -58,6 +60,7 @@ final readonly class CompleteOnboardingAction
             }
 
             if ($data->hasFixedCosts()) {
+                FixedCostTemplate::query()->where('user_id', '=', $userId)->delete();
                 $this->createFixedCostTemplatesAction->execute($userId, $data->fixedCosts);
             }
 
@@ -98,30 +101,25 @@ final readonly class CompleteOnboardingAction
         }
     }
 
-    private function createInitialBalanceTransaction(
+    private function createOrUpdateInitialBalanceTransaction(
         int $userId,
         CompleteOnboardingData $data,
     ): void {
-        $exists = Transaction::query()
-            ->where('user_id', $userId)
-            ->where('source', TransactionSource::INITIAL_BALANCE->value)
-            ->exists();
-
-        if ($exists) {
-            return;
-        }
-
         $initialAllowanceCategory = SystemCategory::query()->where('name', '=', 'Uang saku')->value('id');
 
-        Transaction::query()->create([
-            'user_id' => $userId,
-            'type' => TransactionType::INCOME->value,
-            'source' => TransactionSource::INITIAL_BALANCE->value,
-            'name' => 'initial balance',
-            'amount' => $data->initialBalance,
-            'transaction_date' => now($data->timezone)->toDateString(),
-            'category_id' => $initialAllowanceCategory,
-            'category_type' => SystemCategory::class,
-        ]);
+        Transaction::query()->updateOrCreate(
+            [
+                'user_id' => $userId,
+                'source' => TransactionSource::INITIAL_BALANCE->value,
+            ],
+            [
+                'type' => TransactionType::INCOME->value,
+                'name' => 'initial balance',
+                'amount' => $data->initialBalance,
+                'transaction_date' => now($data->timezone)->toDateString(),
+                'category_id' => $initialAllowanceCategory,
+                'category_type' => SystemCategory::class,
+            ]
+        );
     }
 }
