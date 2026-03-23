@@ -40,6 +40,13 @@ class StoreOnboardingRequest extends FormRequest
             'fixedCosts.*.cycleType' => [
                 'required',
                 new Enum(CycleType::class),
+                function (string $attribute, mixed $value, Closure $fail) {
+                    $budgetCycle = request()->input('budgetCycle');
+
+                    if ($budgetCycle === CycleType::WEEKLY->value && $value === CycleType::MONTHLY->value) {
+                        $fail('Monthly fixed cost is not allowed when budget cycle is weekly.');
+                    }
+                },
             ],
             'fixedCosts.*.categoryId' => [
                 'required',
