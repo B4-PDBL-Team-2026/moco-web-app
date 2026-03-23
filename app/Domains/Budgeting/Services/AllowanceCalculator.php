@@ -41,12 +41,14 @@ class AllowanceCalculator
         $available = MoneyService::sub($balance, $reservedCost);
         $raw = MoneyService::div($available, (string) $remainingDays);
 
-        // if available daily allowance is dangerously low, then use flooring
-        if (MoneyService::lt($raw, $flooringLimit)) {
-            return new DailyAllowanceData(
-                amount: $flooringLimit,
-                actualAmount: $raw,
-            );
+        if (MoneyService::lt($reservedCost, $balance)) {
+            // if available daily allowance is dangerously low, use it at all cost
+            if (MoneyService::lt($raw, $flooringLimit)) {
+                return new DailyAllowanceData(
+                    amount: $available,
+                    actualAmount: $raw,
+                );
+            }
         }
 
         // calculate safe ceiling limit
