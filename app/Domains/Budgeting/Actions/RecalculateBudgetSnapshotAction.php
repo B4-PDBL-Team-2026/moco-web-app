@@ -89,20 +89,16 @@ final readonly class RecalculateBudgetSnapshotAction
      */
     private function resolveCurrentBalance(int $userId): string
     {
-        $balance = '0.00';
-
-        $transactions = Transaction::query()
+        $totalIncome = Transaction::query()
             ->where('user_id', $userId)
-            ->get(['type', 'amount']);
+            ->where('type', TransactionType::INCOME)
+            ->sum('amount') ?? 0;
 
-        foreach ($transactions as $transaction) {
-            if ($transaction->type->value === TransactionType::INCOME->value) {
-                $balance = MoneyService::add($balance, (string) $transaction->amount);
-            } elseif ($transaction->type->value === TransactionType::EXPENSE->value) {
-                $balance = MoneyService::sub($balance, (string) $transaction->amount);
-            }
-        }
+        $totalExpense = Transaction::query()
+            ->where('user_id', $userId)
+            ->where('type', TransactionType::EXPENSE)
+            ->sum('amount') ?? 0;
 
-        return $balance;
+        return MoneyService::sub((string) $totalIncome, (string) $totalExpense);
     }
 }
