@@ -4,7 +4,9 @@ use App\Domains\Budgeting\Actions\CompleteOnboardingAction;
 use App\Domains\Budgeting\DTOs\CompleteOnboardingData;
 use App\Domains\Budgeting\Enums\CycleType;
 use App\Domains\FixedCosts\DTOs\FixedCostTemplateData;
+use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
 use App\Domains\Transactions\Enums\TransactionSource;
+use App\Models\FixedCostTemplate;
 use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
@@ -164,6 +166,95 @@ it('rejects monthly fixed costs within a weekly budget cycle', function () {
 
     app(CompleteOnboardingAction::class)->execute($user->id, $dto);
 })->throws(InvalidArgumentException::class, 'Monthly fixed cost is not allowed when budget cycle is weekly.');
+
+it('updates existing onboarding data seamlessly when user steps back and resubmits', function () {
+    $user = User::factory()->create();
+    $category = SystemCategory::factory()->create();
+
+    $firstAttemptDto = new CompleteOnboardingData(
+        cycleType: CycleType::MONTHLY,
+        initialBalance: '1000.00',
+        flooringLimit: '0.00',
+        ceilingLimit: '999999.00',
+        fixedCosts: [
+            new FixedCostTemplateData(
+                name: 'Old Rent',
+                amount: '400.00',
+                cycleType: CycleType::MONTHLY,
+                isActive: true,
+                categoryId: $category->id,
+                dueDay: 25,
+                categoryType: SystemCategory::class,
+            ),
+        ],
+        timezone: 'Asia/Jakarta',
+    );
+
+    $action = app(CompleteOnboardingAction::class);
+
+    $action->execute($user->id, $firstAttemptDto);
+
+    $this->assertDatabaseHas('fixed_cost_occurrences', [
+        'user_id' => $user->id,
+        'cycle_type' => CycleType::MONTHLY,
+        'cycle_key' => '2026-03',
+        'status' => FixedCostOccurenceStatus::PENDING,
+        'name' => 'Old Rent',
+    ]);
+
+    $secondAttemptDto = new CompleteOnboardingData(
+        cycleType: CycleType::MONTHLY,
+        initialBalance: '5000.00',
+        flooringLimit: '100.00',
+        ceilingLimit: '999999.00',
+        fixedCosts: [
+            new FixedCostTemplateData(
+                name: 'New Rent',
+                amount: '1000.00',
+                cycleType: CycleType::MONTHLY,
+                isActive: true,
+                categoryId: $category->id,
+                dueDay: 1,
+                categoryType: SystemCategory::class,
+            ),
+            new FixedCostTemplateData(
+                name: 'New Internet',
+                amount: '300.00',
+                cycleType: CycleType::MONTHLY,
+                isActive: true,
+                categoryId: $category->id,
+                dueDay: 5,
+                categoryType: SystemCategory::class,
+            ),
+        ],
+        timezone: 'Asia/Jakarta',
+    );
+
+    $result = $action->execute($user->id, $secondAttemptDto);
+
+    expect($result->fixedCostsCount)->toBe(2);
+
+    $this->assertDatabaseHas('user_budget_settings', [
+        'user_id' => $user->id,
+        'initial_balance' => '5000.00',
+        'flooring_limit' => '100.00',
+    ]);
+
+    expect(Transaction::where('user_id', $user->id)->count())->toBe(1);
+    $this->assertDatabaseHas('transactions', [
+        'user_id' => $user->id,
+        'source' => TransactionSource::INITIAL_BALANCE->value,
+        'amount' => '5000.00',
+    ]);
+
+    expect(FixedCostTemplate::where('user_id', $user->id)->count())->toBe(2);
+    $this->assertDatabaseMissing('fixed_cost_templates', [
+        'name' => 'Old Rent',
+    ]);
+    $this->assertDatabaseHas('fixed_cost_templates', [
+        'name' => 'New Rent',
+    ]);
+});
 
 it('does not create duplicate initial balance transaction when onboarding is called twice', function () {
     $user = User::factory()->create();
