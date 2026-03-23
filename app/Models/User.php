@@ -6,6 +6,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -56,8 +57,13 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Transaction::class);
     }
 
+    public function budgetSetting(): HasOne
+    {
+        return $this->hasOne(UserBudgetSetting::class, 'user_id', 'id');
+    }
+
     public function isRequireOnboarding(): bool
     {
-        return is_null($this->goal) || is_null($this->cycle_type) || is_null($this->cycle_start) || is_null($this->balance);
+        return $this->has_onboarded;
     }
 }
