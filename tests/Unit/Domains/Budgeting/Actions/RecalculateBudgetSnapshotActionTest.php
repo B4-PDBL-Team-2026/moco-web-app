@@ -12,6 +12,8 @@ use App\Models\User;
 use App\Models\UserBudgetSetting;
 use Carbon\CarbonImmutable;
 
+use function Pest\Laravel\assertDatabaseHas;
+
 it('recalculates user budget status correctly', function () {
     $user = User::factory()->create();
     $category = SystemCategory::factory()->create();
@@ -209,4 +211,8 @@ it('ignores unknown transaction types when calculating balance', function () {
     );
 
     expect((string) $status->current_balance)->toBe('1000.00');
-})->throws(ValueError::class);
+    assertDatabaseHas('transactions', [
+        'user_id' => $user->id,
+        'type' => 'UNKNOWN_TYPE',
+    ]);
+});
