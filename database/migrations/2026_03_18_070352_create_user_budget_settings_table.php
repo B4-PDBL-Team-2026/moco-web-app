@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->unique()->constrained()->cascadeOnDelete();
             $table->string('cycle_type'); // weekly or monthly
-            $table->decimal('ceiling_limit', 15, 2)->default(0);
-            $table->decimal('flooring_limit', 15, 2)->nullable();
+            $table->decimal('ceiling_limit', 15, 2);
+            $table->decimal('flooring_limit', 15, 2);
             $table->decimal('initial_balance', 15, 2)->default(0);
             $table->string('timezone');
             $table->timestamps();
