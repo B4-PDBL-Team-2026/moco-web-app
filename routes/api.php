@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\Category\CategoryController;
 use App\Http\Controllers\Api\Onboarding\OnboardingController;
 use App\Http\Controllers\Api\Transaction\TransactionController;
 use Illuminate\Support\Facades\Route;
@@ -19,6 +20,11 @@ Route::prefix('auth')->controller(AuthController::class)->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     // Onboarding Endpoints
     Route::post('/onboarding', [OnboardingController::class, 'store']);
+
+    // Category Endpoints
+    Route::prefix('/category')->controller(CategoryController::class)->group(function () {
+        Route::get('/system', 'getAllSystemCategory');
+    });
 
     // Transaction Endpoints
     Route::controller(TransactionController::class)->prefix('transaction')->group(function () {
