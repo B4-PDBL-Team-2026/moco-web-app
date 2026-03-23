@@ -5,6 +5,7 @@ namespace App\Domains\Budgeting\Actions;
 use App\Domains\Budgeting\DTOs\CompleteOnboardingData;
 use App\Domains\Budgeting\DTOs\OnboardingResultData;
 use App\Domains\FixedCosts\Actions\CreateFixedCostTemplateAction;
+use App\Domains\FixedCosts\Services\FixedCostCycleValidator;
 use App\Domains\Transactions\Enums\TransactionSource;
 use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\SystemCategory;
@@ -18,6 +19,7 @@ use Throwable;
 final readonly class CompleteOnboardingAction
 {
     public function __construct(
+        private FixedCostCycleValidator $validateFixedCostCycleCompability,
         private RecalculateBudgetSnapshotAction $recalculateBudgetSnapshotAction,
         private CreateFixedCostTemplateAction $createFixedCostTemplatesAction,
     ) {}
@@ -48,6 +50,13 @@ final readonly class CompleteOnboardingAction
 
             $this->createInitialBalanceTransaction($userId, $data);
 
+            foreach ($data->fixedCosts as $fixedCost) {
+                $this->validateFixedCostCycleCompability->ensureAllowed(
+                    budgetCycle: $data->cycleType,
+                    fixedCostCycle: $fixedCost->cycleType,
+                );
+            }
+
             if ($data->hasFixedCosts()) {
                 $this->createFixedCostTemplatesAction->execute($userId, $data->fixedCosts);
             }
@@ -76,18 +85,15 @@ final readonly class CompleteOnboardingAction
 
     private function validate(CompleteOnboardingData $data): void
     {
-        if ((float) $data->initialBalance < 0) {
-            throw new InvalidArgumentException('Initial balance cannot be negative.');
+        if ((float) $data->initialBalance <= 0) {
+            throw new InvalidArgumentException('Initial balance must be greater than 0.');
         }
 
         if ((float) $data->flooringLimit < 0) {
             throw new InvalidArgumentException('Flooring limit cannot be negative.');
         }
 
-        if (
-            $data->ceilingLimit !== null &&
-            (float) $data->ceilingLimit < (float) $data->flooringLimit
-        ) {
+        if ((float) $data->ceilingLimit < (float) $data->flooringLimit) {
             throw new InvalidArgumentException('Ceiling limit must be greater than or equal to flooring limit.');
         }
     }
