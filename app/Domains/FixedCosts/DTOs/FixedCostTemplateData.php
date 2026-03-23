@@ -21,8 +21,8 @@ class FixedCostTemplateData
         return new self(
             name: $data['name'],
             amount: (string) $data['amount'],
-            cycleType: CycleType::from($data['cycle']),
-            isActive: $data['isActive'],
+            cycleType: CycleType::from($data['cycleType']),
+            isActive: $data['isActive'] ?? true,
             categoryId: $data['categoryId'],
             dueDay: $data['dueDay'],
             categoryType: $data['categoryType'],
