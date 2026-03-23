@@ -1,13 +1,13 @@
 <?php
 
 use App\Domains\Budgeting\Enums\CycleType;
-use App\Domains\Budgeting\Services\CycleResolverService;
+use App\Domains\Budgeting\Services\BudgetCycleWindowCalculator;
 use Carbon\CarbonImmutable;
 
 it('resolves monthly cycle correctly', function () {
-    $resolver = new CycleResolverService;
+    $resolver = new BudgetCycleWindowCalculator;
 
-    $result = $resolver->resolve(
+    $result = $resolver->calculateFor(
         CycleType::MONTHLY,
         CarbonImmutable::parse('2026-03-20', 'Asia/Jakarta'),
         'Asia/Jakarta'
@@ -20,9 +20,9 @@ it('resolves monthly cycle correctly', function () {
 });
 
 it('resolves weekly cycle correctly', function () {
-    $resolver = new CycleResolverService;
+    $resolver = new BudgetCycleWindowCalculator;
 
-    $result = $resolver->resolve(
+    $result = $resolver->calculateFor(
         CycleType::WEEKLY,
         CarbonImmutable::parse('2026-03-20', 'Asia/Jakarta'),
         'Asia/Jakarta'
