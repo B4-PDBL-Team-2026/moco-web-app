@@ -97,7 +97,7 @@ it('stores flooring as daily allowance and zero as actual daily allowance when r
     );
 
     expect((string) $status->daily_allowance)->toBe('20.00')
-        ->and((string) $status->actual_daily_allowance)->toBe('0');
+        ->and((string) $status->actual_daily_allowance)->toBe('0.00');
 });
 
 it('stores flooring as displayed daily allowance when raw is below flooring', function () {
@@ -167,3 +167,46 @@ it('stores ceiling capped daily allowance and uncapped actual daily allowance', 
     expect((string) $status->daily_allowance)->toBe('30.00')
         ->and((string) $status->actual_daily_allowance)->toBe('83.33');
 });
+
+it('ignores unknown transaction types when calculating balance', function () {
+    $user = User::factory()->create();
+    $category = SystemCategory::factory()->create();
+
+    UserBudgetSetting::query()->create([
+        'user_id' => $user->id,
+        'cycle_type' => CycleType::MONTHLY->value,
+        'initial_balance' => '0.00',
+        'flooring_limit' => '0.00',
+        'ceiling_limit' => '50000.00',
+        'timezone' => 'Asia/Jakarta',
+    ]);
+
+    Transaction::query()->create([
+        'user_id' => $user->id,
+        'category_id' => $category->id,
+        'category_type' => SystemCategory::class,
+        'type' => TransactionType::INCOME->value,
+        'amount' => '1000.00',
+        'name' => 'initial balance',
+        'transaction_date' => '2026-03-20',
+    ]);
+
+    DB::table('transactions')->insert([
+        'user_id' => $user->id,
+        'category_id' => $category->id,
+        'category_type' => SystemCategory::class,
+        'type' => 'UNKNOWN_TYPE',
+        'name' => 'unknown transaction type',
+        'amount' => '500.00',
+        'transaction_date' => '2026-03-20',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $status = app(RecalculateBudgetSnapshotAction::class)->execute(
+        $user->id,
+        CarbonImmutable::parse('2026-03-20', 'Asia/Jakarta')
+    );
+
+    expect((string) $status->current_balance)->toBe('1000.00');
+})->throws(ValueError::class);

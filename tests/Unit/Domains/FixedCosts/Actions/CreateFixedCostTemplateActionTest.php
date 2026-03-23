@@ -7,12 +7,28 @@ use App\Models\CustomCategory;
 use App\Models\FixedCostTemplate;
 use App\Models\SystemCategory;
 use App\Models\User;
+use App\Models\UserBudgetSetting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-it('creates fixed cost template with system category', function () {
+function createUserWithBudgetSetting(CycleType $cycleType = CycleType::MONTHLY): User
+{
     $user = User::factory()->create();
+    UserBudgetSetting::query()->create([
+        'user_id' => $user->id,
+        'cycle_type' => $cycleType->value,
+        'initial_balance' => '1000',
+        'flooring_limit' => '0',
+        'ceiling_limit' => '50',
+        'timezone' => 'Asia/Jakarta',
+    ]);
+
+    return $user;
+}
+
+it('creates fixed cost template with system category', function () {
+    $user = createUserWithBudgetSetting();
     $category = SystemCategory::factory()->create();
 
     $dto = new FixedCostTemplateData(
@@ -40,7 +56,7 @@ it('creates fixed cost template with system category', function () {
 });
 
 it('creates fixed cost template with owned custom category', function () {
-    $user = User::factory()->create();
+    $user = createUserWithBudgetSetting();
     $category = CustomCategory::factory()->create(['user_id' => $user->id]);
 
     $dto = new FixedCostTemplateData(
@@ -63,7 +79,7 @@ it('creates fixed cost template with owned custom category', function () {
 });
 
 it('rejects blank fixed cost name', function () {
-    $user = User::factory()->create();
+    $user = createUserWithBudgetSetting();
     $category = SystemCategory::factory()->create();
 
     $dto = new FixedCostTemplateData(
@@ -80,7 +96,7 @@ it('rejects blank fixed cost name', function () {
 })->throws(InvalidArgumentException::class, 'Fixed cost name is required.');
 
 it('rejects non positive amount', function () {
-    $user = User::factory()->create();
+    $user = createUserWithBudgetSetting();
     $category = SystemCategory::factory()->create();
 
     $dto = new FixedCostTemplateData(
@@ -97,7 +113,7 @@ it('rejects non positive amount', function () {
 })->throws(InvalidArgumentException::class, 'Fixed cost amount must be greater than zero.');
 
 it('rejects invalid weekly due day', function () {
-    $user = User::factory()->create();
+    $user = createUserWithBudgetSetting();
     $category = SystemCategory::factory()->create();
 
     $dto = new FixedCostTemplateData(
@@ -114,7 +130,7 @@ it('rejects invalid weekly due day', function () {
 })->throws(InvalidArgumentException::class, 'Weekly due day must be between 1 and 7.');
 
 it('rejects invalid monthly due day', function () {
-    $user = User::factory()->create();
+    $user = createUserWithBudgetSetting();
     $category = SystemCategory::factory()->create();
 
     $dto = new FixedCostTemplateData(
@@ -131,7 +147,7 @@ it('rejects invalid monthly due day', function () {
 })->throws(InvalidArgumentException::class, 'Monthly due day must be between 1 and 31.');
 
 it('rejects invalid category type', function () {
-    $user = User::factory()->create();
+    $user = createUserWithBudgetSetting();
 
     $dto = new FixedCostTemplateData(
         name: 'Weird',
@@ -147,7 +163,7 @@ it('rejects invalid category type', function () {
 })->throws(InvalidArgumentException::class, 'Invalid category type.');
 
 it('rejects invalid system category id', function () {
-    $user = User::factory()->create();
+    $user = createUserWithBudgetSetting();
 
     $dto = new FixedCostTemplateData(
         name: 'Bad System Category',
@@ -163,7 +179,7 @@ it('rejects invalid system category id', function () {
 })->throws(InvalidArgumentException::class, 'Invalid category.');
 
 it('rejects custom category owned by another user', function () {
-    $user = User::factory()->create();
+    $user = createUserWithBudgetSetting();
     $otherUser = User::factory()->create();
     $category = CustomCategory::factory()->create(['user_id' => $otherUser->id]);
 
@@ -181,7 +197,7 @@ it('rejects custom category owned by another user', function () {
 })->throws(InvalidArgumentException::class, 'Invalid custom category.');
 
 it('rolls back all inserts when one item is invalid', function () {
-    $user = User::factory()->create();
+    $user = createUserWithBudgetSetting();
     $category = SystemCategory::factory()->create();
 
     $valid = new FixedCostTemplateData(

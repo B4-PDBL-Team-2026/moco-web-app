@@ -81,6 +81,90 @@ it('completes onboarding with fixed costs and returns computed result', function
         ->and($result->dailyAllowance)->not->toBe('');
 });
 
+it('allows weekly fixed costs within a monthly budget cycle', function () {
+    $user = User::factory()->create();
+    $category = SystemCategory::factory()->create();
+
+    $dto = new CompleteOnboardingData(
+        cycleType: CycleType::MONTHLY,
+        initialBalance: '1000.00',
+        flooringLimit: '0.00',
+        ceilingLimit: '999999.00',
+        fixedCosts: [
+            new FixedCostTemplateData(
+                name: 'Weekly Trash',
+                amount: '50.00',
+                cycleType: CycleType::WEEKLY,
+                isActive: true,
+                categoryId: $category->id,
+                dueDay: 3,
+                categoryType: SystemCategory::class,
+            ),
+        ],
+        timezone: 'Asia/Jakarta',
+    );
+
+    $result = app(CompleteOnboardingAction::class)->execute($user->id, $dto);
+
+    expect($result->hasOnboarded)->toBeTrue()
+        ->and($result->fixedCostsCount)->toBe(1);
+});
+
+it('allows weekly fixed costs within a weekly budget cycle', function () {
+    $user = User::factory()->create();
+    $category = SystemCategory::factory()->create();
+
+    $dto = new CompleteOnboardingData(
+        cycleType: CycleType::WEEKLY,
+        initialBalance: '1000.00',
+        flooringLimit: '0.00',
+        ceilingLimit: '999999.00',
+        fixedCosts: [
+            new FixedCostTemplateData(
+                name: 'Weekly Groceries',
+                amount: '200.00',
+                cycleType: CycleType::WEEKLY,
+                isActive: true,
+                categoryId: $category->id,
+                dueDay: 1,
+                categoryType: SystemCategory::class,
+            ),
+        ],
+        timezone: 'Asia/Jakarta',
+    );
+
+    $result = app(CompleteOnboardingAction::class)->execute($user->id, $dto);
+
+    expect($result->hasOnboarded)->toBeTrue()
+        ->and($result->fixedCostsCount)->toBe(1);
+});
+
+it('rejects monthly fixed costs within a weekly budget cycle', function () {
+    $user = User::factory()->create();
+    $category = SystemCategory::factory()->create();
+
+    $dto = new CompleteOnboardingData(
+        cycleType: CycleType::WEEKLY,
+        initialBalance: '1000.00',
+        flooringLimit: '0.00',
+        ceilingLimit: '999999.00',
+        fixedCosts: [
+            new FixedCostTemplateData(
+                name: 'Monthly Rent',
+                amount: '1500.00',
+                cycleType: CycleType::MONTHLY,
+                isActive: true,
+                categoryId: $category->id,
+                dueDay: 25,
+                categoryType: SystemCategory::class,
+            ),
+        ],
+        timezone: 'Asia/Jakarta',
+    );
+
+    app(CompleteOnboardingAction::class)->execute($user->id, $dto);
+})->throws(InvalidArgumentException::class, 'Monthly fixed cost is not allowed when budget cycle is weekly.');
+
 it('does not create duplicate initial balance transaction when onboarding is called twice', function () {
     $user = User::factory()->create();
 
@@ -119,7 +203,7 @@ it('rejects negative initial balance', function () {
     );
 
     app(CompleteOnboardingAction::class)->execute($user->id, $dto);
-})->throws(InvalidArgumentException::class, 'Initial balance cannot be negative.');
+})->throws(InvalidArgumentException::class, 'Initial balance must be greater than 0.');
 
 it('rejects negative flooring limit', function () {
     $user = User::factory()->create();
@@ -150,3 +234,64 @@ it('rejects ceiling lower than flooring', function () {
 
     app(CompleteOnboardingAction::class)->execute($user->id, $dto);
 })->throws(InvalidArgumentException::class, 'Ceiling limit must be greater than or equal to flooring limit.');
+
+it('rejects zero initial balance', function () {
+    $user = User::factory()->create();
+
+    $dto = new CompleteOnboardingData(
+        cycleType: CycleType::MONTHLY,
+        initialBalance: '0.00',
+        flooringLimit: '0.00',
+        ceilingLimit: '999999.00',
+        fixedCosts: [],
+        timezone: 'Asia/Jakarta',
+    );
+
+    app(CompleteOnboardingAction::class)->execute($user->id, $dto);
+})->throws(InvalidArgumentException::class, 'Initial balance must be greater than 0.');
+
+it('rejects null ceiling limit', function () {
+    $user = User::factory()->create();
+
+    $dto = new CompleteOnboardingData(
+        cycleType: CycleType::MONTHLY,
+        initialBalance: '1000.00',
+        flooringLimit: '50.00',
+        ceilingLimit: null, // TANPA BATAS ATAS
+        fixedCosts: [],
+        timezone: 'Asia/Jakarta',
+    );
+
+    $result = app(CompleteOnboardingAction::class)->execute($user->id, $dto);
+
+    expect($result->hasOnboarded)->toBeTrue();
+
+    // Pastikan masuk ke tabel setting sebagai null
+    $this->assertDatabaseHas('user_budget_settings', [
+        'user_id' => $user->id,
+        'ceiling_limit' => null,
+    ]);
+})->throws(TypeError::class);
+
+it('completes onboarding successfully when ceiling limit exactly equals flooring limit', function () {
+    $user = User::factory()->create();
+
+    $dto = new CompleteOnboardingData(
+        cycleType: CycleType::MONTHLY,
+        initialBalance: '1000.00',
+        flooringLimit: '50.00',
+        ceilingLimit: '50.00',
+        fixedCosts: [],
+        timezone: 'Asia/Jakarta',
+    );
+
+    $result = app(CompleteOnboardingAction::class)->execute($user->id, $dto);
+
+    expect($result->hasOnboarded)->toBeTrue();
+
+    $this->assertDatabaseHas('user_budget_settings', [
+        'user_id' => $user->id,
+        'flooring_limit' => '50.00',
+        'ceiling_limit' => '50.00',
+    ]);
+});

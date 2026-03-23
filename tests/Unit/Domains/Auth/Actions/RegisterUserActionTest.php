@@ -33,10 +33,6 @@ test('it registers a user successfully', function () {
     $this->assertDatabaseHas('users', [
         'email' => 'test@example.com',
         'name' => 'Test User',
-        'goal' => null,
-        'cycle_start' => null,
-        'cycle_type' => null,
-        'balance' => null,
     ]);
 
     Event::assertDispatched(Registered::class, function ($event) use ($result) {
