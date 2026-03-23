@@ -3,10 +3,10 @@
 namespace App\Domains\Budgeting\Actions;
 
 use App\Commons\MoneyService;
-use App\Domains\Budgeting\Services\AllowanceCalculatorService;
-use App\Domains\Budgeting\Services\CycleResolverService;
-use App\Domains\Budgeting\Services\ReservedCostCalculatorService;
-use App\Domains\FixedCosts\Actions\GenerateCurrentCycleOccurrencesAction;
+use App\Domains\Budgeting\Services\AllowanceCalculator;
+use App\Domains\Budgeting\Services\BudgetCycleWindowCalculator;
+use App\Domains\Budgeting\Services\ReservedCostCalculator;
+use App\Domains\FixedCosts\Actions\GenerateOccurencesForBudgetWindowAction;
 use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\Transaction;
 use App\Models\UserBudgetSetting;
@@ -18,10 +18,10 @@ use Throwable;
 final readonly class RecalculateBudgetSnapshotAction
 {
     public function __construct(
-        private CycleResolverService $cycleResolverService,
-        private AllowanceCalculatorService $allowanceCalculatorService,
-        private ReservedCostCalculatorService $reservedCostCalculatorService,
-        private GenerateCurrentCycleOccurrencesAction $generateCurrentCycleOccurrencesAction,
+        private BudgetCycleWindowCalculator $cycleResolverService,
+        private AllowanceCalculator $allowanceCalculatorService,
+        private ReservedCostCalculator $reservedCostCalculatorService,
+        private GenerateOccurencesForBudgetWindowAction $generateCurrentCycleOccurrencesAction,
     ) {}
 
     /**
@@ -37,30 +37,32 @@ final readonly class RecalculateBudgetSnapshotAction
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            $this->generateCurrentCycleOccurrencesAction->execute(
-                userId: $userId,
+            $cycle = $this->cycleResolverService->calculateFor(
+                cycleType: $settings->cycle_type,
                 now: $now,
                 timezone: $settings->timezone ?? 'Asia/Jakarta',
             );
 
-            $cycle = $this->cycleResolverService->resolve(
-                cycleType: $settings->cycle_type,
+            $this->generateCurrentCycleOccurrencesAction->execute(
+                userId: $userId,
+                budgetStartDate: $cycle->startDate,
+                budgetEndDate: $cycle->endDate,
                 now: $now,
                 timezone: $settings->timezone ?? 'Asia/Jakarta',
             );
 
             $balance = $this->resolveCurrentBalance($userId);
 
-            $reservedCost = $this->reservedCostCalculatorService->calculateForCurrentCycle(
+            $reservedCost = $this->reservedCostCalculatorService->calculateForBudgetWindow(
                 userId: $userId,
-                cycleKey: $cycle->cycleKey,
-                today: $now->startOfDay(),
+                budgetWindowStart: $cycle->startDate,
+                budgetWindowEnd: $cycle->endDate,
             );
 
             $dailyAllowance = $this->allowanceCalculatorService->calculate(
                 balance: $balance,
                 reservedCost: $reservedCost,
-                ceilingLimit: $settings->ceiling_limit ? (string) $settings->ceiling_limit : null,
+                ceilingLimit: (string) $settings->ceiling_limit,
                 flooringLimit: (string) $settings->flooring_limit,
                 remainingDays: $cycle->remainingDays,
             );
@@ -94,13 +96,11 @@ final readonly class RecalculateBudgetSnapshotAction
             ->get(['type', 'amount']);
 
         foreach ($transactions as $transaction) {
-            if ($transaction->type === TransactionType::INCOME) {
+            if ($transaction->type->value === TransactionType::INCOME->value) {
                 $balance = MoneyService::add($balance, (string) $transaction->amount);
-
-                continue;
+            } elseif ($transaction->type->value === TransactionType::EXPENSE->value) {
+                $balance = MoneyService::sub($balance, (string) $transaction->amount);
             }
-
-            $balance = MoneyService::sub($balance, (string) $transaction->amount);
         }
 
         return $balance;
