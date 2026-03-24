@@ -30,31 +30,36 @@ class AllowanceCalculator
             throw new InvalidArgumentException('Remaining days must be greater than 0.');
         }
 
-        // fallback to flooring limit
-        if (MoneyService::gte($reservedCost, $balance)) {
+        $available = MoneyService::sub($balance, $reservedCost);
+
+        $rawAmount = MoneyService::div($available, (string) $remainingDays);
+
+        $cappedAmount = MoneyService::min($rawAmount, $ceilingLimit);
+
+        if (MoneyService::gt($balance, $reservedCost)) {
+
+            if ($rawAmount > $flooringLimit) {
+                return new DailyAllowanceData(
+                    amount: $cappedAmount,
+                    actualAmount: $rawAmount,
+                );
+            } else {
+                return new DailyAllowanceData(
+                    amount: $flooringLimit,
+                    actualAmount: $rawAmount,
+                );
+            }
+
+        } elseif (MoneyService::eq($balance, $reservedCost)) {
+            return new DailyAllowanceData(
+                amount: $flooringLimit,
+                actualAmount: '0.00',
+            );
+        } else {
             return new DailyAllowanceData(
                 amount: $flooringLimit,
                 actualAmount: '0.00',
             );
         }
-
-        $available = MoneyService::sub($balance, $reservedCost);
-        $raw = MoneyService::div($available, (string) $remainingDays);
-
-        // if available daily allowance is dangerously low, then use flooring
-        if (MoneyService::lt($raw, $flooringLimit)) {
-            return new DailyAllowanceData(
-                amount: $flooringLimit,
-                actualAmount: $raw,
-            );
-        }
-
-        // calculate safe ceiling limit
-        $cappedAmount = MoneyService::min($raw, $ceilingLimit);
-
-        return new DailyAllowanceData(
-            amount: $cappedAmount,
-            actualAmount: $raw,
-        );
     }
 }
