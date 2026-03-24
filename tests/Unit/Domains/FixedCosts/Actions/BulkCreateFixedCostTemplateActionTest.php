@@ -1,8 +1,8 @@
 <?php
 
 use App\Domains\Budgeting\Enums\CycleType;
-use App\Domains\FixedCosts\Actions\CreateFixedCostTemplateAction;
-use App\Domains\FixedCosts\DTOs\FixedCostTemplateData;
+use App\Domains\FixedCosts\Actions\BulkCreateFixedCostTemplateAction;
+use App\Domains\FixedCosts\DTOs\CreateFixedCostTemplateData;
 use App\Models\CustomCategory;
 use App\Models\FixedCostTemplate;
 use App\Models\SystemCategory;
@@ -31,7 +31,7 @@ it('creates fixed cost template with system category', function () {
     $user = createUserWithBudgetSetting();
     $category = SystemCategory::factory()->create();
 
-    $dto = new FixedCostTemplateData(
+    $dto = new CreateFixedCostTemplateData(
         name: 'Netflix',
         amount: '100000.00',
         cycleType: CycleType::MONTHLY,
@@ -41,7 +41,7 @@ it('creates fixed cost template with system category', function () {
         categoryType: SystemCategory::class,
     );
 
-    app(CreateFixedCostTemplateAction::class)->execute($user->id, [$dto]);
+    app(BulkCreateFixedCostTemplateAction::class)->execute($user->id, [$dto]);
 
     $this->assertDatabaseHas('fixed_cost_templates', [
         'user_id' => $user->id,
@@ -59,7 +59,7 @@ it('creates fixed cost template with owned custom category', function () {
     $user = createUserWithBudgetSetting();
     $category = CustomCategory::factory()->create(['user_id' => $user->id]);
 
-    $dto = new FixedCostTemplateData(
+    $dto = new CreateFixedCostTemplateData(
         name: 'Gym',
         amount: '50000.00',
         cycleType: CycleType::WEEKLY,
@@ -69,7 +69,7 @@ it('creates fixed cost template with owned custom category', function () {
         categoryType: CustomCategory::class,
     );
 
-    app(CreateFixedCostTemplateAction::class)->execute($user->id, [$dto]);
+    app(BulkCreateFixedCostTemplateAction::class)->execute($user->id, [$dto]);
 
     $this->assertDatabaseHas('fixed_cost_templates', [
         'user_id' => $user->id,
@@ -82,7 +82,7 @@ it('rejects blank fixed cost name', function () {
     $user = createUserWithBudgetSetting();
     $category = SystemCategory::factory()->create();
 
-    $dto = new FixedCostTemplateData(
+    $dto = new CreateFixedCostTemplateData(
         name: '   ',
         amount: '10000.00',
         cycleType: CycleType::MONTHLY,
@@ -92,14 +92,14 @@ it('rejects blank fixed cost name', function () {
         categoryType: SystemCategory::class,
     );
 
-    app(CreateFixedCostTemplateAction::class)->execute($user->id, [$dto]);
+    app(BulkCreateFixedCostTemplateAction::class)->execute($user->id, [$dto]);
 })->throws(InvalidArgumentException::class, 'Fixed cost name is required.');
 
 it('rejects non positive amount', function () {
     $user = createUserWithBudgetSetting();
     $category = SystemCategory::factory()->create();
 
-    $dto = new FixedCostTemplateData(
+    $dto = new CreateFixedCostTemplateData(
         name: 'Internet',
         amount: '0.00',
         cycleType: CycleType::MONTHLY,
@@ -109,14 +109,14 @@ it('rejects non positive amount', function () {
         categoryType: SystemCategory::class,
     );
 
-    app(CreateFixedCostTemplateAction::class)->execute($user->id, [$dto]);
+    app(BulkCreateFixedCostTemplateAction::class)->execute($user->id, [$dto]);
 })->throws(InvalidArgumentException::class, 'Fixed cost amount must be greater than zero.');
 
 it('rejects invalid weekly due day', function () {
     $user = createUserWithBudgetSetting();
     $category = SystemCategory::factory()->create();
 
-    $dto = new FixedCostTemplateData(
+    $dto = new CreateFixedCostTemplateData(
         name: 'Weekly Bill',
         amount: '10000.00',
         cycleType: CycleType::WEEKLY,
@@ -126,14 +126,14 @@ it('rejects invalid weekly due day', function () {
         categoryType: SystemCategory::class,
     );
 
-    app(CreateFixedCostTemplateAction::class)->execute($user->id, [$dto]);
+    app(BulkCreateFixedCostTemplateAction::class)->execute($user->id, [$dto]);
 })->throws(InvalidArgumentException::class, 'Weekly due day must be between 1 and 7.');
 
 it('rejects invalid monthly due day', function () {
     $user = createUserWithBudgetSetting();
     $category = SystemCategory::factory()->create();
 
-    $dto = new FixedCostTemplateData(
+    $dto = new CreateFixedCostTemplateData(
         name: 'Monthly Bill',
         amount: '10000.00',
         cycleType: CycleType::MONTHLY,
@@ -143,13 +143,13 @@ it('rejects invalid monthly due day', function () {
         categoryType: SystemCategory::class,
     );
 
-    app(CreateFixedCostTemplateAction::class)->execute($user->id, [$dto]);
+    app(BulkCreateFixedCostTemplateAction::class)->execute($user->id, [$dto]);
 })->throws(InvalidArgumentException::class, 'Monthly due day must be between 1 and 31.');
 
 it('rejects invalid category type', function () {
     $user = createUserWithBudgetSetting();
 
-    $dto = new FixedCostTemplateData(
+    $dto = new CreateFixedCostTemplateData(
         name: 'Weird',
         amount: '10000.00',
         cycleType: CycleType::MONTHLY,
@@ -159,13 +159,13 @@ it('rejects invalid category type', function () {
         categoryType: 'App\Models\WeirdCategory',
     );
 
-    app(CreateFixedCostTemplateAction::class)->execute($user->id, [$dto]);
+    app(BulkCreateFixedCostTemplateAction::class)->execute($user->id, [$dto]);
 })->throws(InvalidArgumentException::class, 'Invalid category type.');
 
 it('rejects invalid system category id', function () {
     $user = createUserWithBudgetSetting();
 
-    $dto = new FixedCostTemplateData(
+    $dto = new CreateFixedCostTemplateData(
         name: 'Bad System Category',
         amount: '10000.00',
         cycleType: CycleType::MONTHLY,
@@ -175,7 +175,7 @@ it('rejects invalid system category id', function () {
         categoryType: SystemCategory::class,
     );
 
-    app(CreateFixedCostTemplateAction::class)->execute($user->id, [$dto]);
+    app(BulkCreateFixedCostTemplateAction::class)->execute($user->id, [$dto]);
 })->throws(InvalidArgumentException::class, 'Invalid category.');
 
 it('rejects custom category owned by another user', function () {
@@ -183,7 +183,7 @@ it('rejects custom category owned by another user', function () {
     $otherUser = User::factory()->create();
     $category = CustomCategory::factory()->create(['user_id' => $otherUser->id]);
 
-    $dto = new FixedCostTemplateData(
+    $dto = new CreateFixedCostTemplateData(
         name: 'Wrong Owner',
         amount: '10000.00',
         cycleType: CycleType::MONTHLY,
@@ -193,14 +193,14 @@ it('rejects custom category owned by another user', function () {
         categoryType: CustomCategory::class,
     );
 
-    app(CreateFixedCostTemplateAction::class)->execute($user->id, [$dto]);
+    app(BulkCreateFixedCostTemplateAction::class)->execute($user->id, [$dto]);
 })->throws(InvalidArgumentException::class, 'Invalid custom category.');
 
 it('rolls back all inserts when one item is invalid', function () {
     $user = createUserWithBudgetSetting();
     $category = SystemCategory::factory()->create();
 
-    $valid = new FixedCostTemplateData(
+    $valid = new CreateFixedCostTemplateData(
         name: 'Valid',
         amount: '10000.00',
         cycleType: CycleType::MONTHLY,
@@ -210,7 +210,7 @@ it('rolls back all inserts when one item is invalid', function () {
         categoryType: SystemCategory::class,
     );
 
-    $invalid = new FixedCostTemplateData(
+    $invalid = new CreateFixedCostTemplateData(
         name: '',
         amount: '10000.00',
         cycleType: CycleType::MONTHLY,
@@ -220,7 +220,7 @@ it('rolls back all inserts when one item is invalid', function () {
         categoryType: SystemCategory::class,
     );
 
-    app(CreateFixedCostTemplateAction::class)->execute($user->id, [$valid, $invalid]);
+    app(BulkCreateFixedCostTemplateAction::class)->execute($user->id, [$valid, $invalid]);
 
     expect(FixedCostTemplate::query()->count())->toBe(0);
 })->throws(InvalidArgumentException::class, 'Fixed cost name is required.');

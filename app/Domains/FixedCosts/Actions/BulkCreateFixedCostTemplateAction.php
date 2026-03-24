@@ -3,7 +3,7 @@
 namespace App\Domains\FixedCosts\Actions;
 
 use App\Domains\Budgeting\Enums\CycleType;
-use App\Domains\FixedCosts\DTOs\FixedCostTemplateData;
+use App\Domains\FixedCosts\DTOs\CreateFixedCostTemplateData;
 use App\Domains\FixedCosts\Services\FixedCostCycleValidator;
 use App\Models\CustomCategory;
 use App\Models\FixedCostTemplate;
@@ -20,7 +20,7 @@ use Throwable;
  * are logically sound, compatible with the user's budget cycle, and linked
  * to valid categories before saving them in a single database transaction.
  */
-final readonly class CreateFixedCostTemplateAction
+final readonly class BulkCreateFixedCostTemplateAction
 {
     public function __construct(
         private FixedCostCycleValidator $fixedCostCycleValidator,
@@ -30,7 +30,7 @@ final readonly class CreateFixedCostTemplateAction
      * Execute the template creation process.
      *
      * @param  int  $userId  The owner of the fixed costs.
-     * @param  list<FixedCostTemplateData>  $fixedCosts  Array of validated DTOs.
+     * @param  list<CreateFixedCostTemplateData>  $fixedCosts  Array of validated DTOs.
      *
      * @throws ModelNotFoundException If the user has not completed onboarding (missing budget settings).
      * @throws InvalidArgumentException If internal validation rules are violated.
@@ -61,7 +61,7 @@ final readonly class CreateFixedCostTemplateAction
         });
     }
 
-    private function validate(int $userId, FixedCostTemplateData $fixedCost, CycleType $userBudgetCycle): void
+    private function validate(int $userId, CreateFixedCostTemplateData $fixedCost, CycleType $userBudgetCycle): void
     {
         if (trim($fixedCost->name) === '') {
             throw new InvalidArgumentException('Fixed cost name is required.');
