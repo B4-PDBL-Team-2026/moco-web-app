@@ -4,9 +4,11 @@ namespace App\Actions\Transaction;
 
 use App\Models\Transaction;
 use App\Models\User;
+use App\Enums\TransactionType;
 use App\Services\TransactionBalanceService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\UnauthorizedException;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class DeleteTransactionAction
@@ -30,6 +32,17 @@ class DeleteTransactionAction
                 type: $transaction->type,
                 amount: (string) $transaction->amount
             );
+
+            if ($transaction->type === TransactionType::INCOME) {
+                $balance = $user->balance;
+                $incomeAmount = $transaction->amount;
+
+                if (bccomp((string)$balance, (string)$incomeAmount, 2) === -1) {
+                    throw ValidationException::withMessages([
+                        'amount' => 'Cannot delete income because balance would become negative.',
+                    ]);
+                }
+            }
 
             $user->update([
                 'balance' => $newBalance,

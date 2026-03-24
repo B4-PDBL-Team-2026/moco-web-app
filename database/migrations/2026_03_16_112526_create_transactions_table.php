@@ -20,7 +20,8 @@ return new class extends Migration
             $table->text('note')->nullable();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
-            $table->timestamps();
+            $table->timestamps();       
+            $table->string('leftover_allowance')->default('0'); //Ini untuk menyimpan sisa allowance dari cycle sebelumnya.
 
             $table->index(['user_id', 'transaction_date']);
             $table->index(['user_id', 'category_id', 'transaction_date']);

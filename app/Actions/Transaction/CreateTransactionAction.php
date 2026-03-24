@@ -3,10 +3,12 @@
 namespace App\Actions\Transaction;
 
 use App\DTOs\Transaction\CreateTransactionData;
+use App\Enums\TransactionType;
 use App\Models\Category;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Services\TransactionBalanceService;
+use App\Services\DailyAllowanceCalculator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Throwable;
@@ -14,7 +16,8 @@ use Throwable;
 readonly class CreateTransactionAction
 {
     public function __construct(
-        private TransactionBalanceService $transactionBalanceService
+        private TransactionBalanceService $transactionBalanceService,
+        private DailyAllowanceCalculator $dailyAllowanceCalcualtor //tambahan baru(1)
     ) {}
 
     /**
@@ -41,13 +44,35 @@ readonly class CreateTransactionAction
                 'transaction_date' => $data->transactionDate->toDateString(),
             ]);
 
+            $newBalance = $this->transactionBalanceService->applyTransaction(
+                (string) $user->balance,
+                $data->type,
+                (string) $data->amount,
+            );
+
             $user->update([
-                'balance' => $this->transactionBalanceService->applyTransaction(
-                    (string) $user->balance,
-                    $data->type,
-                    (string) $data->amount,
-                ),
+                'balance' => $newBalance
             ]);
+
+            if ($data->type === TransactionType::INCOME) {
+                $this->dailyAllowanceCalcualtor->recalculate($user, $newBalance);
+            }
+
+            if ($data->type === TransactionType::EXPENSE){
+              $dailyAllowance = $user->daily_allowance;
+              $balance = $user->balance;
+              
+              // jika expense > daily allowance
+              if (bccomp((string)$data->amount, (string)$dailyAllowance, 2) === 1) {
+                        // cek apakah masih ≤ balance
+                if (bccomp((string)$data->amount, (string)$balance, 2) === 1) {
+                    throw ValidationException::withMessages([
+                        'amount' => 'Expense exceeds current balance.',
+                    ]);
+                }
+                // kalau expense > allowance tapi ≤ balance → tetap boleh
+              }
+            }
 
             return $transaction->refresh();
         });
