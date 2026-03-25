@@ -23,7 +23,7 @@ class FixedCostReminder extends Notification
         return ['mail', 'database'];
     }
 
-    // Logika pesan Email
+ 
     public function toMail($notifiable): MailMessage
 {
     $name = $this->occurrence->template->name;
