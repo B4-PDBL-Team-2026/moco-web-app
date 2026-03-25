@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Category\CategoryController;
+use App\Http\Controllers\Api\FixedCost\FixedCostController;
 use App\Http\Controllers\Api\Onboarding\OnboardingController;
 use App\Http\Controllers\Api\Transaction\TransactionController;
 use Illuminate\Support\Facades\Route;
@@ -24,6 +25,21 @@ Route::middleware('auth:sanctum')->group(function () {
     // Category Endpoints
     Route::prefix('/category')->controller(CategoryController::class)->group(function () {
         Route::get('/system', 'getAllSystemCategory');
+    });
+
+    // Fixed Cost Endpoints
+    Route::prefix('fixed-costs')->controller(FixedCostController::class)->group(function () {
+        Route::post('/', 'store');
+        Route::patch('/{templateId}', 'update');
+        Route::delete('/{templateId}', 'destroy');
+
+        Route::prefix('occurrences')->group(function () {
+            Route::get('/', 'indexOccurrences');
+            Route::post('/{occurrenceId}/confirm', 'confirmPayment');
+            Route::post('/{occurrenceId}/cancel', 'cancelPayment');
+            Route::patch('/{occurrenceId}/amount', 'updateOccurrenceAmount');
+            Route::patch('/{occurrenceId}/metadata', 'updateOccurrenceMetadata');
+        });
     });
 
     // Transaction Endpoints
