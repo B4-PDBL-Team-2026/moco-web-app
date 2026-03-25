@@ -49,7 +49,7 @@ it('returns flooring and zero actual amount when reserved cost exceeds balance',
         ->and($result->actualAmount)->toBe('0.00');
 });
 
-it('applies flooring when raw daily allowance is below flooring', function () {
+it('apply flooring when raw daily allowance is below flooring', function () {
     $service = new AllowanceCalculator;
 
     $result = $service->calculate(

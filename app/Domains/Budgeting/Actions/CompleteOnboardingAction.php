@@ -4,8 +4,8 @@ namespace App\Domains\Budgeting\Actions;
 
 use App\Domains\Budgeting\DTOs\CompleteOnboardingData;
 use App\Domains\Budgeting\DTOs\OnboardingResultData;
-use App\Domains\FixedCosts\Actions\CreateFixedCostTemplateAction;
-use App\Domains\FixedCosts\Services\FixedCostCycleValidator;
+use App\Domains\FixedCosts\Actions\BulkCreateFixedCostTemplateAction;
+use App\Domains\FixedCosts\Actions\GenerateOccurencesForBudgetWindowAction;
 use App\Domains\Transactions\Enums\TransactionSource;
 use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\FixedCostOccurrence;
@@ -21,9 +21,9 @@ use Throwable;
 final readonly class CompleteOnboardingAction
 {
     public function __construct(
-        private FixedCostCycleValidator $validateFixedCostCycleCompability,
         private RecalculateBudgetSnapshotAction $recalculateBudgetSnapshotAction,
-        private CreateFixedCostTemplateAction $createFixedCostTemplatesAction,
+        private BulkCreateFixedCostTemplateAction $bulkCreateFixedCostTemplateAction,
+        GenerateOccurencesForBudgetWindowAction $generateOccurencesForBudgetWindowAction,
     ) {}
 
     /**
@@ -52,16 +52,10 @@ final readonly class CompleteOnboardingAction
 
             $this->createOrUpdateInitialBalanceTransaction($userId, $data);
 
-            foreach ($data->fixedCosts as $fixedCost) {
-                $this->validateFixedCostCycleCompability->ensureAllowed(
-                    budgetCycle: $data->cycleType,
-                    fixedCostCycle: $fixedCost->cycleType,
-                );
-            }
-
             if ($data->hasFixedCosts()) {
                 FixedCostTemplate::query()->where('user_id', '=', $userId)->delete();
-                $this->createFixedCostTemplatesAction->execute($userId, $data->fixedCosts);
+                FixedCostOccurrence::query()->where('user_id', '=', $userId)->delete();
+                $this->bulkCreateFixedCostTemplateAction->execute($userId, $data->fixedCosts);
             }
 
             $snapshot = $this->recalculateBudgetSnapshotAction->execute($userId);

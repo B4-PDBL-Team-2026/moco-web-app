@@ -3,12 +3,12 @@
 namespace App\Domains\Budgeting\DTOs;
 
 use App\Domains\Budgeting\Enums\CycleType;
-use App\Domains\FixedCosts\DTOs\FixedCostTemplateData;
+use App\Domains\FixedCosts\DTOs\CreateFixedCostTemplateData;
 
 final readonly class CompleteOnboardingData
 {
     /**
-     * @param  list<FixedCostTemplateData>  $fixedCosts
+     * @param  list<CreateFixedCostTemplateData>  $fixedCosts
      */
     public function __construct(
         public CycleType $cycleType,
@@ -27,7 +27,7 @@ final readonly class CompleteOnboardingData
             flooringLimit: (string) $data['flooringLimit'],
             ceilingLimit: (string) $data['ceilingLimit'],
             fixedCosts: array_map(
-                fn (array $fixedCost) => FixedCostTemplateData::fromArray($fixedCost),
+                fn (array $fixedCost) => CreateFixedCostTemplateData::fromArray($fixedCost),
                 $data['fixedCosts'] ?? []
             ),
             timezone: $data['timezone'],

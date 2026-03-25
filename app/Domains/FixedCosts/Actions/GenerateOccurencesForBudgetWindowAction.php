@@ -19,13 +19,13 @@ use Throwable;
  * and ensures that an occurrence (bill/transaction record) exists for the
  * current cycle. It handles both weekly and monthly billing logic.
  */
-final readonly class GenerateOccurencesForBudgetWindowAction
+class GenerateOccurencesForBudgetWindowAction
 {
     /**
      * @param  BudgetCycleWindowCalculator  $cycleResolverService  Service to determine cycle boundaries.
      */
     public function __construct(
-        private BudgetCycleWindowCalculator $cycleResolverService,
+        private readonly BudgetCycleWindowCalculator $cycleResolverService,
     ) {}
 
     /**
@@ -122,6 +122,7 @@ final readonly class GenerateOccurencesForBudgetWindowAction
             ->firstWhere('id', $userId)
             ->created_at
             ->toImmutable()
+            ->timezone($timezone)
             ->startOfDay();
 
         while ($monthCursor->lessThanOrEqualTo($lastMonth)) {
@@ -137,7 +138,7 @@ final readonly class GenerateOccurencesForBudgetWindowAction
                 cycleType: CycleType::MONTHLY,
             );
 
-            $effectiveWindowStart = $userRegistrationDate->greaterThan($budgetStartDate) ? $userRegistrationDate : $budgetStartDate;
+            $effectiveWindowStart = $userRegistrationDate->greaterThanOrEqualTo($budgetStartDate) ? $userRegistrationDate : $budgetStartDate;
 
             if ($this->isInsideBudgetWindow($dueDate, $effectiveWindowStart, $budgetEndDate)) {
                 $this->createOccurrenceIfMissing(
@@ -171,6 +172,7 @@ final readonly class GenerateOccurencesForBudgetWindowAction
             ->firstWhere('id', $userId)
             ->created_at
             ->toImmutable()
+            ->setTimezone($timezone)
             ->startOfDay();
 
         while ($weekCursor->lessThanOrEqualTo($budgetEndDate)) {
@@ -186,7 +188,7 @@ final readonly class GenerateOccurencesForBudgetWindowAction
                 cycleType: CycleType::WEEKLY,
             );
 
-            $effectiveWindowStart = $budgetStartDate->greaterThan($userRegistrationDate) ? $budgetStartDate : $userRegistrationDate;
+            $effectiveWindowStart = $budgetStartDate->greaterThanOrEqualTo($userRegistrationDate) ? $budgetStartDate : $userRegistrationDate;
 
             if ($this->isInsideBudgetWindow($dueDate, $effectiveWindowStart, $budgetEndDate)) {
                 $this->createOccurrenceIfMissing(
@@ -241,14 +243,12 @@ final readonly class GenerateOccurencesForBudgetWindowAction
             ]
         );
 
-        if ($occurrence->wasRecentlyCreated) {
-            Log::info('[FixedCost][GenerateOccurrences] Created new occurrence.', [
-                'template_id' => $template->id,
-                'cycle_key' => $cycleData->cycleKey,
-                'due_date' => $dueDate->toDateString(),
-                'status' => $occurrence->status,
-            ]);
-        }
+        Log::info('[FixedCost][GenerateOccurrences] Created new occurrence.', [
+            'template_id' => $template->id,
+            'cycle_key' => $cycleData->cycleKey,
+            'due_date' => $dueDate->toDateString(),
+            'status' => $occurrence->status,
+        ]);
     }
 
     /**
