@@ -2,13 +2,11 @@
 
 namespace App\Domains\Budgeting\Actions;
 
-use App\Commons\Services\MoneyService;
 use App\Domains\Budgeting\Services\BudgetCycleWindowCalculator;
 use App\Domains\Budgeting\Services\DailyAllowanceCalculator;
 use App\Domains\Budgeting\Services\ReservedCostCalculator;
 use App\Domains\FixedCosts\Actions\GenerateOccurencesForBudgetWindowAction;
-use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\Transaction;
+use App\Domains\Transactions\Services\UserBalanceCalculator;
 use App\Models\UserBudgetSetting;
 use App\Models\UserBudgetSnapshot;
 use Carbon\CarbonImmutable;
@@ -18,6 +16,7 @@ use Throwable;
 class RecalculateBudgetSnapshotAction
 {
     public function __construct(
+        private readonly UserBalanceCalculator $userBalanceCalculator,
         private readonly BudgetCycleWindowCalculator $cycleResolverService,
         private readonly DailyAllowanceCalculator $allowanceCalculatorService,
         private readonly ReservedCostCalculator $reservedCostCalculatorService,
@@ -37,10 +36,14 @@ class RecalculateBudgetSnapshotAction
                 ->lockForUpdate()
                 ->firstOrFail();
 
+            $timezone = $settings->timezone ?? 'Asia/Jakarta';
+
+            $now = $now ? $now->setTimezone($timezone) : CarbonImmutable::now($timezone);
+
             $cycle = $this->cycleResolverService->calculateFor(
                 cycleType: $settings->cycle_type,
                 now: $now,
-                timezone: $settings->timezone ?? 'Asia/Jakarta',
+                timezone: $timezone,
             );
 
             $this->generateCurrentCycleOccurrencesAction->execute(
@@ -48,10 +51,10 @@ class RecalculateBudgetSnapshotAction
                 budgetStartDate: $cycle->startDate,
                 budgetEndDate: $cycle->endDate,
                 now: $now,
-                timezone: $settings->timezone ?? 'Asia/Jakarta',
+                timezone: $timezone,
             );
 
-            $balance = $this->resolveCurrentBalance($userId);
+            $balance = $this->userBalanceCalculator->calculateCurrentBalance($userId);
 
             $reservedCost = $this->reservedCostCalculatorService->calculateForBudgetWindow(
                 userId: $userId,
@@ -67,38 +70,44 @@ class RecalculateBudgetSnapshotAction
                 remainingDays: $cycle->remainingDays,
             );
 
-            return UserBudgetSnapshot::query()->updateOrCreate(
-                ['user_id' => $userId],
-                [
-                    'current_balance' => $balance,
-                    'reserved_cost' => $reservedCost,
-                    'remaining_daily_allowance' => $dailyAllowance->amount,
-                    'raw_daily_allowance' => $dailyAllowance->rawAmount,
-                    'current_cycle_key' => $cycle->cycleKey,
-                    'cycle_start_date' => $cycle->startDate->toDateString(),
-                    'cycle_end_date' => $cycle->endDate->toDateString(),
-                    'remaining_days' => $cycle->remainingDays,
-                    'recalculated_at' => $now,
-                ]
-            );
+            $existingSnapshot = UserBudgetSnapshot::query()
+                ->where('user_id', $userId)
+                ->lockForUpdate()
+                ->first();
+
+            $isNewDay = true;
+
+            if ($existingSnapshot && $existingSnapshot->recalculated_at) {
+                $lastRecalculated = CarbonImmutable::parse($existingSnapshot->recalculated_at)
+                    ->setTimezone($timezone)
+                    ->startOfDay();
+
+                $isNewDay = $now->startOfDay()->greaterThan($lastRecalculated);
+            }
+
+            $payload = [
+                'current_balance' => $balance,
+                'reserved_cost' => $reservedCost,
+                'remaining_daily_allowance' => $dailyAllowance->amount,
+                'raw_daily_allowance' => $dailyAllowance->rawAmount,
+                'current_cycle_key' => $cycle->cycleKey,
+                'cycle_start_date' => $cycle->startDate->toDateString(),
+                'cycle_end_date' => $cycle->endDate->toDateString(),
+                'remaining_days' => $cycle->remainingDays,
+                'recalculated_at' => $now,
+            ];
+
+            if ($isNewDay) {
+                $payload['daily_allowance_limit'] = $dailyAllowance->amount;
+            }
+
+            if ($existingSnapshot) {
+                $existingSnapshot->update($payload);
+
+                return $existingSnapshot->refresh();
+            }
+
+            return UserBudgetSnapshot::query()->create(array_merge(['user_id' => $userId], $payload));
         });
-    }
-
-    /**
-     * Calculate current balance based on transaction list.
-     */
-    private function resolveCurrentBalance(int $userId): string
-    {
-        $totalIncome = Transaction::query()
-            ->where('user_id', $userId)
-            ->where('type', TransactionType::INCOME)
-            ->sum('amount') ?? 0;
-
-        $totalExpense = Transaction::query()
-            ->where('user_id', $userId)
-            ->where('type', TransactionType::EXPENSE)
-            ->sum('amount') ?? 0;
-
-        return MoneyService::sub((string) $totalIncome, (string) $totalExpense);
     }
 }

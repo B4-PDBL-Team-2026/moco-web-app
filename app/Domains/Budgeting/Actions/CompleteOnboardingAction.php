@@ -69,7 +69,7 @@ final readonly class CompleteOnboardingAction
                 cycleType: $data->cycleType->value,
                 currentBalance: (string) $snapshot->current_balance,
                 reservedCost: (string) $snapshot->reserved_cost,
-                dailyAllowance: (string) $snapshot->remaining_daily_allowance,
+                dailyAllowance: (string) $snapshot->daily_allowance_limit,
                 cycleKey: $snapshot->current_cycle_key,
                 cycleStartDate: $snapshot->cycle_start_date->toDateString(),
                 cycleEndDate: $snapshot->cycle_end_date->toDateString(),
