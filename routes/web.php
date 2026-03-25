@@ -1,5 +1,4 @@
 <?php
-
 use App\Http\Controllers\Web\Auth\ResetPasswordController;
 use Illuminate\Support\Facades\Route;
 

@@ -82,4 +82,8 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 500);
             }
         });
-    })->create();
+    })
+->withCommands([
+        \App\Console\Commands\SendFixedCostReminders::class,
+    ])
+    ->create();
