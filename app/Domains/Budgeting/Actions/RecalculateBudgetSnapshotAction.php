@@ -15,13 +15,13 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
-final readonly class RecalculateBudgetSnapshotAction
+class RecalculateBudgetSnapshotAction
 {
     public function __construct(
-        private BudgetCycleWindowCalculator $cycleResolverService,
-        private AllowanceCalculator $allowanceCalculatorService,
-        private ReservedCostCalculator $reservedCostCalculatorService,
-        private GenerateOccurencesForBudgetWindowAction $generateCurrentCycleOccurrencesAction,
+        private readonly BudgetCycleWindowCalculator $cycleResolverService,
+        private readonly AllowanceCalculator $allowanceCalculatorService,
+        private readonly ReservedCostCalculator $reservedCostCalculatorService,
+        private readonly GenerateOccurencesForBudgetWindowAction $generateCurrentCycleOccurrencesAction,
     ) {}
 
     /**
