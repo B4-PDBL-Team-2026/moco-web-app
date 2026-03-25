@@ -7,6 +7,7 @@ use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class FixedCostOccurrence extends Model
 {
@@ -23,6 +24,7 @@ class FixedCostOccurrence extends Model
         'status',
         'amount',
         'name',
+        'note',
         'category_type',
         'category_id',
         'paid_at',
@@ -43,5 +45,10 @@ class FixedCostOccurrence extends Model
     public function template(): BelongsTo
     {
         return $this->belongsTo(FixedCostTemplate::class, 'fixed_cost_template_id');
+    }
+
+    public function transaction(): HasOne
+    {
+        return $this->hasOne(Transaction::class, 'fixed_cost_occurrence_id', 'id');
     }
 }
