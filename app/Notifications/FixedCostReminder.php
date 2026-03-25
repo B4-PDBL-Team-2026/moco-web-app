@@ -18,7 +18,6 @@ class FixedCostReminder extends Notification
         $this->occurrence = $occurrence;
     }
 
-    // Menentukan lewat mana notifikasi dikirim
     public function via($notifiable): array
     {
         return ['mail', 'database'];
@@ -32,7 +31,7 @@ class FixedCostReminder extends Notification
 
     return (new MailMessage)
         ->subject("Pengingat Pembayaran: {$name}")
-        // Gunakan line pertama sebagai pengganti greeting agar masuk ke introLines[0]
+
         ->line("Halo {$notifiable->name}")
         ->line("Pembayaran {$name} sebesar {$amount} akan segera jatuh tempo.")
         ->line("Pastikan saldo kamu cukup untuk menghindari keterlambatan.")
@@ -40,7 +39,6 @@ class FixedCostReminder extends Notification
         ->line('Terima kasih telah menggunakan Moco App!');
 }
 
-    // Format data yang disimpan di database (optional tapi bagus untuk history)
     public function toArray($notifiable): array
     {
         return [
