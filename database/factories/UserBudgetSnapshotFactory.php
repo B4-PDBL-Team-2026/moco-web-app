@@ -18,6 +18,7 @@ class UserBudgetSnapshotFactory extends Factory
             'reserved_cost' => $this->faker->randomFloat(),
             'remaining_daily_allowance' => $this->faker->randomFloat(),
             'raw_daily_allowance' => $this->faker->randomFloat(),
+            'daily_allowance_limit' => $this->faker->randomFloat(),
             'current_cycle_key' => $this->faker->word(),
             'cycle_start_date' => Carbon::now(),
             'cycle_end_date' => Carbon::now(),
