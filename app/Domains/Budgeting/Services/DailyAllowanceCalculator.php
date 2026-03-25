@@ -6,7 +6,7 @@ use App\Commons\MoneyService;
 use App\Domains\Budgeting\DTOs\DailyAllowanceData;
 use InvalidArgumentException;
 
-class AllowanceCalculator
+class DailyAllowanceCalculator
 {
     /**
      * Calculate the safe and actual daily allowance.

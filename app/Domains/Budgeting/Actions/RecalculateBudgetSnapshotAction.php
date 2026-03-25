@@ -3,7 +3,7 @@
 namespace App\Domains\Budgeting\Actions;
 
 use App\Commons\MoneyService;
-use App\Domains\Budgeting\Services\AllowanceCalculator;
+use App\Domains\Budgeting\Services\DailyAllowanceCalculator;
 use App\Domains\Budgeting\Services\BudgetCycleWindowCalculator;
 use App\Domains\Budgeting\Services\ReservedCostCalculator;
 use App\Domains\FixedCosts\Actions\GenerateOccurencesForBudgetWindowAction;
@@ -18,9 +18,9 @@ use Throwable;
 class RecalculateBudgetSnapshotAction
 {
     public function __construct(
-        private readonly BudgetCycleWindowCalculator $cycleResolverService,
-        private readonly AllowanceCalculator $allowanceCalculatorService,
-        private readonly ReservedCostCalculator $reservedCostCalculatorService,
+        private readonly BudgetCycleWindowCalculator             $cycleResolverService,
+        private readonly DailyAllowanceCalculator                $allowanceCalculatorService,
+        private readonly ReservedCostCalculator                  $reservedCostCalculatorService,
         private readonly GenerateOccurencesForBudgetWindowAction $generateCurrentCycleOccurrencesAction,
     ) {}
 

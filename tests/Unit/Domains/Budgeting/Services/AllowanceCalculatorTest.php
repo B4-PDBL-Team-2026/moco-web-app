@@ -1,10 +1,10 @@
 <?php
 
 use App\Domains\Budgeting\DTOs\DailyAllowanceData;
-use App\Domains\Budgeting\Services\AllowanceCalculator;
+use App\Domains\Budgeting\Services\DailyAllowanceCalculator;
 
 it('calculates daily allowance normally and stores raw as actual amount', function () {
-    $service = new AllowanceCalculator;
+    $service = new DailyAllowanceCalculator;
 
     $result = $service->calculate(
         balance: '1000.00',
@@ -20,7 +20,7 @@ it('calculates daily allowance normally and stores raw as actual amount', functi
 });
 
 it('returns flooring and zero actual amount when reserved cost equals balance', function () {
-    $service = new AllowanceCalculator;
+    $service = new DailyAllowanceCalculator;
 
     $result = $service->calculate(
         balance: '500.00',
@@ -35,7 +35,7 @@ it('returns flooring and zero actual amount when reserved cost equals balance', 
 });
 
 it('returns flooring and zero actual amount when reserved cost exceeds balance', function () {
-    $service = new AllowanceCalculator;
+    $service = new DailyAllowanceCalculator;
 
     $result = $service->calculate(
         balance: '500.00',
@@ -50,7 +50,7 @@ it('returns flooring and zero actual amount when reserved cost exceeds balance',
 });
 
 it('apply flooring when raw daily allowance is below flooring', function () {
-    $service = new AllowanceCalculator;
+    $service = new DailyAllowanceCalculator;
 
     $result = $service->calculate(
         balance: '100.00',
@@ -65,7 +65,7 @@ it('apply flooring when raw daily allowance is below flooring', function () {
 });
 
 it('applies ceiling when raw daily allowance exceeds ceiling', function () {
-    $service = new AllowanceCalculator;
+    $service = new DailyAllowanceCalculator;
 
     $result = $service->calculate(
         balance: '1000.00',
@@ -80,7 +80,7 @@ it('applies ceiling when raw daily allowance exceeds ceiling', function () {
 });
 
 it('returns raw when raw is between flooring and ceiling', function () {
-    $service = new AllowanceCalculator;
+    $service = new DailyAllowanceCalculator;
 
     $result = $service->calculate(
         balance: '600.00',
@@ -95,7 +95,7 @@ it('returns raw when raw is between flooring and ceiling', function () {
 });
 
 it('throws when remaining days is not greater than zero', function () {
-    $service = new AllowanceCalculator;
+    $service = new DailyAllowanceCalculator;
 
     $service->calculate(
         balance: '100.00',
