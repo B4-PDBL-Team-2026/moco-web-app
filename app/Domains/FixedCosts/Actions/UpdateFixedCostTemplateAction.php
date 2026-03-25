@@ -3,7 +3,7 @@
 namespace App\Domains\FixedCosts\Actions;
 
 use App\Commons\Exceptions\BusinessRuleException;
-use App\Commons\MoneyService;
+use App\Commons\Services\MoneyService;
 use App\Domains\Budgeting\Enums\CycleType;
 use App\Domains\FixedCosts\DTOs\UpdateFixedCostTemplateData;
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;

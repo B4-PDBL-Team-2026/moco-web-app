@@ -2,7 +2,7 @@
 
 namespace App\Domains\FixedCosts\Actions;
 
-use App\Commons\MoneyService;
+use App\Commons\Services\MoneyService;
 use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
 use App\Domains\Transactions\Enums\TransactionSource;

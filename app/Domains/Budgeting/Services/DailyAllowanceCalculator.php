@@ -2,7 +2,7 @@
 
 namespace App\Domains\Budgeting\Services;
 
-use App\Commons\MoneyService;
+use App\Commons\Services\MoneyService;
 use App\Domains\Budgeting\DTOs\DailyAllowanceData;
 use InvalidArgumentException;
 

@@ -2,9 +2,9 @@
 
 namespace App\Domains\Budgeting\Actions;
 
-use App\Commons\MoneyService;
-use App\Domains\Budgeting\Services\DailyAllowanceCalculator;
+use App\Commons\Services\MoneyService;
 use App\Domains\Budgeting\Services\BudgetCycleWindowCalculator;
+use App\Domains\Budgeting\Services\DailyAllowanceCalculator;
 use App\Domains\Budgeting\Services\ReservedCostCalculator;
 use App\Domains\FixedCosts\Actions\GenerateOccurencesForBudgetWindowAction;
 use App\Domains\Transactions\Enums\TransactionType;
