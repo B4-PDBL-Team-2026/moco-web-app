@@ -41,24 +41,24 @@ class DailyAllowanceCalculator
             if ($rawAmount > $flooringLimit) {
                 return new DailyAllowanceData(
                     amount: $cappedAmount,
-                    actualAmount: $rawAmount,
+                    rawAmount: $rawAmount,
                 );
             } else {
                 return new DailyAllowanceData(
                     amount: $flooringLimit,
-                    actualAmount: $rawAmount,
+                    rawAmount: $rawAmount,
                 );
             }
 
         } elseif (MoneyService::eq($balance, $reservedCost)) {
             return new DailyAllowanceData(
                 amount: $flooringLimit,
-                actualAmount: '0.00',
+                rawAmount: '0.00',
             );
         } else {
             return new DailyAllowanceData(
                 amount: $flooringLimit,
-                actualAmount: '0.00',
+                rawAmount: '0.00',
             );
         }
     }

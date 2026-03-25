@@ -54,8 +54,8 @@ it('recalculates user budget status correctly', function () {
 
     expect((string) $status->current_balance)->toBe('1000.00')
         ->and((string) $status->reserved_cost)->toBe('400.00')
-        ->and((string) $status->daily_allowance)->toBe('50.00')
-        ->and((string) $status->actual_daily_allowance)->toBe('50.00')
+        ->and((string) $status->remaining_daily_allowance)->toBe('50.00')
+        ->and((string) $status->raw_daily_allowance)->toBe('50.00')
         ->and($status->current_cycle_key)->toBe('2026-03')
         ->and($status->remaining_days)->toBe(12);
 });
@@ -98,8 +98,8 @@ it('stores flooring as daily allowance and zero as actual daily allowance when r
         CarbonImmutable::parse('2026-03-20', 'Asia/Jakarta')
     );
 
-    expect((string) $status->daily_allowance)->toBe('20.00')
-        ->and((string) $status->actual_daily_allowance)->toBe('0.00');
+    expect((string) $status->remaining_daily_allowance)->toBe('20.00')
+        ->and((string) $status->raw_daily_allowance)->toBe('0.00');
 });
 
 it('stores flooring as displayed daily allowance when raw is below flooring', function () {
@@ -132,8 +132,8 @@ it('stores flooring as displayed daily allowance when raw is below flooring', fu
         CarbonImmutable::parse('2026-03-20', 'Asia/Jakarta')
     );
 
-    expect((string) $status->daily_allowance)->toBe('50.00')
-        ->and((string) $status->actual_daily_allowance)->toBe('8.33');
+    expect((string) $status->remaining_daily_allowance)->toBe('50.00')
+        ->and((string) $status->raw_daily_allowance)->toBe('8.33');
 });
 
 it('stores ceiling capped daily allowance and uncapped actual daily allowance', function () {
@@ -166,8 +166,8 @@ it('stores ceiling capped daily allowance and uncapped actual daily allowance', 
         CarbonImmutable::parse('2026-03-20', 'Asia/Jakarta')
     );
 
-    expect((string) $status->daily_allowance)->toBe('30.00')
-        ->and((string) $status->actual_daily_allowance)->toBe('83.33');
+    expect((string) $status->remaining_daily_allowance)->toBe('30.00')
+        ->and((string) $status->raw_daily_allowance)->toBe('83.33');
 });
 
 it('ignores unknown transaction types when calculating balance', function () {

@@ -18,9 +18,9 @@ use Throwable;
 class RecalculateBudgetSnapshotAction
 {
     public function __construct(
-        private readonly BudgetCycleWindowCalculator             $cycleResolverService,
-        private readonly DailyAllowanceCalculator                $allowanceCalculatorService,
-        private readonly ReservedCostCalculator                  $reservedCostCalculatorService,
+        private readonly BudgetCycleWindowCalculator $cycleResolverService,
+        private readonly DailyAllowanceCalculator $allowanceCalculatorService,
+        private readonly ReservedCostCalculator $reservedCostCalculatorService,
         private readonly GenerateOccurencesForBudgetWindowAction $generateCurrentCycleOccurrencesAction,
     ) {}
 
@@ -72,8 +72,8 @@ class RecalculateBudgetSnapshotAction
                 [
                     'current_balance' => $balance,
                     'reserved_cost' => $reservedCost,
-                    'daily_allowance' => $dailyAllowance->amount,
-                    'actual_daily_allowance' => $dailyAllowance->actualAmount,
+                    'remaining_daily_allowance' => $dailyAllowance->amount,
+                    'raw_daily_allowance' => $dailyAllowance->rawAmount,
                     'current_cycle_key' => $cycle->cycleKey,
                     'cycle_start_date' => $cycle->startDate->toDateString(),
                     'cycle_end_date' => $cycle->endDate->toDateString(),

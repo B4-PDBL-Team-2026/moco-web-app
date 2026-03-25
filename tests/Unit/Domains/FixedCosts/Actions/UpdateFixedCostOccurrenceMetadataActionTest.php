@@ -22,7 +22,7 @@ function setupForMetadata(): array
         'user_id' => $user->id,
         'current_balance' => '500000.00',
         'reserved_cost' => '150000.00',
-        'daily_allowance' => '30000.00',
+        'remaining_daily_allowance' => '30000.00',
         'current_cycle_key' => '2026-03',
         'cycle_start_date' => '2026-03-01',
         'cycle_end_date' => '2026-03-31',
@@ -99,7 +99,7 @@ it('does not change amount, status, or financial fields (BR §15)', function () 
     $freshSnap = $snapshot->fresh();
     expect((string) $freshSnap->current_balance)->toBe('500000.00');
     expect((string) $freshSnap->reserved_cost)->toBe('150000.00');
-    expect((string) $freshSnap->daily_allowance)->toBe('30000.00');
+    expect((string) $freshSnap->remaining_daily_allowance)->toBe('30000.00');
 });
 
 it('works on occurrences of any status (no status restriction)', function () {

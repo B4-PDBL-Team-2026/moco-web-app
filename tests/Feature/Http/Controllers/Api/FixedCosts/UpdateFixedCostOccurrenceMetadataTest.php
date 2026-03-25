@@ -17,7 +17,7 @@ function metadataSetup(): array
         'user_id' => $user->id,
         'current_balance' => '500000.00',
         'reserved_cost' => '150000.00',
-        'daily_allowance' => '30000.00',
+        'remaining_daily_allowance' => '30000.00',
         'current_cycle_key' => '2026-03',
         'cycle_start_date' => '2026-03-01',
         'cycle_end_date' => '2026-03-31',

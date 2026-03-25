@@ -16,7 +16,7 @@ it('calculates daily allowance normally and stores raw as actual amount', functi
 
     expect($result)->toBeInstanceOf(DailyAllowanceData::class)
         ->and($result->amount)->toBe('200.00')
-        ->and($result->actualAmount)->toBe('200.00');
+        ->and($result->rawAmount)->toBe('200.00');
 });
 
 it('returns flooring and zero actual amount when reserved cost equals balance', function () {
@@ -31,7 +31,7 @@ it('returns flooring and zero actual amount when reserved cost equals balance', 
     );
 
     expect($result->amount)->toBe('50.00')
-        ->and($result->actualAmount)->toBe('0.00');
+        ->and($result->rawAmount)->toBe('0.00');
 });
 
 it('returns flooring and zero actual amount when reserved cost exceeds balance', function () {
@@ -46,7 +46,7 @@ it('returns flooring and zero actual amount when reserved cost exceeds balance',
     );
 
     expect($result->amount)->toBe('50.00')
-        ->and($result->actualAmount)->toBe('0.00');
+        ->and($result->rawAmount)->toBe('0.00');
 });
 
 it('apply flooring when raw daily allowance is below flooring', function () {
@@ -61,7 +61,7 @@ it('apply flooring when raw daily allowance is below flooring', function () {
     );
 
     expect($result->amount)->toBe('50.00')
-        ->and($result->actualAmount)->toBe('10.00');
+        ->and($result->rawAmount)->toBe('10.00');
 });
 
 it('applies ceiling when raw daily allowance exceeds ceiling', function () {
@@ -76,7 +76,7 @@ it('applies ceiling when raw daily allowance exceeds ceiling', function () {
     );
 
     expect($result->amount)->toBe('300.00')
-        ->and($result->actualAmount)->toBe('500.00');
+        ->and($result->rawAmount)->toBe('500.00');
 });
 
 it('returns raw when raw is between flooring and ceiling', function () {
@@ -91,7 +91,7 @@ it('returns raw when raw is between flooring and ceiling', function () {
     );
 
     expect($result->amount)->toBe('200.00')
-        ->and($result->actualAmount)->toBe('200.00');
+        ->and($result->rawAmount)->toBe('200.00');
 });
 
 it('throws when remaining days is not greater than zero', function () {

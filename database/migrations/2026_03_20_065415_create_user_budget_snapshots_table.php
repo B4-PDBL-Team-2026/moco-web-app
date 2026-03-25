@@ -16,8 +16,8 @@ return new class extends Migration
             $table->foreignId('user_id')->unique()->constrained()->cascadeOnDelete();
             $table->decimal('current_balance', 15, 2)->default(0);
             $table->decimal('reserved_cost', 15, 2)->default(0);
-            $table->decimal('daily_allowance', 15, 2)->default(0);
-            $table->decimal('actual_daily_allowance', 15, 2)->default(0);
+            $table->decimal('remaining_daily_allowance', 15, 2)->default(0);
+            $table->decimal('raw_daily_allowance', 15, 2)->default(0);
             $table->string('current_cycle_key', 20); // monthly: 2026-01 (YYYY-MM); weekly: 2026-W12 (YYYY-WWW)
             $table->date('cycle_start_date');
             $table->date('cycle_end_date');
