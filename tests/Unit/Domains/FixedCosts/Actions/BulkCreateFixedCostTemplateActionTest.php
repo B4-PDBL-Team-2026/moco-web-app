@@ -1,5 +1,6 @@
 <?php
 
+use App\Commons\Exceptions\BusinessRuleException;
 use App\Domains\Budgeting\Enums\CycleType;
 use App\Domains\FixedCosts\Actions\BulkCreateFixedCostTemplateAction;
 use App\Domains\FixedCosts\DTOs\CreateFixedCostTemplateData;
@@ -8,9 +9,6 @@ use App\Models\FixedCostTemplate;
 use App\Models\SystemCategory;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 function createUserWithBudgetSetting(CycleType $cycleType = CycleType::MONTHLY): User
 {
@@ -160,7 +158,7 @@ it('rejects invalid category type', function () {
     );
 
     app(BulkCreateFixedCostTemplateAction::class)->execute($user->id, [$dto]);
-})->throws(InvalidArgumentException::class, 'Invalid category type.');
+})->throws(BusinessRuleException::class, 'Invalid category type.');
 
 it('rejects invalid system category id', function () {
     $user = createUserWithBudgetSetting();
@@ -176,7 +174,7 @@ it('rejects invalid system category id', function () {
     );
 
     app(BulkCreateFixedCostTemplateAction::class)->execute($user->id, [$dto]);
-})->throws(InvalidArgumentException::class, 'Invalid category.');
+})->throws(BusinessRuleException::class, 'Invalid system category.');
 
 it('rejects custom category owned by another user', function () {
     $user = createUserWithBudgetSetting();
@@ -194,7 +192,7 @@ it('rejects custom category owned by another user', function () {
     );
 
     app(BulkCreateFixedCostTemplateAction::class)->execute($user->id, [$dto]);
-})->throws(InvalidArgumentException::class, 'Invalid custom category.');
+})->throws(BusinessRuleException::class, 'Invalid custom category.');
 
 it('rolls back all inserts when one item is invalid', function () {
     $user = createUserWithBudgetSetting();
