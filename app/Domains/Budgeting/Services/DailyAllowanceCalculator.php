@@ -37,13 +37,14 @@ class DailyAllowanceCalculator
         $cappedAmount = MoneyService::min($rawAmount, $ceilingLimit);
 
         if (MoneyService::gt($balance, $reservedCost)) {
-
-            if ($rawAmount > $flooringLimit) {
+            // stable or surplus always return flooring <= amount <= ceiling
+            if ($rawAmount >= $flooringLimit) {
                 return new DailyAllowanceData(
                     amount: $cappedAmount,
                     rawAmount: $rawAmount,
                 );
             } else {
+                // critical but still able to pay bills from fixed cost
                 return new DailyAllowanceData(
                     amount: $flooringLimit,
                     rawAmount: $rawAmount,
@@ -51,11 +52,13 @@ class DailyAllowanceCalculator
             }
 
         } elseif (MoneyService::eq($balance, $reservedCost)) {
+            // critical with 0 balance after fixed costs payment
             return new DailyAllowanceData(
                 amount: $flooringLimit,
                 rawAmount: '0.00',
             );
         } else {
+            // defisit balance, prioritize daily allowance but can not pay fixed cost bills
             return new DailyAllowanceData(
                 amount: $flooringLimit,
                 rawAmount: '0.00',
