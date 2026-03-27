@@ -3,9 +3,12 @@
 namespace App\Domains\FixedCosts\Actions;
 
 use App\Commons\Services\MoneyService;
+use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
 use App\Domains\FixedCosts\DTOs\UpdateFixedCostOccurrenceAmountData;
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
 use App\Models\FixedCostOccurrence;
+use App\Models\Transaction;
+use App\Models\UserBudgetSnapshot;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -32,6 +35,9 @@ use Throwable;
  */
 final readonly class UpdateFixedCostOccurrenceAmountAction
 {
+    public function __construct(
+        private RecalculateBudgetSnapshotAction $recalculateBudgetSnapshotAction
+    ) {}
     /**
      * @param  int  $userId  Ownership guard.
      * @param  int  $occurrenceId  The occurrence to edit.
@@ -53,18 +59,42 @@ final readonly class UpdateFixedCostOccurrenceAmountAction
         // BR §17: only voided occurrences may have their amount edited.
         $occurrence = FixedCostOccurrence::query()
             ->where('user_id', $userId)
-            ->where('status', FixedCostOccurenceStatus::VOID->value)
+            ->where('status', '!=', FixedCostOccurenceStatus::VOID->value)
             ->findOrFail($occurrenceId);
 
-        DB::transaction(function () use ($occurrence, $data): void {
+        $snapshot = UserBudgetSnapshot::query()
+            ->where('user_id', $userId)
+            ->firstOrFail();
+
+        if ($occurrence->status === FixedCostOccurenceStatus::PAID) {
+            $difference = MoneyService::sub($data->amount, (string) $occurrence->amount);
+
+            if (MoneyService::gt($difference, '0.00')) {
+                if (MoneyService::lt((string) $snapshot->current_balance, $difference)) {
+                    throw new InvalidArgumentException(
+                        'Insufficient balance to increase the amount of an already paid occurrence.'
+                    );
+                }
+            }
+        }
+
+        DB::transaction(function () use ($occurrence, $userId, $data): void {
             $occurrence->update([
                 'amount' => $data->amount,
-                // Reset void timestamps so re-confirmation creates a clean state.
-                'voided_at' => null,
-                // Status remains VOID until ConfirmFixedCostPaymentAction is called.
-                // This keeps accounting consistent — the occurrence is not reserved
-                // and not counted until explicitly re-confirmed.
             ]);
+
+            if ($occurrence->status === FixedCostOccurenceStatus::PAID->value) {
+                if ($occurrence->transaction()->exists()) {
+                    $occurrence->transaction()->update([
+                        'amount' => $data->amount,
+                    ]);
+                }
+            }
+
+            Transaction::query()->where('fixed_cost_occurrence_id', '=', $occurrence->id)
+                ->update(['amount' => $data->amount]);
+
+            $this->recalculateBudgetSnapshotAction->execute($userId);
         });
     }
 }
