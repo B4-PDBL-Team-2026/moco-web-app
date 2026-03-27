@@ -14,34 +14,27 @@ use Throwable;
 class UpdateTransactionAction
 {
     public function __construct(
-        private readonly UpdateTransactionAmountAction $updateAmountAction,
-        private readonly UpdateTransactionDateAction $updateDateAction,
-        private readonly UpdateTransactionMetadataAction $updateMetadataAction,
+        private readonly UpdateTransactionAmountAction $updateTransactionAmountAction,
+        private readonly UpdateTransactionDateAction $updateTransactionDateAction,
+        private readonly UpdateTransactionMetadataAction $updateTransactionMetadataAction,
     ) {}
 
     /**
-     * Orchestrates partial updates by delegating to specialized actions.
-     * Rule 25: Type change is strictly forbidden.
-     * Rule 23: Amount change triggers recalculation.
-     * Rule 26: Date change does NOT trigger recalculation.
-     * Rule 27: Metadata change does NOT trigger recalculation.
-     *
      * @throws ValidationException|UnauthorizedException|Throwable
      */
     public function execute(User $user, Transaction $transaction, UpdateTransactionData $dto): Transaction
     {
+        // Authorization check 
         if ($user->id !== $transaction->user_id) {
             throw new UnauthorizedException('You are not authorized to perform this action.');
         }
 
-        // Rule 25: reject type change upfront before any mutation
         if ($dto->typeProvided) {
             throw ValidationException::withMessages([
                 'type' => ['Transaction type cannot be changed after creation.'],
             ]);
         }
 
-        // Validate new categoryId is compatible with existing transaction type
         if ($dto->categoryIdProvided && $dto->categoryId !== null) {
             $category = SystemCategory::find($dto->categoryId)
                 ?? CustomCategory::where('id', $dto->categoryId)
@@ -61,30 +54,45 @@ class UpdateTransactionAction
             }
         }
 
-        // Delegate amount update (triggers recalculation — Rule 23)
+        // Amount update
         if ($dto->amountProvided && $dto->amount !== null) {
-            $transaction = $this->updateAmountAction->execute($user, $transaction, $dto->amount);
+            $transaction = $this->updateTransactionAmountAction->execute(
+                user: $user,
+                transaction: $transaction,
+                newAmount: $dto->amount,
+            );
         }
 
-        // Delegate date update (no recalculation — Rule 26)
+        // Date update
         if ($dto->transactionDateProvided && $dto->transactionDate !== null) {
-            $transaction = $this->updateDateAction->execute($user, $transaction, $dto->transactionDate);
+            $transaction = $this->updateTransactionDateAction->execute(
+                user: $user,
+                transaction: $transaction,
+                newDate: $dto->transactionDate,
+            );
         }
 
-        // Delegate metadata update (no recalculation — Rule 27)
+        // Metadata update
         $metadataFields = [];
+
         if ($dto->nameProvided) {
             $metadataFields['name'] = $dto->name;
         }
+
         if ($dto->noteProvided) {
             $metadataFields['note'] = $dto->note;
         }
+
         if ($dto->categoryIdProvided) {
             $metadataFields['categoryId'] = $dto->categoryId;
         }
 
         if (! empty($metadataFields)) {
-            $transaction = $this->updateMetadataAction->execute($user, $transaction, $metadataFields);
+            $transaction = $this->updateTransactionMetadataAction->execute(
+                user: $user,
+                transaction: $transaction,
+                fields: $metadataFields,
+            );
         }
 
         return $transaction;
