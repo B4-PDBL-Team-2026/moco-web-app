@@ -38,6 +38,7 @@ final readonly class UpdateFixedCostOccurrenceAmountAction
     public function __construct(
         private RecalculateBudgetSnapshotAction $recalculateBudgetSnapshotAction
     ) {}
+
     /**
      * @param  int  $userId  Ownership guard.
      * @param  int  $occurrenceId  The occurrence to edit.
@@ -75,6 +76,14 @@ final readonly class UpdateFixedCostOccurrenceAmountAction
                         'Insufficient balance to increase the amount of an already paid occurrence.'
                     );
                 }
+            }
+
+            $linkedTransaction = $occurrence->transaction;
+
+            if ($linkedTransaction) {
+                $linkedTransaction->update([
+                    'amount' => $data->amount,
+                ]);
             }
         }
 
