@@ -1,6 +1,7 @@
 <?php
 
 use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
+use App\Domains\Budgeting\Enums\CycleType;
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
 use App\Domains\Transactions\Enums\TransactionSource;
 use App\Domains\Transactions\Enums\TransactionType;
@@ -10,6 +11,7 @@ use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSnapshot;
+use Carbon\CarbonImmutable;
 use Laravel\Sanctum\Sanctum;
 
 beforeEach(function () {
@@ -18,7 +20,7 @@ beforeEach(function () {
     app()->instance(RecalculateBudgetSnapshotAction::class, $mock);
 });
 
-function cancelSetup(string $status = 'paid'): array
+function cancelSetup(string $status = 'paid', ?string $dueDate = null): array
 {
     $user = User::factory()->create();
     $category = SystemCategory::factory()->create();
@@ -42,8 +44,8 @@ function cancelSetup(string $status = 'paid'): array
         'user_id' => $user->id,
         'fixed_cost_template_id' => $template->id,
         'cycle_key' => '2026-03',
-        'cycle_type' => 'monthly',
-        'due_date' => '2026-03-15',
+        'cycle_type' => CycleType::MONTHLY->value,
+        'due_date' => $dueDate ?? '2026-03-15',
         'status' => $status,
         'amount' => '150000.00',
         'name' => 'Electricity',
@@ -52,45 +54,34 @@ function cancelSetup(string $status = 'paid'): array
         'paid_at' => $status === 'paid' ? now() : null,
     ]);
 
-    return [$user, $occurrence, $category];
+    return [$user, $occurrence];
 }
 
 test('unauthenticated cancel request returns 401', function () {
     $this->postJson('/api/fixed-costs/occurrences/1/cancel')->assertUnauthorized();
 });
 
-test('cancels a paid occurrence and sets status to void', function () {
-    [$user, $occurrence] = cancelSetup('paid');
-    Sanctum::actingAs($user);
-
-    $this->postJson("/api/fixed-costs/occurrences/{$occurrence->id}/cancel")->assertOk();
-
-    $fresh = $occurrence->fresh();
-    expect($fresh->status)->toBe(FixedCostOccurenceStatus::VOID)
-        ->and($fresh->paid_at)->toBeNull()
-        ->and($fresh->voided_at)->not->toBeNull();
-});
-
 test('cancels a pending occurrence', function () {
     [$user, $occurrence] = cancelSetup('pending');
+
     Sanctum::actingAs($user);
 
-    $this->postJson("/api/fixed-costs/occurrences/{$occurrence->id}/cancel")->assertOk();
+    $this->postJson("/api/fixed-costs/occurrences/{$occurrence->id}/cancel")->dump()->assertOk();
 
-    expect($occurrence->fresh()->status)->toBe(FixedCostOccurenceStatus::VOID);
+    expect($occurrence->fresh()->status)->toBe(FixedCostOccurenceStatus::SKIPPED);
 });
 
-test('cancels an overdue occurrence', function () {
+test('cancels an overdue occurrence and change status to skipped', function () {
     [$user, $occurrence] = cancelSetup('overdue');
     Sanctum::actingAs($user);
 
     $this->postJson("/api/fixed-costs/occurrences/{$occurrence->id}/cancel")->assertOk();
 
-    expect($occurrence->fresh()->status)->toBe(FixedCostOccurenceStatus::VOID);
+    expect($occurrence->fresh()->status)->toBe(FixedCostOccurenceStatus::SKIPPED);
 });
 
-test('soft-deletes the linked transaction on cancel', function () {
-    [$user, $occurrence] = cancelSetup('paid');
+test('soft-deletes paid fixed cost linked transaction on cancel', function () {
+    [$user, $occurrence] = cancelSetup();
 
     $tx = Transaction::factory()->create([
         'user_id' => $user->id,
@@ -110,6 +101,39 @@ test('soft-deletes the linked transaction on cancel', function () {
     $this->assertSoftDeleted('transactions', ['id' => $tx->id]);
 });
 
+test('cancel returns 404 when occurrence is already void', function () {
+    [$user, $occurrence] = cancelSetup('void');
+    Sanctum::actingAs($user);
+
+    $this->postJson("/api/fixed-costs/occurrences/{$occurrence->id}/cancel")->assertNotFound();
+});
+
+test('cancels a paid occurrence and restores status to PENDING if due date is in the future', function () {
+    CarbonImmutable::setTestNow('2026-03-20 10:00:00');
+
+    [$user, $occurrence] = cancelSetup('paid', '2026-03-25');
+    Sanctum::actingAs($user);
+
+    $this->postJson("/api/fixed-costs/occurrences/{$occurrence->id}/cancel")->assertOk();
+
+    $fresh = $occurrence->fresh();
+    expect($fresh->status)->toBe(FixedCostOccurenceStatus::PENDING)
+        ->and($fresh->paid_at)->toBeNull();
+});
+
+test('cancels a paid occurrence and restores status to OVERDUE if due date is in the past', function () {
+    CarbonImmutable::setTestNow('2026-03-20 10:00:00');
+
+    [$user, $occurrence] = cancelSetup('paid', '2026-03-15');
+    Sanctum::actingAs($user);
+
+    $this->postJson("/api/fixed-costs/occurrences/{$occurrence->id}/cancel")->assertOk();
+
+    $fresh = $occurrence->fresh();
+    expect($fresh->status)->toBe(FixedCostOccurenceStatus::OVERDUE)
+        ->and($fresh->paid_at)->toBeNull();
+});
+
 test('cancel returns 404 when occurrence belongs to another user', function () {
     [$_, $occurrence] = cancelSetup('paid');
     $other = User::factory()->create();
@@ -118,8 +142,8 @@ test('cancel returns 404 when occurrence belongs to another user', function () {
     $this->postJson("/api/fixed-costs/occurrences/{$occurrence->id}/cancel")->assertNotFound();
 });
 
-test('cancel returns 404 when occurrence is already void', function () {
-    [$user, $occurrence] = cancelSetup('void');
+test('cancel returns 404 when occurrence is already SKIPPED', function () {
+    [$user, $occurrence] = cancelSetup('skipped');
     Sanctum::actingAs($user);
 
     $this->postJson("/api/fixed-costs/occurrences/{$occurrence->id}/cancel")->assertNotFound();
