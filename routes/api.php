@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\Category\CategoryController;
 use App\Http\Controllers\Api\FixedCost\FixedCostController;
 use App\Http\Controllers\Api\Onboarding\OnboardingController;
 use App\Http\Controllers\Api\Transaction\TransactionController;
+use App\Http\Controllers\Api\Profile\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->controller(AuthController::class)->group(function () {
@@ -43,11 +44,19 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Transaction Endpoints
-    Route::controller(TransactionController::class)->prefix('transaction')->group(function () {
-        Route::get('/', 'index');
-        Route::post('/', 'store');
-        Route::get('/{transaction}', 'show');
-        Route::put('/{transaction}', 'update');
-        Route::delete('/{transaction}', 'destroy');
+    Route::controller(TransactionController::class)
+        ->prefix('transaction/transactions')
+        ->group(function () {
+            Route::get('/', 'index');
+            Route::post('/', 'store');
+            Route::get('/{transaction}', 'show');
+            Route::put('/{transaction}', 'update');
+            Route::delete('/{transaction}', 'destroy');
+        });
+
+    // Profile Endpoints
+    Route::prefix('profile')->group(function () {
+        Route::get('/', [ProfileController::class, 'show']);
+        Route::patch('/', [ProfileController::class, 'update']);
     });
 });

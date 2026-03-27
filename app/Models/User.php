@@ -47,6 +47,11 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    public function profile(): HasOne
+    {
+        return $this->hasOne(UserProfile::class);
+    }
+
     public function fixedCosts(): HasMany
     {
         return $this->hasMany(FixedCostTemplate::class);

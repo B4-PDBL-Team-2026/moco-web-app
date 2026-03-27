@@ -38,8 +38,10 @@ class RecalculateBudgetSnapshotAction
 
             $timezone = $settings->timezone ?? 'Asia/Jakarta';
 
-            $now = $now ? $now->setTimezone($timezone) : CarbonImmutable::now($timezone);
-
+            $now = $now
+                ? $now->setTimezone($timezone)
+                : CarbonImmutable::now($timezone);
+                
             $cycle = $this->cycleResolverService->calculateFor(
                 cycleType: $settings->cycle_type,
                 now: $now,

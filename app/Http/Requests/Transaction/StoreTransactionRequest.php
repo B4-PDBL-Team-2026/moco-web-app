@@ -16,17 +16,21 @@ class StoreTransactionRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'categoryId' => [
+                'required',
+                Rule::exists('custom_categories', 'id')->where('user_id', $this->user()->id),
+            ],
             'name' => ['required', 'string', 'max:255'],
             'amount' => ['required', 'decimal:0,2', 'gt:0'],
             'type' => ['required', Rule::enum(TransactionType::class)],
             'note' => ['nullable', 'string', 'max:1000'],
             'transactionDate' => ['required', 'date'],
-            'categoryId' => [
+            /*'categoryId' => [
                 'required',
                 'integer',
                 Rule::exists('categories', 'id')
                     ->where(fn ($query) => $query->where('user_id', auth()->id())),
-            ],
+            ],*/
         ];
     }
 }

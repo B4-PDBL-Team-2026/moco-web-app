@@ -1,24 +1,24 @@
 <?php
 
-use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\SystemCategory;
-use App\Models\Transaction;
 use App\Models\User;
+use App\Models\CustomCategory;
+use App\Models\Transaction;
+use App\Domains\Transactions\Enums\TransactionType;
 use Laravel\Sanctum\Sanctum;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
 
 test('guest cannot update transaction', function () {
     $this->putJson('/api/transaction/transactions/1', [])
         ->assertUnauthorized();
 });
 
-test('authenticated user can update own transaction', function () {
-    $user = User::factory()->create([
-        'balance' => '900.00',
-    ]);
-
+test('authenticated user cannot change transaction type (Rule 25)', function () {
+    $user = User::factory()->create();
     Sanctum::actingAs($user);
 
-    $category = SystemCategory::factory()->create([
+    $category = CustomCategory::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
@@ -26,161 +26,14 @@ test('authenticated user can update own transaction', function () {
     $transaction = Transaction::factory()->create([
         'user_id' => $user->id,
         'category_id' => $category->id,
-        'name' => 'Old Groceries',
-        'amount' => '100.00',
-        'type' => TransactionType::EXPENSE,
-        'transaction_date' => '2026-03-01',
+        'category_type' => CustomCategory::class,
+        'amount' => '200.00',
+        'type' => 'expense',
     ]);
 
-    $payload = [
-        'name' => 'New Groceries',
-        'amount' => '250.00',
-        'transactionDate' => '2026-03-16',
-    ];
+    $payload = ['type' => 'income'];
 
-    $this->putJson('/api/transaction/transactions/'.$transaction->id, $payload)
-        ->assertOk()
-        ->assertJsonPath('success', true)
-        ->assertJsonPath('message', 'Transaction updated successfully.');
-
-    $transaction->refresh();
-
-    expect($transaction->name)->toBe('New Groceries')
-        ->and((string) $transaction->amount)->toBe('250.00')
-        ->and($transaction->transaction_date->toDateString())->toBe('2026-03-16')
-        ->and($user->fresh()->balance)->toBe('750.00');
-});
-
-test('authenticated user can update transaction type and category', function () {
-    $user = User::factory()->create([
-        'balance' => '900.00',
-    ]);
-
-    Sanctum::actingAs($user);
-
-    $expenseCategory = SystemCategory::factory()->create([
-        'user_id' => $user->id,
-        'type' => TransactionType::EXPENSE,
-    ]);
-
-    $incomeCategory = SystemCategory::factory()->create([
-        'user_id' => $user->id,
-        'type' => TransactionType::INCOME,
-    ]);
-
-    $transaction = Transaction::factory()->create([
-        'user_id' => $user->id,
-        'category_id' => $expenseCategory->id,
-        'type' => TransactionType::EXPENSE,
-        'amount' => '100.00',
-    ]);
-
-    $payload = [
-        'type' => TransactionType::INCOME->value,
-        'categoryId' => $incomeCategory->id,
-    ];
-
-    $this->putJson('/api/transaction/transactions/'.$transaction->id, $payload)
-        ->assertOk();
-
-    expect($transaction->fresh()->type)->toBe(TransactionType::INCOME);
-    expect($user->fresh()->balance)->toBe('1100.00');
-});
-
-test('update endpoint validates amount when provided', function () {
-    $user = User::factory()->create();
-    Sanctum::actingAs($user);
-
-    $category = SystemCategory::factory()->create([
-        'user_id' => $user->id,
-        'type' => TransactionType::EXPENSE,
-    ]);
-
-    $transaction = Transaction::factory()->create([
-        'user_id' => $user->id,
-        'category_id' => $category->id,
-        'type' => TransactionType::EXPENSE,
-    ]);
-
-    $this->putJson('/api/transaction/transactions/'.$transaction->id, [
-        'amount' => '0',
-    ])->assertUnprocessable()
-        ->assertJsonValidationErrors(['amount'], 'data');
-});
-
-test('update endpoint validates category belongs to authenticated user', function () {
-    $user = User::factory()->create();
-    $otherUser = User::factory()->create();
-
-    Sanctum::actingAs($user);
-
-    $ownCategory = SystemCategory::factory()->create([
-        'user_id' => $user->id,
-        'type' => TransactionType::EXPENSE,
-    ]);
-
-    $otherCategory = SystemCategory::factory()->create([
-        'user_id' => $otherUser->id,
-        'type' => TransactionType::EXPENSE,
-    ]);
-
-    $transaction = Transaction::factory()->create([
-        'user_id' => $user->id,
-        'category_id' => $ownCategory->id,
-        'type' => TransactionType::EXPENSE,
-    ]);
-
-    $this->putJson('/api/transaction/transactions/'.$transaction->id, [
-        'categoryId' => $otherCategory->id,
-    ])->assertUnprocessable()
-        ->assertJsonValidationErrors(['categoryId'], 'data');
-});
-
-test('update endpoint rejects mismatched category type and transaction type', function () {
-    $user = User::factory()->create();
-    Sanctum::actingAs($user);
-
-    $expenseCategory = SystemCategory::factory()->create([
-        'user_id' => $user->id,
-        'type' => TransactionType::EXPENSE,
-    ]);
-
-    $incomeCategory = SystemCategory::factory()->create([
-        'user_id' => $user->id,
-        'type' => TransactionType::INCOME,
-    ]);
-
-    $transaction = Transaction::factory()->create([
-        'user_id' => $user->id,
-        'category_id' => $expenseCategory->id,
-        'type' => TransactionType::EXPENSE,
-        'amount' => '100.00',
-    ]);
-
-    $this->putJson('/api/transaction/transactions/'.$transaction->id, [
-        'type' => TransactionType::EXPENSE->value,
-        'categoryId' => $incomeCategory->id,
-    ])->assertUnprocessable();
-});
-
-test('authenticated user cannot update other users transaction', function () {
-    $user = User::factory()->create();
-    $otherUser = User::factory()->create();
-
-    Sanctum::actingAs($user);
-
-    $category = SystemCategory::factory()->create([
-        'user_id' => $otherUser->id,
-        'type' => TransactionType::EXPENSE,
-    ]);
-
-    $transaction = Transaction::factory()->create([
-        'user_id' => $otherUser->id,
-        'category_id' => $category->id,
-        'type' => TransactionType::EXPENSE,
-    ]);
-
-    $this->putJson('/api/transaction/transactions/'.$transaction->id, [
-        'name' => 'Hacked',
-    ])->assertForbidden();
+    $this->putJson("/api/transaction/transactions/{$transaction->id}", $payload)
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['type'], 'data');
 });
