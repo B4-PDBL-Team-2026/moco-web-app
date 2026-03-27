@@ -1,0 +1,38 @@
+<?php
+
+namespace App\Http\Controllers\Api\Profile;
+
+use App\Domains\Profile\Actions\GetProfileAction;
+use App\Domains\Profile\Actions\UpdateProfileAction;
+use App\Domains\Profile\DTOs\UpdateProfileData;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Profile\UpdateProfileRequest;
+use App\Traits\ApiResponse;
+use Illuminate\Http\JsonResponse;
+
+class ProfileController extends Controller
+{
+    use ApiResponse;
+    /**
+     * Return the authenticated user's profile.
+     */
+    public function show(GetProfileAction $action): JsonResponse
+    {
+        $user = $action->execute(auth()->id());
+
+        return $this->success($user->load('profile'), 'Profile retrieved successfully.');
+    }
+
+    /**
+     * Update the authenticated user's profile.
+     * Only sends fields that were actually provided (partial update).
+     */
+    public function update(UpdateProfileRequest $request, UpdateProfileAction $action): JsonResponse
+    {
+        $dto = UpdateProfileData::fromArray($request->validated());
+
+        $profile = $action->execute(auth()->id(), $dto);
+
+        return $this->success($profile, 'Profile updated successfully.');
+    }
+}
