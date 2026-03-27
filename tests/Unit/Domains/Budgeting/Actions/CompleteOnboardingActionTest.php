@@ -171,6 +171,10 @@ it('rejects monthly fixed costs within a weekly budget cycle', function () {
 })->throws(BusinessRuleException::class, 'Monthly fixed cost is not allowed when budget cycle is weekly.');
 
 it('updates existing onboarding data seamlessly when user steps back and resubmits', function () {
+    $mockedTime = CarbonImmutable::parse('2026-03-20 10:00:00', 'Asia/Jakarta');
+
+    CarbonImmutable::setTestNow($mockedTime);
+
     $user = User::factory()->create([
         'created_at' => CarbonImmutable::now()->subMonth()->startOfMonth(),
     ]);
