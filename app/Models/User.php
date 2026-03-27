@@ -66,4 +66,9 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return ! $this->has_onboarded;
     }
+
+    public function profile()
+    {
+        return $this->hasOne(\App\Models\UserProfile::class);
+    }
 }

@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\Category\CategoryController;
 use App\Http\Controllers\Api\FixedCost\FixedCostController;
 use App\Http\Controllers\Api\Onboarding\OnboardingController;
 use App\Http\Controllers\Api\Transaction\TransactionController;
+use App\Http\Controllers\Api\Profile\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->controller(AuthController::class)->group(function () {
@@ -50,4 +51,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{transaction}', 'update');
         Route::delete('/{transaction}', 'destroy');
     });
+
+    // Profile Endpoints
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::patch('/profile', [ProfileController::class, 'update']);
 });
