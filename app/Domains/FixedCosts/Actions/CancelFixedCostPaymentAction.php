@@ -5,6 +5,7 @@ namespace App\Domains\FixedCosts\Actions;
 use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
 use App\Models\FixedCostOccurrence;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -40,20 +41,41 @@ final readonly class CancelFixedCostPaymentAction
     {
         $occurrence = FixedCostOccurrence::query()
             ->where('user_id', $userId)
-            ->whereNotIn('status', [FixedCostOccurenceStatus::VOID->value])
+            ->whereIn('status', [
+                FixedCostOccurenceStatus::PENDING->value,
+                FixedCostOccurenceStatus::OVERDUE->value,
+                FixedCostOccurenceStatus::PAID->value,
+            ])
             ->findOrFail($occurrenceId);
 
         DB::transaction(function () use ($userId, $occurrence): void {
-            $occurrence->update([
-                'status' => FixedCostOccurenceStatus::VOID->value,
-                'voided_at' => now(),
-                'paid_at' => null,
-            ]);
+            if ($occurrence->status === FixedCostOccurenceStatus::PAID) {
 
-            // Soft-delete the linked expense transaction (if paid) to reverse balance impact.
-            // The transaction model uses SoftDeletes, so this is non-destructive.
-            if ($occurrence->transaction()->exists()) {
-                $occurrence->transaction()->delete();
+                $timezone = DB::table('user_budget_settings')
+                    ->where('user_id', $userId)
+                    ->value('timezone') ?? 'Asia/Jakarta';
+
+                $todayUserTime = CarbonImmutable::now($timezone)->startOfDay();
+
+                $dueDate = CarbonImmutable::parse($occurrence->due_date, $timezone)->startOfDay();
+
+                $newStatus = $todayUserTime->greaterThan($dueDate)
+                    ? FixedCostOccurenceStatus::OVERDUE->value
+                    : FixedCostOccurenceStatus::PENDING->value;
+
+                $occurrence->update([
+                    'status' => $newStatus,
+                    'paid_at' => null,
+                ]);
+
+                if ($occurrence->transaction) {
+                    $occurrence->transaction->delete();
+                }
+
+            } else {
+                $occurrence->update([
+                    'status' => FixedCostOccurenceStatus::SKIPPED->value,
+                ]);
             }
 
             // Recalculate balance, reserved cost, and daily allowance (BR §14).
