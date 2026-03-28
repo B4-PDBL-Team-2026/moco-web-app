@@ -2,6 +2,7 @@
 
 namespace App\Domains\FixedCosts\Actions;
 
+use App\Commons\Exceptions\BusinessRuleException;
 use App\Commons\Services\MoneyService;
 use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
 use App\Domains\FixedCosts\DTOs\UpdateFixedCostOccurrenceAmountData;
@@ -72,7 +73,7 @@ final readonly class UpdateFixedCostOccurrenceAmountAction
 
             if (MoneyService::gt($difference, '0.00')) {
                 if (MoneyService::lt((string) $snapshot->current_balance, $difference)) {
-                    throw new InvalidArgumentException(
+                    throw new BusinessRuleException(
                         'Insufficient balance to increase the amount of an already paid occurrence.'
                     );
                 }
