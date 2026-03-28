@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 class SystemCategory extends Model
 {
     use HasFactory;
-    protected $table =  'categories';
 
     public $timestamps = false;
 
@@ -19,7 +18,6 @@ class SystemCategory extends Model
         'icon',
         'colors',
         'type',
-        'user_id',
     ];
 
     protected $casts = [
