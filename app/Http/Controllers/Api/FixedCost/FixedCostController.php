@@ -172,7 +172,7 @@ class FixedCostController extends Controller
             data: UpdateFixedCostOccurrenceAmountData::fromArray($request->toDto()),
         );
 
-        return $this->success(message: 'Occurrence amount updated. Please confirm payment to finalise.');
+        return $this->success(message: 'Occurrence amount updated succesfully.');
     }
 
     /**
