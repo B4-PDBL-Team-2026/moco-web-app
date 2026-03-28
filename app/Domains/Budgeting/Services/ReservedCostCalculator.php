@@ -2,7 +2,7 @@
 
 namespace App\Domains\Budgeting\Services;
 
-use App\Commons\MoneyService;
+use App\Commons\Services\MoneyService;
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
 use App\Models\FixedCostOccurrence;
 use Carbon\CarbonImmutable;

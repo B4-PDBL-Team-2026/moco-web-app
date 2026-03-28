@@ -1,15 +1,18 @@
 <?php
 
+use App\Commons\Exceptions\BusinessRuleException;
 use App\Domains\Budgeting\Actions\CompleteOnboardingAction;
 use App\Domains\Budgeting\DTOs\CompleteOnboardingData;
 use App\Domains\Budgeting\Enums\CycleType;
-use App\Domains\FixedCosts\DTOs\FixedCostTemplateData;
+use App\Domains\FixedCosts\DTOs\CreateFixedCostTemplateData;
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
 use App\Domains\Transactions\Enums\TransactionSource;
+use App\Models\FixedCostOccurrence;
 use App\Models\FixedCostTemplate;
 use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Database\Seeders\DatabaseSeeder;
 
 beforeEach(function () {
@@ -62,7 +65,7 @@ it('completes onboarding with fixed costs and returns computed result', function
         flooringLimit: '0.00',
         ceilingLimit: '999999.00',
         fixedCosts: [
-            new FixedCostTemplateData(
+            new CreateFixedCostTemplateData(
                 name: 'Rent',
                 amount: '400.00',
                 cycleType: CycleType::MONTHLY,
@@ -93,7 +96,7 @@ it('allows weekly fixed costs within a monthly budget cycle', function () {
         flooringLimit: '0.00',
         ceilingLimit: '999999.00',
         fixedCosts: [
-            new FixedCostTemplateData(
+            new CreateFixedCostTemplateData(
                 name: 'Weekly Trash',
                 amount: '50.00',
                 cycleType: CycleType::WEEKLY,
@@ -122,7 +125,7 @@ it('allows weekly fixed costs within a weekly budget cycle', function () {
         flooringLimit: '0.00',
         ceilingLimit: '999999.00',
         fixedCosts: [
-            new FixedCostTemplateData(
+            new CreateFixedCostTemplateData(
                 name: 'Weekly Groceries',
                 amount: '200.00',
                 cycleType: CycleType::WEEKLY,
@@ -151,7 +154,7 @@ it('rejects monthly fixed costs within a weekly budget cycle', function () {
         flooringLimit: '0.00',
         ceilingLimit: '999999.00',
         fixedCosts: [
-            new FixedCostTemplateData(
+            new CreateFixedCostTemplateData(
                 name: 'Monthly Rent',
                 amount: '1500.00',
                 cycleType: CycleType::MONTHLY,
@@ -165,10 +168,16 @@ it('rejects monthly fixed costs within a weekly budget cycle', function () {
     );
 
     app(CompleteOnboardingAction::class)->execute($user->id, $dto);
-})->throws(InvalidArgumentException::class, 'Monthly fixed cost is not allowed when budget cycle is weekly.');
+})->throws(BusinessRuleException::class, 'Monthly fixed cost is not allowed when budget cycle is weekly.');
 
 it('updates existing onboarding data seamlessly when user steps back and resubmits', function () {
-    $user = User::factory()->create();
+    $mockedTime = CarbonImmutable::parse('2026-03-20 10:00:00', 'Asia/Jakarta');
+
+    CarbonImmutable::setTestNow($mockedTime);
+
+    $user = User::factory()->create([
+        'created_at' => CarbonImmutable::now()->subMonth()->startOfMonth(),
+    ]);
     $category = SystemCategory::factory()->create();
 
     $firstAttemptDto = new CompleteOnboardingData(
@@ -177,7 +186,7 @@ it('updates existing onboarding data seamlessly when user steps back and resubmi
         flooringLimit: '0.00',
         ceilingLimit: '999999.00',
         fixedCosts: [
-            new FixedCostTemplateData(
+            new CreateFixedCostTemplateData(
                 name: 'Old Rent',
                 amount: '400.00',
                 cycleType: CycleType::MONTHLY,
@@ -208,7 +217,7 @@ it('updates existing onboarding data seamlessly when user steps back and resubmi
         flooringLimit: '100.00',
         ceilingLimit: '999999.00',
         fixedCosts: [
-            new FixedCostTemplateData(
+            new CreateFixedCostTemplateData(
                 name: 'New Rent',
                 amount: '1000.00',
                 cycleType: CycleType::MONTHLY,
@@ -217,7 +226,7 @@ it('updates existing onboarding data seamlessly when user steps back and resubmi
                 dueDay: 1,
                 categoryType: SystemCategory::class,
             ),
-            new FixedCostTemplateData(
+            new CreateFixedCostTemplateData(
                 name: 'New Internet',
                 amount: '300.00',
                 cycleType: CycleType::MONTHLY,
@@ -247,12 +256,22 @@ it('updates existing onboarding data seamlessly when user steps back and resubmi
         'amount' => '5000.00',
     ]);
 
-    expect(FixedCostTemplate::where('user_id', $user->id)->count())->toBe(2);
-    $this->assertDatabaseMissing('fixed_cost_templates', [
+    expect(FixedCostTemplate::where('user_id', $user->id)
+        ->whereNull('deleted_at')
+        ->count())
+        ->toBe(2)
+        ->and(FixedCostOccurrence::where('user_id', $user->id)->count())->toBe(2);
+
+    $this->assertSoftDeleted('fixed_cost_templates', [
         'name' => 'Old Rent',
     ]);
+
     $this->assertDatabaseHas('fixed_cost_templates', [
         'name' => 'New Rent',
+    ]);
+
+    $this->assertDatabaseHas('fixed_cost_templates', [
+        'name' => 'New Internet',
     ]);
 });
 

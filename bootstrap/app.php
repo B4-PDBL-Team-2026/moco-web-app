@@ -1,5 +1,6 @@
 <?php
 
+use App\Commons\Exceptions\BusinessRuleException;
 use App\Http\Middleware\EnsureOnboardingIsCompleted;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Auth\AuthenticationException;
@@ -40,6 +41,18 @@ return Application::configure(basePath: dirname(__DIR__))
                     'data' => null,
                     'message' => 'Unauthenticated.',
                 ], 401);
+            }
+        });
+
+        $exceptions->render(function (BusinessRuleException $e, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'data' => [
+                        'domain_rule' => [$e->getMessage()],
+                    ],
+                    'message' => $e->getMessage(),
+                ], 422);
             }
         });
 

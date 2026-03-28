@@ -2,109 +2,83 @@
 
 namespace App\Domains\FixedCosts\Actions;
 
-use App\Domains\Budgeting\Enums\CycleType;
-use App\Domains\FixedCosts\DTOs\FixedCostTemplateData;
-use App\Domains\FixedCosts\Services\FixedCostCycleValidator;
-use App\Models\CustomCategory;
+use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
+use App\Domains\FixedCosts\DTOs\CreateFixedCostTemplateData;
+use App\Domains\FixedCosts\Services\FixedCostValidator;
 use App\Models\FixedCostTemplate;
-use App\Models\SystemCategory;
 use App\Models\UserBudgetSetting;
+use App\Models\UserBudgetSnapshot;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use Throwable;
 
 /**
- * Persists one or multiple fixed cost templates into the database.
- * This action acts as the final gatekeeper, ensuring that all templates
- * are logically sound, compatible with the user's budget cycle, and linked
- * to valid categories before saving them in a single database transaction.
+ * Creates a single fixed cost template during normal (post-onboarding) usage.
+ *
+ * Differences from CreateFixedCostTemplateAction (the onboarding batch action):
+ * - Accepts one template at a time (not an array).
+ * - After persisting the template, immediately generates the occurrence for the
+ *   current budget window so the user sees it right away.
+ * - Triggers a budget snapshot recalculation because the new template may push
+ *   reserved cost above balance, which collapses daily allowance to the
+ *   flooring limit (BR §12).
+ *
+ * Validation rules are identical to the onboarding action — the same
+ * FixedCostCycleValidator is used to enforce cycle compatibility.
  */
-final readonly class CreateFixedCostTemplateAction
+class CreateFixedCostTemplateAction
 {
     public function __construct(
-        private FixedCostCycleValidator $fixedCostCycleValidator,
+        private readonly FixedCostValidator $fixedCostValidator,
+        private readonly GenerateOccurencesForBudgetWindowAction $generateOccurrences,
+        private readonly RecalculateBudgetSnapshotAction $recalculateBudgetSnapshot,
     ) {}
 
     /**
-     * Execute the template creation process.
-     *
-     * @param  int  $userId  The owner of the fixed costs.
-     * @param  list<FixedCostTemplateData>  $fixedCosts  Array of validated DTOs.
-     *
-     * @throws ModelNotFoundException If the user has not completed onboarding (missing budget settings).
-     * @throws InvalidArgumentException If internal validation rules are violated.
-     * @throws Throwable If the database transaction fails.
+     * @throws ModelNotFoundException If the user has not completed onboarding.
+     * @throws InvalidArgumentException If validation rules are violated.
+     * @throws Throwable If the DB transaction fails.
      */
-    public function execute(int $userId, array $fixedCosts): void
+    public function execute(int $userId, CreateFixedCostTemplateData $fixedCost): FixedCostTemplate
     {
-        $userBudgetCycle = UserBudgetSetting::query()
-            ->where('user_id', '=', $userId)
-            ->firstOrFail(['cycle_type'])
-            ->cycle_type;
+        $budgetSetting = UserBudgetSetting::query()
+            ->where('user_id', $userId)
+            ->firstOrFail(['cycle_type', 'timezone']);
 
-        DB::transaction(function () use ($userId, $fixedCosts, $userBudgetCycle): void {
-            foreach ($fixedCosts as $fixedCost) {
-                $this->validate($userId, $fixedCost, $userBudgetCycle);
+        $this->fixedCostValidator->validateFixedCostData($userId, $fixedCost, $budgetSetting->cycle_type);
 
-                FixedCostTemplate::query()->create([
-                    'user_id' => $userId,
-                    'name' => $fixedCost->name,
-                    'amount' => $fixedCost->amount,
-                    'cycle_type' => $fixedCost->cycleType->value,
-                    'due_day' => $fixedCost->dueDay,
-                    'is_active' => $fixedCost->isActive,
-                    'category_type' => $fixedCost->categoryType,
-                    'category_id' => $fixedCost->categoryId,
-                ]);
-            }
+        return DB::transaction(function () use ($userId, $fixedCost, $budgetSetting): FixedCostTemplate {
+            $template = FixedCostTemplate::query()->create([
+                'user_id' => $userId,
+                'name' => $fixedCost->name,
+                'amount' => $fixedCost->amount,
+                'cycle_type' => $fixedCost->cycleType->value,
+                'due_day' => $fixedCost->dueDay,
+                'is_active' => $fixedCost->isActive,
+                'category_type' => $fixedCost->categoryType,
+                'category_id' => $fixedCost->categoryId,
+            ]);
+
+            // Generate the occurrence for the current window immediately so the
+            // user can see (and act on) the new bill without waiting for a scheduled job.
+            $snapshot = UserBudgetSnapshot::query()
+                ->where('user_id', $userId)
+                ->firstOrFail(['cycle_start_date', 'cycle_end_date']);
+
+            $this->generateOccurrences->execute(
+                userId: $userId,
+                budgetStartDate: CarbonImmutable::parse($snapshot->cycle_start_date, $budgetSetting->timezone),
+                budgetEndDate: CarbonImmutable::parse($snapshot->cycle_end_date, $budgetSetting->timezone),
+                timezone: $budgetSetting->timezone,
+            );
+
+            // recalculate snapshot — if reserved cost now exceeds balance,
+            // daily allowance collapses to flooring limit automatically.
+            $this->recalculateBudgetSnapshot->execute($userId);
+
+            return $template->refresh();
         });
-    }
-
-    private function validate(int $userId, FixedCostTemplateData $fixedCost, CycleType $userBudgetCycle): void
-    {
-        if (trim($fixedCost->name) === '') {
-            throw new InvalidArgumentException('Fixed cost name is required.');
-        }
-
-        if ((float) $fixedCost->amount <= 0) {
-            throw new InvalidArgumentException('Fixed cost amount must be greater than zero.');
-        }
-
-        if ($fixedCost->cycleType === CycleType::WEEKLY && ($fixedCost->dueDay < 1 || $fixedCost->dueDay > 7)) {
-            throw new InvalidArgumentException('Weekly due day must be between 1 and 7.');
-        }
-
-        if ($fixedCost->cycleType === CycleType::MONTHLY && ($fixedCost->dueDay < 1 || $fixedCost->dueDay > 31)) {
-            throw new InvalidArgumentException('Monthly due day must be between 1 and 31.');
-        }
-
-        $this->fixedCostCycleValidator->ensureAllowed(
-            budgetCycle: $userBudgetCycle,
-            fixedCostCycle: $fixedCost->cycleType
-        );
-
-        if ($fixedCost->categoryType === SystemCategory::class) {
-            if (! SystemCategory::query()->whereKey($fixedCost->categoryId)->exists()) {
-                throw new InvalidArgumentException('Invalid category.');
-            }
-
-            return;
-        }
-
-        if ($fixedCost->categoryType === CustomCategory::class) {
-            $customCategoryExists = CustomCategory::query()
-                ->whereKey($fixedCost->categoryId)
-                ->where('user_id', '=', $userId)
-                ->exists();
-
-            if (! $customCategoryExists) {
-                throw new InvalidArgumentException('Invalid custom category.');
-            }
-
-            return;
-        }
-
-        throw new InvalidArgumentException('Invalid category type.');
     }
 }

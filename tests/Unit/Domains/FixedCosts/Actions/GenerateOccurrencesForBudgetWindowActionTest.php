@@ -42,7 +42,9 @@ it('marks occurrence as pending if due date is exactly today', function () {
 });
 
 it('generates one monthly occurrence inside a monthly budget window', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create([
+        'created_at' => CarbonImmutable::parse('2026-03-01')->startOfDay(),
+    ]);
     $category = SystemCategory::factory()->create();
 
     FixedCostTemplate::query()->create([

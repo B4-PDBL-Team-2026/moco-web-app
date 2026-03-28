@@ -1,10 +1,10 @@
 <?php
 
 use App\Domains\Budgeting\DTOs\DailyAllowanceData;
-use App\Domains\Budgeting\Services\AllowanceCalculator;
+use App\Domains\Budgeting\Services\DailyAllowanceCalculator;
 
 it('calculates daily allowance normally and stores raw as actual amount', function () {
-    $service = new AllowanceCalculator;
+    $service = new DailyAllowanceCalculator;
 
     $result = $service->calculate(
         balance: '1000.00',
@@ -16,11 +16,11 @@ it('calculates daily allowance normally and stores raw as actual amount', functi
 
     expect($result)->toBeInstanceOf(DailyAllowanceData::class)
         ->and($result->amount)->toBe('200.00')
-        ->and($result->actualAmount)->toBe('200.00');
+        ->and($result->rawAmount)->toBe('200.00');
 });
 
 it('returns flooring and zero actual amount when reserved cost equals balance', function () {
-    $service = new AllowanceCalculator;
+    $service = new DailyAllowanceCalculator;
 
     $result = $service->calculate(
         balance: '500.00',
@@ -31,11 +31,11 @@ it('returns flooring and zero actual amount when reserved cost equals balance', 
     );
 
     expect($result->amount)->toBe('50.00')
-        ->and($result->actualAmount)->toBe('0.00');
+        ->and($result->rawAmount)->toBe('0.00');
 });
 
 it('returns flooring and zero actual amount when reserved cost exceeds balance', function () {
-    $service = new AllowanceCalculator;
+    $service = new DailyAllowanceCalculator;
 
     $result = $service->calculate(
         balance: '500.00',
@@ -46,11 +46,11 @@ it('returns flooring and zero actual amount when reserved cost exceeds balance',
     );
 
     expect($result->amount)->toBe('50.00')
-        ->and($result->actualAmount)->toBe('0.00');
+        ->and($result->rawAmount)->toBe('0.00');
 });
 
-it('applies flooring when raw daily allowance is below flooring', function () {
-    $service = new AllowanceCalculator;
+it('apply flooring when raw daily allowance is below flooring', function () {
+    $service = new DailyAllowanceCalculator;
 
     $result = $service->calculate(
         balance: '100.00',
@@ -61,11 +61,11 @@ it('applies flooring when raw daily allowance is below flooring', function () {
     );
 
     expect($result->amount)->toBe('50.00')
-        ->and($result->actualAmount)->toBe('10.00');
+        ->and($result->rawAmount)->toBe('10.00');
 });
 
 it('applies ceiling when raw daily allowance exceeds ceiling', function () {
-    $service = new AllowanceCalculator;
+    $service = new DailyAllowanceCalculator;
 
     $result = $service->calculate(
         balance: '1000.00',
@@ -76,11 +76,11 @@ it('applies ceiling when raw daily allowance exceeds ceiling', function () {
     );
 
     expect($result->amount)->toBe('300.00')
-        ->and($result->actualAmount)->toBe('500.00');
+        ->and($result->rawAmount)->toBe('500.00');
 });
 
 it('returns raw when raw is between flooring and ceiling', function () {
-    $service = new AllowanceCalculator;
+    $service = new DailyAllowanceCalculator;
 
     $result = $service->calculate(
         balance: '600.00',
@@ -91,11 +91,11 @@ it('returns raw when raw is between flooring and ceiling', function () {
     );
 
     expect($result->amount)->toBe('200.00')
-        ->and($result->actualAmount)->toBe('200.00');
+        ->and($result->rawAmount)->toBe('200.00');
 });
 
 it('throws when remaining days is not greater than zero', function () {
-    $service = new AllowanceCalculator;
+    $service = new DailyAllowanceCalculator;
 
     $service->calculate(
         balance: '100.00',

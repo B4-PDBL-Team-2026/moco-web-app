@@ -28,6 +28,7 @@ return new class extends Migration
             $table->date('due_date');
             $table->string('status'); // pending | void | paid | overdue
             $table->decimal('amount', 15);
+            $table->string('note')->nullable();
 
             $table->string('name', 255);
             $table->string('category_type');

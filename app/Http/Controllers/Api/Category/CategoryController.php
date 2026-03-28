@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 class CategoryController
 {
     use ApiResponse;
+
     public function getAllSystemCategory(GetSystemCategoriesAction $action): JsonResponse
     {
         $result = $action->execute();
