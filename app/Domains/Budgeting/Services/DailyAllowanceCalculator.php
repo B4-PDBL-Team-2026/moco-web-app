@@ -17,8 +17,7 @@ class DailyAllowanceCalculator
     ): DailyAllowanceData {
 
         if ($remainingDays <= 0) {
-            throw new InvalidArgumentException('Remaining days must be greater than zero.');
-        }
+            throw new InvalidArgumentException('Remaining days must be greater than 0.');        }
 
         // balance - reserved
         $available = MoneyService::sub($balance, $reservedCost);

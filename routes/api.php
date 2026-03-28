@@ -54,9 +54,4 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::delete('/{transaction}', 'destroy');
         });
 
-    // Profile Endpoints
-    Route::prefix('profile')->group(function () {
-        Route::get('/', [ProfileController::class, 'show']);
-        Route::patch('/', [ProfileController::class, 'update']);
-    });
 });

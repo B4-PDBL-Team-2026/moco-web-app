@@ -6,7 +6,7 @@ use App\Commons\Services\MoneyService;
 use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
 use App\Domains\Budgeting\Services\TransactionBalanceService;
 use App\Domains\Transactions\Enums\TransactionType;
-use App\Domains\Transactions\Services\UserBalanceCalculator;
+use App\Models\UserBudgetSnapshot;
 use App\Models\Transaction;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -19,7 +19,6 @@ class DeleteTransactionAction
 {
     public function __construct(
         private readonly TransactionBalanceService $transactionBalanceService,
-        private readonly UserBalanceCalculator $userBalanceCalculator,
         private readonly RecalculateBudgetSnapshotAction $recalculateBudgetSnapshotAction,
     ) {}
 
@@ -38,7 +37,8 @@ class DeleteTransactionAction
 
             // Rule 28: income deletion requires balance check
             if ($transaction->type === TransactionType::INCOME) {
-                $currentBalance = $this->userBalanceCalculator->calculateCurrentBalance($user->id);
+                $snapshot = UserBudgetSnapshot::where('user_id', $user->id)->firstOrFail();
+                $currentBalance = (string) $snapshot->current_balance;
 
                 $balanceAfterDeletion = $this->transactionBalanceService->reverseTransaction(
                     currentBalance: $currentBalance,

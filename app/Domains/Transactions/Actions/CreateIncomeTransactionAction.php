@@ -46,7 +46,11 @@ class CreateIncomeTransactionAction
             }
 
             // validate category type matches transaction type
-            if ($category->type !== $dto->type->value) {
+            $categoryTypeValue = $category->type instanceof \BackedEnum
+                ? $category->type->value
+                : $category->type;
+
+            if ($categoryTypeValue !== $dto->type->value) { // ✅
                 throw ValidationException::withMessages([
                     'categoryId' => ['Category type does not match transaction type.'],
                 ]);
@@ -64,7 +68,7 @@ class CreateIncomeTransactionAction
                 'source'           => TransactionSource::MANUAL->value,
             ]);
 
-            // Rule 19: trigger allowance recalculation after income is recorded
+            // trigger allowance recalculation after income is recorded
             $this->recalculateBudgetSnapshotAction->execute(
                 userId: $user->id,
                 now: CarbonImmutable::now(),

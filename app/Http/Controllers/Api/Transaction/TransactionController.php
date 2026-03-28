@@ -14,7 +14,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Transaction\IndexTransactionRequest;
 use App\Http\Requests\Transaction\StoreTransactionRequest;
 use App\Http\Requests\Transaction\UpdateTransactionRequest;
-use App\Domains\Transactions\Actions\GetDashboardSummaryAction;
 use App\Models\Transaction;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -51,6 +50,7 @@ class TransactionController extends Controller
         return $this->success(
             $result,
             'Transaction created successfully.',
+            201
         );
     }
 
@@ -86,16 +86,8 @@ class TransactionController extends Controller
 
         $action->execute(Auth::user(), $transaction);
 
-        return $this->success(message: 'Transaction deleted successfully.');
-    }
+        // Return 204 No Content
+        return response()->json(null, 204);
+        }
 
-    public function summary(GetDashboardSummaryAction $action)
-    {
-        $result = $action->execute(Auth::user());
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $result,
-        ]);
-    }
 }

@@ -6,6 +6,7 @@ use App\Commons\Services\MoneyService;
 use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
 use App\Domains\Budgeting\Services\TransactionBalanceService;
 use App\Domains\Transactions\Services\UserBalanceCalculator;
+use App\Models\UserBudgetSnapshot;
 use App\Models\Transaction;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -34,7 +35,8 @@ class UpdateTransactionAmountAction
             $normalizedAmount = MoneyService::normalize($newAmount);
 
             // Calculate what the balance would be after applying the update
-            $currentBalance = $this->userBalanceCalculator->calculateCurrentBalance($user->id);
+            $snapshot = UserBudgetSnapshot::where('user_id', $user->id)->firstOrFail();
+            $currentBalance = (string) $snapshot->current_balance;
 
             $projectedBalance = $this->transactionBalanceService->reapplyUpdatedTransaction(
                 currentBalance: $currentBalance,
