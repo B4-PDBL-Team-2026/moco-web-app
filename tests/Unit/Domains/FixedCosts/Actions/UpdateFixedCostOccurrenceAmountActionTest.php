@@ -1,5 +1,6 @@
 <?php
 
+use App\Commons\Exceptions\BusinessRuleException;
 use App\Domains\Budgeting\Enums\CycleType;
 use App\Domains\FixedCosts\Actions\UpdateFixedCostOccurrenceAmountAction;
 use App\Domains\FixedCosts\DTOs\UpdateFixedCostOccurrenceAmountData;
@@ -114,7 +115,7 @@ it('updates a PAID occurrence and intelligently syncs the linked transaction', f
         ->and($transaction->fresh()->amount)->toBe('200000.00');
 });
 
-it('throws InvalidArgumentException when increasing a PAID occurrence exceeds current balance', function () {
+it('throws BusinessRuleException when increasing a PAID occurrence exceeds current balance', function () {
     [$user, $category, $template] = setupUserWithBalance('50000.00');
 
     $occurrence = FixedCostOccurrence::factory()->create([
@@ -127,7 +128,7 @@ it('throws InvalidArgumentException when increasing a PAID occurrence exceeds cu
     $dto = new UpdateFixedCostOccurrenceAmountData('300000.00');
 
     expect(fn () => $this->action->execute($user->id, $occurrence->id, $dto))
-        ->toThrow(InvalidArgumentException::class, 'Insufficient balance');
+        ->toThrow(BusinessRuleException::class, 'Insufficient balance');
 });
 
 it('throws ModelNotFoundException when occurrence is VOID', function () {

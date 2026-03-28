@@ -66,7 +66,7 @@ test('cancels a pending occurrence', function () {
 
     Sanctum::actingAs($user);
 
-    $this->postJson("/api/fixed-costs/occurrences/{$occurrence->id}/cancel")->dump()->assertOk();
+    $this->postJson("/api/fixed-costs/occurrences/{$occurrence->id}/cancel")->assertOk();
 
     expect($occurrence->fresh()->status)->toBe(FixedCostOccurenceStatus::SKIPPED);
 });

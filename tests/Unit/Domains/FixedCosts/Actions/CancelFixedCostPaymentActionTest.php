@@ -11,8 +11,9 @@ use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSnapshot;
+use Carbon\CarbonImmutable;
 
-function setupForCancel(): array
+function setupForCancel(string $status = 'paid', ?string $dueDateStr = null): array
 {
     $user = User::factory()->create();
     $cat = SystemCategory::factory()->create();
@@ -32,13 +33,13 @@ function setupForCancel(): array
         'category_id' => $cat->id,
     ]);
 
-    $occurrenceurrence = FixedCostOccurrence::factory()->create([
+    $occurrence = FixedCostOccurrence::factory()->create([
         'user_id' => $user->id,
         'fixed_cost_template_id' => $template->id,
         'cycle_key' => '2026-03',
         'cycle_type' => 'monthly',
-        'due_date' => '2026-03-15',
-        'status' => FixedCostOccurenceStatus::PAID->value,
+        'due_date' => $dueDateStr ?? '2026-03-15',
+        'status' => $status,
         'amount' => '150000.00',
         'name' => 'Electricity',
         'category_type' => SystemCategory::class,
@@ -46,7 +47,7 @@ function setupForCancel(): array
         'paid_at' => now(),
     ]);
 
-    return [$user, $occurrenceurrence];
+    return [$user, $occurrence, $cat];
 }
 
 function attachTransaction(User $user, FixedCostOccurrence $occurrence): Transaction
@@ -74,50 +75,50 @@ beforeEach(function () {
     $this->action = app(CancelFixedCostPaymentAction::class);
 });
 
-it('sets occurrence status to VOID', function () {
-    [$user, $occurrence] = setupForCancel();
+it('cancels a PENDING occurrence by setting it to SKIPPED', function () {
+    [$user, $occurrence] = setupForCancel('pending');
 
     $this->action->execute($user->id, $occurrence->id);
 
-    expect($occurrence->fresh()->status)->toBe(FixedCostOccurenceStatus::VOID);
+    expect($occurrence->fresh()->status)->toBe(FixedCostOccurenceStatus::SKIPPED);
 });
 
-it('sets voided_at timestamp', function () {
-    [$user, $occurrence] = setupForCancel();
+it('cancels an OVERDUE occurrence by setting it to SKIPPED', function () {
+    [$user, $occurrence] = setupForCancel('overdue');
 
     $this->action->execute($user->id, $occurrence->id);
 
-    expect($occurrence->fresh()->voided_at)->not->toBeNull();
+    expect($occurrence->fresh()->status)->toBe(FixedCostOccurenceStatus::SKIPPED);
 });
 
-it('clears paid_at on cancellation', function () {
-    [$user, $occurrence] = setupForCancel();
+it('cancels a PAID occurrence and restores it to PENDING if due date is in the future', function () {
+    CarbonImmutable::setTestNow('2026-03-20 10:00:00');
+
+    // Due date 25 (future)
+    [$user, $occurrence] = setupForCancel('paid', '2026-03-25');
 
     $this->action->execute($user->id, $occurrence->id);
 
-    expect($occurrence->fresh()->paid_at)->toBeNull();
+    $fresh = $occurrence->fresh();
+    expect($fresh->status)->toBe(FixedCostOccurenceStatus::PENDING)
+        ->and($fresh->paid_at)->toBeNull();
 });
 
-it('cancels a PENDING occurrence', function () {
-    [$user, $occurrence] = setupForCancel();
-    $occurrence->update(['status' => FixedCostOccurenceStatus::PENDING->value, 'paid_at' => null]);
+it('cancels a PAID occurrence and restores it to OVERDUE if due date is in the past', function () {
+    CarbonImmutable::setTestNow('2026-03-20 10:00:00');
+
+    // Due date 15 (past)
+    [$user, $occurrence] = setupForCancel('paid', '2026-03-15');
 
     $this->action->execute($user->id, $occurrence->id);
 
-    expect($occurrence->fresh()->status)->toBe(FixedCostOccurenceStatus::VOID);
+    $fresh = $occurrence->fresh();
+    expect($fresh->status)->toBe(FixedCostOccurenceStatus::OVERDUE)
+        ->and($fresh->paid_at)->toBeNull();
 });
 
-it('cancels an OVERDUE occurrence', function () {
-    [$user, $occurrence] = setupForCancel();
-    $occurrence->update(['status' => FixedCostOccurenceStatus::OVERDUE->value, 'paid_at' => null]);
-
-    $this->action->execute($user->id, $occurrence->id);
-
-    expect($occurrence->fresh()->status)->toBe(FixedCostOccurenceStatus::VOID);
-});
-
-it('soft-deletes the linked expense transaction', function () {
-    [$user, $occurrence] = setupForCancel();
+it('soft-deletes the linked expense transaction when reverting a paid occurrence', function () {
+    [$user, $occurrence] = setupForCancel('paid');
     $transaction = attachTransaction($user, $occurrence);
 
     $this->action->execute($user->id, $occurrence->id);
@@ -125,42 +126,42 @@ it('soft-deletes the linked expense transaction', function () {
     $this->assertSoftDeleted('transactions', ['id' => $transaction->id]);
 });
 
-it('works correctly even when no linked transaction exists', function () {
-    [$user, $occurrence] = setupForCancel();
-    // No transaction attached — action should still succeed
-
-    $this->action->execute($user->id, $occurrence->id);
-
-    expect($occurrence->fresh()->status)->toBe(FixedCostOccurenceStatus::VOID);
-});
+// --- SCENARIO 3: GENERAL BEHAVIORS & EXCEPTIONS ---
 
 it('calls RecalculateBudgetSnapshotAction after cancellation', function () {
-    [$user, $occurrence] = setupForCancel();
+    [$user, $occurrence] = setupForCancel('paid');
 
     $this->action->execute($user->id, $occurrence->id);
 
     $this->mockRecalculate->shouldHaveReceived('execute')->once()->with($user->id);
 });
 
-it('cancels a paid occurrence from a previous cycle', function () {
-    [$user, $occurrence] = setupForCancel();
-    $occurrence->update(['cycle_key' => '2026-02']);
+it('works correctly even when no linked transaction exists on a paid occurrence', function () {
+    CarbonImmutable::setTestNow('2026-03-23 10:00:00');
+    [$user, $occurrence] = setupForCancel('paid', '2026-03-25');
+    // No transaction attached
 
     $this->action->execute($user->id, $occurrence->id);
 
-    expect($occurrence->fresh()->status)->toBe(FixedCostOccurenceStatus::VOID);
+    expect($occurrence->fresh()->status)->toBe(FixedCostOccurenceStatus::PENDING); // Because it's a future due date
 });
 
 it('throws ModelNotFoundException when occurrence is already VOID', function () {
-    [$user, $occurrence] = setupForCancel();
-    $occurrence->update(['status' => FixedCostOccurenceStatus::VOID->value]);
+    [$user, $occurrence] = setupForCancel('void');
+
+    expect(fn () => $this->action->execute($user->id, $occurrence->id))
+        ->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+});
+
+it('throws ModelNotFoundException when occurrence is already SKIPPED', function () {
+    [$user, $occurrence] = setupForCancel('skipped');
 
     expect(fn () => $this->action->execute($user->id, $occurrence->id))
         ->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
 });
 
 it('throws ModelNotFoundException when occurrence belongs to another user', function () {
-    [$_, $occurrence] = setupForCancel();
+    [$_, $occurrence] = setupForCancel('paid');
     $otherUser = User::factory()->create();
 
     expect(fn () => $this->action->execute($otherUser->id, $occurrence->id))
