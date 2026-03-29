@@ -19,8 +19,6 @@ it('creates expense transaction', function () {
         'current_balance' => '1000.00',
     ]);
 
-
-
     $category = SystemCategory::factory()->create([
         'type' => TransactionType::EXPENSE,
     ]);

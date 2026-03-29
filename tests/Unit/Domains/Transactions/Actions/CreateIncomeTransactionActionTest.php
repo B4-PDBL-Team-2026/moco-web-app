@@ -2,8 +2,8 @@
 
 use App\Commons\Exceptions\BusinessRuleException;
 use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
-use App\Domains\Transactions\DTOs\CreateTransactionData;
 use App\Domains\Transactions\Actions\CreateIncomeTransactionAction;
+use App\Domains\Transactions\DTOs\CreateTransactionData;
 use App\Domains\Transactions\Enums\TransactionSource;
 use App\Domains\Transactions\Enums\TransactionType;
 use App\Domains\Transactions\Services\TransactionValidationService;
@@ -91,7 +91,7 @@ it('normalizes the amount correctly before saving', function () {
         categoryId: $category->id,
         categoryType: SystemCategory::class,
         name: 'Bonus',
-        amount: '5.000.000',
+        amount: '5,000,000',
         type: TransactionType::INCOME,
         note: null,
         transactionDate: CarbonImmutable::now(),

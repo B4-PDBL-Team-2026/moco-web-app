@@ -1,5 +1,6 @@
 <?php
 
+use App\Commons\Exceptions\BusinessRuleException;
 use App\Domains\Transactions\Actions\CreateTransactionAction;
 use App\Domains\Transactions\DTOs\CreateTransactionData;
 use App\Domains\Transactions\Enums\TransactionType;
@@ -8,7 +9,6 @@ use App\Models\User;
 use App\Models\UserBudgetSetting;
 use App\Models\UserBudgetSnapshot;
 use Carbon\CarbonImmutable;
-use Illuminate\Validation\ValidationException;
 
 it('throws validation exception when category type does not match transaction type', function () {
 
@@ -31,7 +31,7 @@ it('throws validation exception when category type does not match transaction ty
     $action = app(CreateTransactionAction::class);
 
     expect(fn () => $action->execute($user, $dto))
-        ->toThrow(ValidationException::class);
+        ->toThrow(BusinessRuleException::class);
 });
 
 it('creates income transaction successfully', function () {
@@ -102,5 +102,5 @@ it('rejects expense when amount exceeds balance', function () {
     $action = app(CreateTransactionAction::class);
 
     expect(fn () => $action->execute($user, $dto))
-        ->toThrow(ValidationException::class);
+        ->toThrow(BusinessRuleException::class);
 });
