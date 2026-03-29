@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Onboarding\OnboardingController;
 use App\Http\Controllers\Api\Profile\ProfileController;
 use App\Http\Controllers\Api\Transaction\TransactionController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\NotificationController;
 
 Route::prefix('auth')->controller(AuthController::class)->group(function () {
     Route::post('/register', 'register');
@@ -45,13 +46,20 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Transaction Endpoints
-    Route::controller(TransactionController::class)->prefix('transaction/transactions')->group(function () {
+    Route::controller(TransactionController::class)->prefix('transaction')->group(function () {
         Route::get('/', 'index');
         Route::post('/', 'store');
         Route::get('/{transaction}', 'show');
         Route::put('/{transaction}', 'update');
         Route::delete('/{transaction}', 'destroy');
     });
+
+    Route::middleware('auth:sanctum')->group(function () {
+    // Notification Routes
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+});
 
     // User Endpoints (profile + dashboard)
     Route::prefix('user')->group(function () {
