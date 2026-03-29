@@ -2,13 +2,13 @@
 
 namespace App\Domains\Transactions\Actions;
 
+use App\Commons\Exceptions\BusinessRuleException;
 use App\Commons\Services\MoneyService;
 use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
 use App\Domains\Transactions\DTOs\CreateTransactionData;
 use App\Domains\Transactions\Enums\TransactionSource;
 use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\CustomCategory;
-use App\Models\SystemCategory;
+use App\Domains\Transactions\Services\TransactionValidationService;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSnapshot;
@@ -21,6 +21,7 @@ class CreateExpenseTransactionAction
 {
     public function __construct(
         private readonly RecalculateBudgetSnapshotAction $recalculateBudgetSnapshotAction,
+        private readonly TransactionValidationService $transactionValidationService,
     ) {}
 
     /**
@@ -34,39 +35,24 @@ class CreateExpenseTransactionAction
         return DB::transaction(function () use ($user, $dto) {
             $amount = MoneyService::normalize($dto->amount);
 
-            if ($dto->categoryType === 'system') {
-                $category = SystemCategory::findOrFail($dto->categoryId);
-                $categoryType = SystemCategory::class;
-            } else {
-                $category = CustomCategory::where('id', $dto->categoryId)
-                    ->where('user_id', $user->id)
-                    ->firstOrFail();
-                $categoryType = CustomCategory::class;
-            }
-
-            $categoryTypeValue = $category->type instanceof \BackedEnum
-                ? $category->type->value
-                : $category->type;
-
-            if ($categoryTypeValue !== $dto->type->value) {
-                throw ValidationException::withMessages([
-                    'categoryId' => ['Category type does not match transaction type.'],
-                ]);
-            }
+            $categoryType = $this->transactionValidationService->resolveAndEnsureCategoryAllowed(
+                categoryType: $dto->categoryType,
+                categoryId: $dto->categoryId,
+                transactionType: $dto->type->value,
+                user: $user,
+            );
 
             $snapshot = UserBudgetSnapshot::where('user_id', $user->id)->firstOrFail();
             $currentBalance = (string) $snapshot->current_balance;
 
             if (MoneyService::gt($amount, $currentBalance)) {
-                throw ValidationException::withMessages([
-                    'amount' => ['Insufficient balance to complete this transaction.'],
-                ]);
+                throw new BusinessRuleException('Insufficient balance to complete this transaction.');
             }
 
             $transaction = Transaction::query()->create([
                 'user_id' => $user->id,
                 'category_id' => $dto->categoryId,
-                'category_type' => $categoryType, // ✅ dynamic, bukan hardcode
+                'category_type' => $categoryType,
                 'name' => $dto->name,
                 'amount' => $amount,
                 'type' => TransactionType::EXPENSE->value,

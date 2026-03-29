@@ -1,8 +1,6 @@
 <?php
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
-uses(Tests\TestCase::class)->in('Unit');
-
+use App\Commons\Exceptions\BusinessRuleException;
 use App\Domains\Transactions\Actions\CreateTransactionAction;
 use App\Domains\Transactions\DTOs\CreateTransactionData;
 use App\Domains\Transactions\Enums\TransactionType;
@@ -11,44 +9,6 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
 use App\Models\UserBudgetSnapshot;
-use Illuminate\Validation\ValidationException;
-
-it('creates income transaction', function () {
-    $user = User::factory()->create();
-
-    UserBudgetSetting::factory()->create(['user_id' => $user->id]);
-    UserBudgetSnapshot::factory()->create([
-        'user_id' => $user->id,
-        'current_balance' => '1000.00',
-    ]);
-
-    $category = SystemCategory::factory()->create([
-        'type' => TransactionType::INCOME,
-    ]);
-
-    $dto = new CreateTransactionData(
-        categoryId: $category->id,
-        categoryType: 'system',
-        name: 'Salary',
-        amount: '500.00',
-        type: TransactionType::INCOME,
-        note: 'Monthly salary',
-        transactionDate: now()->toImmutable(),
-    );
-
-    $transaction = app(CreateTransactionAction::class)->execute($user, $dto);
-
-    expect($transaction)->toBeInstanceOf(Transaction::class);
-
-    $this->assertDatabaseHas('transactions', [
-        'id' => $transaction->id,
-        'user_id' => $user->id,
-        'category_id' => $category->id,
-        'name' => 'Salary',
-        'amount' => '500.00',
-        'type' => TransactionType::INCOME->value,
-    ]);
-});
 
 it('creates expense transaction', function () {
     $user = User::factory()->create();
@@ -58,6 +18,8 @@ it('creates expense transaction', function () {
         'user_id' => $user->id,
         'current_balance' => '1000.00',
     ]);
+
+
 
     $category = SystemCategory::factory()->create([
         'type' => TransactionType::EXPENSE,
@@ -84,7 +46,7 @@ it('creates expense transaction', function () {
     ]);
 });
 
-it('throws validation exception when category type does not match transaction type', function () {
+it('throws BusinessRuleException when category type does not match transaction type', function () {
     $user = User::factory()->create();
 
     UserBudgetSetting::factory()->create(['user_id' => $user->id]);
@@ -110,7 +72,7 @@ it('throws validation exception when category type does not match transaction ty
 
     app(CreateTransactionAction::class)->execute($user, $dto);
 
-})->throws(ValidationException::class);
+})->throws(BusinessRuleException::class);
 
 it('fails when category does not exist', function () {
     $user = User::factory()->create();
