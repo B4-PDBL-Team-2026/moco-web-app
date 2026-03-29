@@ -19,7 +19,7 @@ test('authenticated user can access dashboard', function () {
 
     UserBudgetSetting::factory()->create([
         'user_id'  => $user->id,
-        'timezone' => 'Asia/Jakarta', // ✅ timezone valid
+        'timezone' => 'Asia/Jakarta', // timezone valid
     ]);
     UserBudgetSnapshot::factory()->create(['user_id' => $user->id]);
 
@@ -27,7 +27,7 @@ test('authenticated user can access dashboard', function () {
 
     $response->assertOk()
         ->assertJsonStructure([
-            'status',
+            'success',
             'message',
             'data' => [
                 'server_time',
@@ -42,7 +42,7 @@ test('authenticated user can access dashboard', function () {
                 'unpaid_fixed_costs',
             ],
         ])
-        ->assertJsonPath('status', 'success'); // verifikasi format response
+        ->assertJsonPath('success', true); // verifikasi format response
 });
 
 test('returns 404 when user has no budget snapshot', function () {

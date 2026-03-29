@@ -2,6 +2,8 @@
 
 use App\Models\User;
 use App\Models\SystemCategory;
+use App\Models\UserBudgetSetting;
+use App\Models\UserBudgetSnapshot;
 use App\Domains\Transactions\Enums\TransactionType;
 use App\Domains\Transactions\Actions\CreateTransactionAction;
 use App\Domains\Transactions\DTOs\CreateTransactionData;
@@ -12,7 +14,6 @@ it('throws validation exception when category type does not match transaction ty
 
     $user = User::factory()->create();
 
-    // category EXPENSE
     $category = SystemCategory::factory()->create([
         'type' => 'expense',
     ]);
@@ -22,7 +23,7 @@ it('throws validation exception when category type does not match transaction ty
         categoryType: 'system',
         name: 'Test Income',
         amount: '10000',
-        type: TransactionType::INCOME, // ❌ mismatch
+        type: TransactionType::INCOME,
         note: null,
         transactionDate: CarbonImmutable::now(),
     );
@@ -36,6 +37,14 @@ it('throws validation exception when category type does not match transaction ty
 it('creates income transaction successfully', function () {
 
     $user = User::factory()->create();
+
+    UserBudgetSetting::factory()->create([
+        'user_id'        => $user->id,
+        'cycle_type'     => 'monthly',
+        'flooring_limit' => '0',
+        'ceiling_limit'  => '999999999',
+        'timezone'       => 'Asia/Jakarta',
+    ]);
 
     $category = SystemCategory::factory()->create([
         'type' => 'income',
@@ -56,12 +65,25 @@ it('creates income transaction successfully', function () {
     $transaction = $action->execute($user, $dto);
 
     expect($transaction)->not->toBeNull();
-    expect($transaction->type)->toBe('income');
+    expect($transaction->type)->toBe(TransactionType::INCOME);
 });
 
 it('rejects expense when amount exceeds balance', function () {
 
     $user = User::factory()->create();
+
+    UserBudgetSetting::factory()->create([
+        'user_id'        => $user->id,
+        'cycle_type'     => 'monthly',
+        'flooring_limit' => '0',
+        'ceiling_limit'  => '999999999',
+        'timezone'       => 'Asia/Jakarta',
+    ]);
+
+    UserBudgetSnapshot::factory()->create([
+        'user_id'         => $user->id,
+        'current_balance' => '0',
+    ]);
 
     $category = SystemCategory::factory()->create([
         'type' => 'expense',
