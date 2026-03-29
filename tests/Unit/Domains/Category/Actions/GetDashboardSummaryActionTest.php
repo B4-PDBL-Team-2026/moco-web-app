@@ -1,10 +1,8 @@
 <?php
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
-uses(Tests\TestCase::class)->in('Unit');
-
 use App\Domains\Budgeting\Actions\GetDashboardSummaryAction;
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
+use App\Domains\Transactions\Enums\TransactionSource;
 use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\FixedCostOccurrence;
 use App\Models\SystemCategory;
@@ -47,7 +45,7 @@ it('returns correct dashboard summary', function () {
         ->and($result['unpaid_fixed_costs'])->toBeArray();
 });
 
-it('today_spent only counts expense transactions today', function () {
+it('today_spent only counts expense transactions today and exclude fixed cost payment transactions record', function () {
     $user = User::factory()->create();
 
     UserBudgetSetting::factory()->create([
@@ -60,29 +58,32 @@ it('today_spent only counts expense transactions today', function () {
         'current_cycle_key' => now()->format('Y-m'),
     ]);
 
+    $today = CarbonImmutable::now()->setTimezone('Asia/Jakarta')->toDateString();
+    $yesterday = CarbonImmutable::now()->subDay()->setTimezone('Asia/Jakarta')->toDateString();
+
     $category = SystemCategory::factory()->create(['type' => 'expense']);
 
-    // Expense hari ini → harus ikut terhitung
+    // today expense's must be included
     Transaction::factory()->create([
         'user_id' => $user->id,
         'category_id' => $category->id,
         'category_type' => SystemCategory::class,
         'type' => TransactionType::EXPENSE->value,
         'amount' => '50000',
-        'transaction_date' => now()->toDateString(),
+        'transaction_date' => $today,
     ]);
 
-    // Income hari ini → tidak ikut terhitung
+    // today income's must not be included
     Transaction::factory()->create([
         'user_id' => $user->id,
         'category_id' => $category->id,
         'category_type' => SystemCategory::class,
         'type' => TransactionType::INCOME->value,
         'amount' => '200000',
-        'transaction_date' => now()->toDateString(),
+        'transaction_date' => $today,
     ]);
 
-    // Expense kemarin → tidak ikut terhitung
+    // yesterday expense's must not be included
     Transaction::factory()->create([
         'user_id' => $user->id,
         'category_id' => $category->id,
@@ -90,6 +91,17 @@ it('today_spent only counts expense transactions today', function () {
         'type' => TransactionType::EXPENSE->value,
         'amount' => '30000',
         'transaction_date' => now()->subDay()->toDateString(),
+    ]);
+
+    // today fixed cost payment must not be included
+    Transaction::factory()->createQuietly([
+        'user_id' => $user->id,
+        'category_id' => $category->id,
+        'category_type' => SystemCategory::class,
+        'type' => TransactionType::EXPENSE->value,
+        'source' => TransactionSource::FIXED_COST_PAYMENT->value,
+        'amount' => '1000000',
+        'transaction_date' => $today,
     ]);
 
     $result = app(GetDashboardSummaryAction::class)

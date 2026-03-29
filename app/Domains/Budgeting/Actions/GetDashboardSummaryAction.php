@@ -3,6 +3,7 @@
 namespace App\Domains\Budgeting\Actions;
 
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
+use App\Domains\Transactions\Enums\TransactionSource;
 use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\FixedCostOccurrence;
 use App\Models\Transaction;
@@ -32,6 +33,7 @@ class GetDashboardSummaryAction
         $todaySpent = Transaction::query()
             ->where('user_id', $user->id)
             ->where('type', TransactionType::EXPENSE->value)
+            ->where('source', '!=', TransactionSource::FIXED_COST_PAYMENT->value)
             ->whereDate('transaction_date', $today)
             ->whereNull('deleted_at')
             ->sum('amount');
