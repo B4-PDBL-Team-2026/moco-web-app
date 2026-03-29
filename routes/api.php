@@ -2,10 +2,11 @@
 
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Category\CategoryController;
+use App\Http\Controllers\Api\Dashboard\DashboardController;
 use App\Http\Controllers\Api\FixedCost\FixedCostController;
 use App\Http\Controllers\Api\Onboarding\OnboardingController;
-use App\Http\Controllers\Api\Transaction\TransactionController;
 use App\Http\Controllers\Api\Profile\ProfileController;
+use App\Http\Controllers\Api\Transaction\TransactionController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->controller(AuthController::class)->group(function () {
@@ -52,7 +53,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{transaction}', 'destroy');
     });
 
-    // Profile Endpoints
-    Route::get('/profile', [ProfileController::class, 'show']);
-    Route::patch('/profile', [ProfileController::class, 'update']);
+    // User Endpoints (profile + dashboard)
+    Route::prefix('user')->group(function () {
+        Route::get('/profile', [ProfileController::class, 'show']);
+        Route::patch('/profile', [ProfileController::class, 'update']);
+        Route::get('/dashboard', [DashboardController::class, 'index']);
+    });
 });
