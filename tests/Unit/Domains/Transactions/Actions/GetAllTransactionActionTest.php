@@ -24,11 +24,13 @@ it('returns paginated transactions only for authenticated user', function () {
     Transaction::factory()->count(3)->create([
         'user_id' => $user->id,
         'category_id' => $category->id,
+        'category_type' => SystemCategory::class,
     ]);
 
     Transaction::factory()->count(2)->create([
         'user_id' => $otherUser->id,
         'category_id' => $otherCategory->id,
+        'category_type' => SystemCategory::class,
     ]);
 
     $dto = new FilterTransactionData(
