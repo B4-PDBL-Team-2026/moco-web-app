@@ -9,7 +9,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 test('guest cannot access dashboard', function () {
-    $this->getJson('/api/user/dashboard') 
+    $this->getJson('/api/user/dashboard')
         ->assertUnauthorized();
 });
 
@@ -19,11 +19,11 @@ test('authenticated user can access dashboard', function () {
 
     UserBudgetSetting::factory()->create([
         'user_id'  => $user->id,
-        'timezone' => 'Asia/Jakarta', // timezone valid
+        'timezone' => 'Asia/Jakarta',
     ]);
     UserBudgetSnapshot::factory()->create(['user_id' => $user->id]);
 
-    $response = $this->getJson('/api/user/dashboard'); 
+    $response = $this->getJson('/api/user/dashboard');
 
     $response->assertOk()
         ->assertJsonStructure([
@@ -42,13 +42,13 @@ test('authenticated user can access dashboard', function () {
                 'unpaid_fixed_costs',
             ],
         ])
-        ->assertJsonPath('success', true); // verifikasi format response
+        ->assertJsonPath('success', true);
 });
 
 test('returns 404 when user has no budget snapshot', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user);
 
-    $this->getJson('/api/user/dashboard') 
+    $this->getJson('/api/user/dashboard')
         ->assertNotFound();
 });

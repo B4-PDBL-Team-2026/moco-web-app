@@ -17,14 +17,14 @@ class UserBudgetSettingFactory extends Factory
         $cycleType = $this->faker->randomElement(CycleType::cases());
 
         return [
-            'cycle_type' => $cycleType->value,
-            'ceiling_limit' => $this->faker->randomFloat(),
-            'flooring_limit' => $this->faker->randomFloat(),
+            'cycle_type'      => $cycleType->value,
+            'ceiling_limit'   => $this->faker->randomFloat(),
+            'flooring_limit'  => $this->faker->randomFloat(),
             'initial_balance' => $this->faker->randomFloat(),
-            'timezone' => $this->faker->randomElement(timezone_identifiers_list()),
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now(),
-            'user_id' => User::factory(),
+            'timezone'        => $this->faker->randomElement(timezone_identifiers_list()),
+            'created_at'      => Carbon::now(),
+            'updated_at'      => Carbon::now(),
+            'user_id'         => User::factory(),
         ];
     }
 }

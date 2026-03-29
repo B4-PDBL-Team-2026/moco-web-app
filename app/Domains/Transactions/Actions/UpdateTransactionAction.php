@@ -20,21 +20,28 @@ class UpdateTransactionAction
     ) {}
 
     /**
+     * Rule 25: Changing transaction type (income <-> expense) is not allowed.
+     * Rule 23: Amount change triggers recalculation.
+     * Rule 26: Date change does not trigger recalculation; future dates rejected.
+     * Rule 27: Metadata change does not trigger recalculation.
+     *
      * @throws ValidationException|UnauthorizedException|Throwable
      */
     public function execute(User $user, Transaction $transaction, UpdateTransactionData $dto): Transaction
     {
-        // Authorization check 
+        // Authorization check
         if ($user->id !== $transaction->user_id) {
             throw new UnauthorizedException('You are not authorized to perform this action.');
         }
 
+        // Rule 25: reject type change
         if ($dto->typeProvided) {
             throw ValidationException::withMessages([
-                'type' => ['Transaction type cannot be changed after creation.'],
+                'type' => ['Changing transaction type is not allowed.'],
             ]);
         }
 
+        // Rule 27: validate category type matches transaction type
         if ($dto->categoryIdProvided && $dto->categoryId !== null) {
             $category = SystemCategory::find($dto->categoryId)
                 ?? CustomCategory::where('id', $dto->categoryId)
@@ -54,7 +61,7 @@ class UpdateTransactionAction
             }
         }
 
-        // Amount update
+        // Rule 23: amount change triggers recalculation
         if ($dto->amountProvided && $dto->amount !== null) {
             $transaction = $this->updateTransactionAmountAction->execute(
                 user: $user,
@@ -63,7 +70,7 @@ class UpdateTransactionAction
             );
         }
 
-        // Date update
+        // Rule 26: date change, no recalculation
         if ($dto->transactionDateProvided && $dto->transactionDate !== null) {
             $transaction = $this->updateTransactionDateAction->execute(
                 user: $user,
@@ -72,7 +79,7 @@ class UpdateTransactionAction
             );
         }
 
-        // Metadata update
+        // Rule 27: metadata change, no recalculation
         $metadataFields = [];
 
         if ($dto->nameProvided) {

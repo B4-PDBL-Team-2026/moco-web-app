@@ -59,4 +59,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/profile', [ProfileController::class, 'update']);
         Route::get('/dashboard', [DashboardController::class, 'index']);
     });
+
+    // User Endpoints (profile + dashboard)
+    Route::prefix('user')->group(function () {
+        Route::get('/profile', [ProfileController::class, 'show']);
+        Route::patch('/profile', [ProfileController::class, 'update']);
+        Route::get('/dashboard', [DashboardController::class, 'index']);
+    });
 });
