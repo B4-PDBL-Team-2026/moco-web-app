@@ -41,7 +41,7 @@ class RecalculateBudgetSnapshotAction
             $now = $now
                 ? $now->setTimezone($timezone)
                 : CarbonImmutable::now($timezone);
-                
+
             $cycle = $this->cycleResolverService->calculateFor(
                 cycleType: $settings->cycle_type,
                 now: $now,

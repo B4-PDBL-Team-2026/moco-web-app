@@ -7,11 +7,11 @@ use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
 use App\Domains\Transactions\DTOs\CreateTransactionData;
 use App\Domains\Transactions\Enums\TransactionSource;
 use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\UserBudgetSnapshot;
-use App\Models\SystemCategory;
 use App\Models\CustomCategory;
+use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Models\UserBudgetSnapshot;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -35,7 +35,7 @@ class CreateExpenseTransactionAction
             $amount = MoneyService::normalize($dto->amount);
 
             if ($dto->categoryType === 'system') {
-                $category     = SystemCategory::findOrFail($dto->categoryId);
+                $category = SystemCategory::findOrFail($dto->categoryId);
                 $categoryType = SystemCategory::class;
             } else {
                 $category = CustomCategory::where('id', $dto->categoryId)
@@ -64,15 +64,15 @@ class CreateExpenseTransactionAction
             }
 
             $transaction = Transaction::query()->create([
-                'user_id'          => $user->id,
-                'category_id'      => $dto->categoryId,
-                'category_type'    => $categoryType, // ✅ dynamic, bukan hardcode
-                'name'             => $dto->name,
-                'amount'           => $amount,
-                'type'             => TransactionType::EXPENSE->value,
-                'note'             => $dto->note,
+                'user_id' => $user->id,
+                'category_id' => $dto->categoryId,
+                'category_type' => $categoryType, // ✅ dynamic, bukan hardcode
+                'name' => $dto->name,
+                'amount' => $amount,
+                'type' => TransactionType::EXPENSE->value,
+                'note' => $dto->note,
                 'transaction_date' => $dto->transactionDate->toDateString(),
-                'source'           => TransactionSource::MANUAL->value,
+                'source' => TransactionSource::MANUAL->value,
             ]);
 
             $this->recalculateBudgetSnapshotAction->execute(

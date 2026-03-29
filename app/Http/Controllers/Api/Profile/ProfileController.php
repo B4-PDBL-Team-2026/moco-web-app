@@ -6,13 +6,12 @@ use App\Domains\Profile\Actions\GetProfileAction;
 use App\Domains\Profile\Actions\UpdateProfileAction;
 use App\Domains\Profile\DTOs\UpdateProfileData;
 use App\Http\Controllers\Controller;
-use App\Traits\ApiResponse;
 use App\Http\Requests\Profile\UpdateProfileRequest;
+use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 
 class ProfileController extends Controller
 {
-   
     use ApiResponse;
 
     /**

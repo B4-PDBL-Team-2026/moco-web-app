@@ -1,10 +1,10 @@
 <?php
 
-use App\Models\User;
-use App\Models\CustomCategory;
-use Laravel\Sanctum\Sanctum;
 use App\Domains\Transactions\Enums\TransactionType;
+use App\Models\CustomCategory;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
 
@@ -19,21 +19,21 @@ test('authenticated user can create income transaction (Rule 19)', function () {
 
     \App\Models\UserBudgetSetting::factory()->create(['user_id' => $user->id]);
     \App\Models\UserBudgetSnapshot::factory()->create([
-        'user_id'         => $user->id,
+        'user_id' => $user->id,
         'current_balance' => '5000.00',
     ]);
 
     $category = CustomCategory::factory()->create([
         'user_id' => $user->id,
-        'type'    => TransactionType::INCOME, 
+        'type' => TransactionType::INCOME,
     ]);
 
     $payload = [
-        'categoryId'      => $category->id,
-        'categoryType'    => 'custom',        
-        'name'            => 'Salary',
-        'amount'          => '1000.00',
-        'type'            => 'income',
+        'categoryId' => $category->id,
+        'categoryType' => 'custom',
+        'name' => 'Salary',
+        'amount' => '1000.00',
+        'type' => 'income',
         'transactionDate' => now()->toDateString(),
     ];
 

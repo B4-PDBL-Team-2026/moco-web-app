@@ -24,7 +24,7 @@ class CreateTransactionAction
     public function execute(User $user, CreateTransactionData $dto): Transaction
     {
         return match ($dto->type) {
-            TransactionType::INCOME  => $this->createIncomeTransactionAction->execute($user, $dto),
+            TransactionType::INCOME => $this->createIncomeTransactionAction->execute($user, $dto),
             TransactionType::EXPENSE => $this->createExpenseTransactionAction->execute($user, $dto),
         };
     }

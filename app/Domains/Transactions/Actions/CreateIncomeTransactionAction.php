@@ -8,8 +8,8 @@ use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
 use App\Domains\Transactions\DTOs\CreateTransactionData;
 use App\Domains\Transactions\Enums\TransactionSource;
 use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\SystemCategory;
 use App\Models\CustomCategory;
+use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -33,7 +33,7 @@ class CreateIncomeTransactionAction
         return DB::transaction(function () use ($user, $dto) {
             $amount = MoneyService::normalize($dto->amount);
 
-             // resolve category
+            // resolve category
             if ($dto->categoryType === 'system') {
                 $category = SystemCategory::findOrFail($dto->categoryId);
                 $categoryType = SystemCategory::class;
@@ -55,17 +55,17 @@ class CreateIncomeTransactionAction
                     'categoryId' => ['Category type does not match transaction type.'],
                 ]);
             }
-            
+
             $transaction = Transaction::query()->create([
-                'user_id'          => $user->id,
-                'category_id'      => $dto->categoryId,
-                'category_type'    => $categoryType,
-                'name'             => $dto->name,
-                'amount'           => $amount,
-                'type'             => TransactionType::INCOME->value,
-                'note'             => $dto->note,
+                'user_id' => $user->id,
+                'category_id' => $dto->categoryId,
+                'category_type' => $categoryType,
+                'name' => $dto->name,
+                'amount' => $amount,
+                'type' => TransactionType::INCOME->value,
+                'note' => $dto->note,
                 'transaction_date' => $dto->transactionDate->toDateString(),
-                'source'           => TransactionSource::MANUAL->value,
+                'source' => TransactionSource::MANUAL->value,
             ]);
 
             // trigger allowance recalculation after income is recorded

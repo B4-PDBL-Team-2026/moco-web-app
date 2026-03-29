@@ -9,9 +9,9 @@ use App\Models\User;
 it('returns transaction by id for owner', function () {
     $user = User::factory()->create();
 
-$category = SystemCategory::factory()->create([
-    'type' => TransactionType::EXPENSE,
-]);
+    $category = SystemCategory::factory()->create([
+        'type' => TransactionType::EXPENSE,
+    ]);
 
     $transaction = Transaction::factory()->create([
         'user_id' => $user->id,

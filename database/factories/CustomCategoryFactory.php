@@ -19,7 +19,7 @@ class CustomCategoryFactory extends Factory
                 TransactionType::INCOME->value,
                 TransactionType::EXPENSE->value,
             ]),
-            'icon' => $this->faker->domainName(),        
+            'icon' => $this->faker->domainName(),
         ];
     }
 }

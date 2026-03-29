@@ -17,8 +17,8 @@ use App\Http\Requests\Transaction\UpdateTransactionRequest;
 use App\Models\Transaction;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Throwable;
 
 class TransactionController extends Controller
@@ -57,7 +57,7 @@ class TransactionController extends Controller
     public function show(Transaction $transaction, GetTransactionDetailAction $action): JsonResponse
     {
         Gate::authorize('view', $transaction);
-        
+
         $result = $action->execute(Auth::user(), $transaction);
 
         return $this->success($result, 'Transaction retrieved successfully.');
@@ -88,6 +88,5 @@ class TransactionController extends Controller
 
         // Return 204 No Content
         return response()->json(null, 204);
-        }
-
+    }
 }

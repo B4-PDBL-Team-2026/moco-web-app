@@ -3,8 +3,8 @@
 use App\Models\User;
 use App\Models\UserBudgetSetting;
 use App\Models\UserBudgetSnapshot;
-use Laravel\Sanctum\Sanctum;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
 
@@ -18,7 +18,7 @@ test('authenticated user can access dashboard', function () {
     Sanctum::actingAs($user);
 
     UserBudgetSetting::factory()->create([
-        'user_id'  => $user->id,
+        'user_id' => $user->id,
         'timezone' => 'Asia/Jakarta',
     ]);
     UserBudgetSnapshot::factory()->create(['user_id' => $user->id]);

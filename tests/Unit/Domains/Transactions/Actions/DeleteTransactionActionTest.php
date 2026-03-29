@@ -8,15 +8,15 @@ use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
-use App\Models\UserBudgetSnapshot;
 use App\Models\UserBudgetSetting;
+use App\Models\UserBudgetSnapshot;
 
 it('deletes expense transaction', function () {
     $user = User::factory()->create();
 
     UserBudgetSetting::factory()->create(['user_id' => $user->id]);
     UserBudgetSnapshot::factory()->create([
-        'user_id'         => $user->id,
+        'user_id' => $user->id,
         'current_balance' => '800.00',
     ]);
 
@@ -25,22 +25,23 @@ it('deletes expense transaction', function () {
     ]);
 
     $transaction = Transaction::factory()->create([
-        'user_id'     => $user->id,
+        'user_id' => $user->id,
         'category_id' => $category->id,
-        'type'        => TransactionType::EXPENSE,
-        'amount'      => '200.00',
+        'type' => TransactionType::EXPENSE,
+        'amount' => '200.00',
     ]);
 
     app(DeleteTransactionAction::class)->execute($user, $transaction);
 
-    $this->assertSoftDeleted('transactions', ['id' => $transaction->id]);});
+    $this->assertSoftDeleted('transactions', ['id' => $transaction->id]);
+});
 
 it('deletes income transaction when balance remains non-negative', function () {
     $user = User::factory()->create();
 
     UserBudgetSetting::factory()->create(['user_id' => $user->id]);
     UserBudgetSnapshot::factory()->create([
-        'user_id'         => $user->id,
+        'user_id' => $user->id,
         'current_balance' => '1500.00',
     ]);
 
@@ -49,10 +50,10 @@ it('deletes income transaction when balance remains non-negative', function () {
     ]);
 
     $transaction = Transaction::factory()->create([
-        'user_id'     => $user->id,
+        'user_id' => $user->id,
         'category_id' => $category->id,
-        'type'        => TransactionType::INCOME,
-        'amount'      => '500.00',
+        'type' => TransactionType::INCOME,
+        'amount' => '500.00',
     ]);
 
     app(DeleteTransactionAction::class)->execute($user, $transaction);
@@ -61,12 +62,12 @@ it('deletes income transaction when balance remains non-negative', function () {
 });
 
 it('fails when user tries to delete other users transaction', function () {
-    $user      = User::factory()->create();
+    $user = User::factory()->create();
     $otherUser = User::factory()->create();
 
     UserBudgetSetting::factory()->create(['user_id' => $otherUser->id]);
     UserBudgetSnapshot::factory()->create([
-        'user_id'         => $otherUser->id,
+        'user_id' => $otherUser->id,
         'current_balance' => '500.00',
     ]);
 
@@ -75,10 +76,10 @@ it('fails when user tries to delete other users transaction', function () {
     ]);
 
     $transaction = Transaction::factory()->create([
-        'user_id'     => $otherUser->id,
+        'user_id' => $otherUser->id,
         'category_id' => $category->id,
-        'type'        => TransactionType::EXPENSE,
-        'amount'      => '100.00',
+        'type' => TransactionType::EXPENSE,
+        'amount' => '100.00',
     ]);
 
     app(DeleteTransactionAction::class)->execute($user, $transaction);

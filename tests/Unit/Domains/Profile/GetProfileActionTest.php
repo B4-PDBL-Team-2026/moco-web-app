@@ -17,7 +17,7 @@ class GetProfileActionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->action = new GetProfileAction();
+        $this->action = new GetProfileAction;
     }
 
     public function test_it_returns_user_with_profile_relationship(): void

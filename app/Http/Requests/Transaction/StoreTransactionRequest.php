@@ -28,10 +28,10 @@ class StoreTransactionRequest extends FormRequest
                     : Rule::exists('custom_categories', 'id')->where('user_id', $this->user()->id),
             ],
 
-            'name'            => ['required', 'string', 'max:255'],
-            'amount'          => ['required', 'decimal:0,2', 'gt:0'],
-            'type'            => ['required', Rule::enum(TransactionType::class)],
-            'note'            => ['nullable', 'string', 'max:1000'],
+            'name' => ['required', 'string', 'max:255'],
+            'amount' => ['required', 'decimal:0,2', 'gt:0'],
+            'type' => ['required', Rule::enum(TransactionType::class)],
+            'note' => ['nullable', 'string', 'max:1000'],
             'transactionDate' => ['required', 'date', 'before_or_equal:today'],
         ];
     }

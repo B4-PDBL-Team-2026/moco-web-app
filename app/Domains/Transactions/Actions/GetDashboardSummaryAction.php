@@ -2,11 +2,11 @@
 
 namespace App\Domains\Transactions\Actions;
 
+use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
+use App\Models\FixedCostOccurrence;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
-use App\Models\FixedCostOccurrence;
-use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
 use Carbon\CarbonImmutable;
 
 class GetDashboardSummaryAction
@@ -48,7 +48,7 @@ class GetDashboardSummaryAction
             'safety_flooring' => (string) $settings->flooring_limit,
             'today_spent' => $todaySpent,
 
-            // mapping 
+            // mapping
             'today_limit' => (string) $snapshot->daily_allowance_limit,
             'tomorrow_limit_prediction' => (string) $snapshot->remaining_daily_allowance,
             'raw_today_limit' => (string) $snapshot->raw_daily_allowance,

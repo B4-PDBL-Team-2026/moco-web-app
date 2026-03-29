@@ -46,12 +46,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Transaction Endpoints
     Route::controller(TransactionController::class)->prefix('transaction/transactions')->group(function () {
-            Route::get('/', 'index');
-            Route::post('/', 'store');
-            Route::get('/{transaction}', 'show');
-            Route::put('/{transaction}', 'update');
-            Route::delete('/{transaction}', 'destroy');
-        });
+        Route::get('/', 'index');
+        Route::post('/', 'store');
+        Route::get('/{transaction}', 'show');
+        Route::put('/{transaction}', 'update');
+        Route::delete('/{transaction}', 'destroy');
+    });
 
     // User Endpoints (profile + dashboard)
     Route::prefix('user')->group(function () {

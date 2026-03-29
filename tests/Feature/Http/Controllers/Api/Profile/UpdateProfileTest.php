@@ -23,7 +23,7 @@ class UpdateProfileTest extends TestCase
             ->assertJsonPath('data.display_name', 'New Name');
 
         $this->assertDatabaseHas('user_profiles', [
-            'user_id'      => $user->id,
+            'user_id' => $user->id,
             'display_name' => 'New Name',
         ]);
     }
@@ -44,9 +44,9 @@ class UpdateProfileTest extends TestCase
     {
         $user = User::factory()->create();
         UserProfile::factory()->create([
-            'user_id'      => $user->id,
+            'user_id' => $user->id,
             'display_name' => 'Original Name',
-            'currency'     => 'IDR',
+            'currency' => 'IDR',
         ]);
 
         $this->actingAs($user)->patchJson('/api/user/profile', [
@@ -54,9 +54,9 @@ class UpdateProfileTest extends TestCase
         ]);
 
         $this->assertDatabaseHas('user_profiles', [
-            'user_id'      => $user->id,
+            'user_id' => $user->id,
             'display_name' => 'Original Name',
-            'currency'     => 'USD',
+            'currency' => 'USD',
         ]);
     }
 

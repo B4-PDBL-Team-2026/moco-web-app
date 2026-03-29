@@ -15,9 +15,9 @@ class UpdateProfileRequest extends FormRequest
     {
         return [
             'display_name' => ['sometimes', 'string', 'max:100'],
-            'avatar_url'   => ['sometimes', 'nullable', 'url', 'max:2048'],
-            'currency'     => ['sometimes', 'string', 'size:3'],
-            'locale'       => ['sometimes', 'string', 'max:10'],
+            'avatar_url' => ['sometimes', 'nullable', 'url', 'max:2048'],
+            'currency' => ['sometimes', 'string', 'size:3'],
+            'locale' => ['sometimes', 'string', 'max:10'],
         ];
     }
 }

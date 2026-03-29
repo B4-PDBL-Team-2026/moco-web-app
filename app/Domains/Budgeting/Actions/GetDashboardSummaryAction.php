@@ -6,9 +6,9 @@ use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
 use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\FixedCostOccurrence;
 use App\Models\Transaction;
-use App\Models\UserBudgetSnapshot;
-use App\Models\UserBudgetSetting;
 use App\Models\User;
+use App\Models\UserBudgetSetting;
+use App\Models\UserBudgetSnapshot;
 use Carbon\CarbonImmutable;
 
 class GetDashboardSummaryAction
@@ -26,7 +26,7 @@ class GetDashboardSummaryAction
 
         // Determine today's date based on user timezone
         $userNow = $now->setTimezone($setting->timezone);
-        $today   = $userNow->toDateString();
+        $today = $userNow->toDateString();
 
         // today_spent: sum of expense transactions with transaction_date = today
         $todaySpent = Transaction::query()
@@ -49,25 +49,25 @@ class GetDashboardSummaryAction
 
         $unpaidFixedCosts = $unpaidOccurrences
             ->map(fn (FixedCostOccurrence $occurrence) => [
-                'name'      => $occurrence->name,
-                'amount'    => (int) $occurrence->amount,
-                'cycle'     => $occurrence->cycle_type->value,
+                'name' => $occurrence->name,
+                'amount' => (int) $occurrence->amount,
+                'cycle' => $occurrence->cycle_type->value,
                 'due_value' => $occurrence->due_date->day,
             ])
             ->values()
             ->toArray();
 
         return [
-            'server_time'               => $now->toIso8601String(),
-            'current_balance'           => (int) $snapshot->current_balance,
-            'budget_cycle'              => $setting->cycle_type->value,
-            'safety_ceiling'            => (int) $setting->ceiling_limit,
-            'safety_flooring'           => (int) $setting->flooring_limit,
-            'today_spent'               => (int) $todaySpent,
-            'today_limit'               => (int) $snapshot->daily_allowance_limit,
+            'server_time' => $now->toIso8601String(),
+            'current_balance' => (int) $snapshot->current_balance,
+            'budget_cycle' => $setting->cycle_type->value,
+            'safety_ceiling' => (int) $setting->ceiling_limit,
+            'safety_flooring' => (int) $setting->flooring_limit,
+            'today_spent' => (int) $todaySpent,
+            'today_limit' => (int) $snapshot->daily_allowance_limit,
             'tomorrow_limit_prediction' => (int) $snapshot->remaining_daily_allowance,
-            'raw_today_limit'           => (int) $snapshot->raw_daily_allowance,
-            'unpaid_fixed_costs'        => $unpaidFixedCosts,
+            'raw_today_limit' => (int) $snapshot->raw_daily_allowance,
+            'unpaid_fixed_costs' => $unpaidFixedCosts,
         ];
     }
 }

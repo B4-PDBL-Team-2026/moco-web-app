@@ -9,8 +9,8 @@ use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
-use App\Models\UserBudgetSnapshot;
 use App\Models\UserBudgetSetting;
+use App\Models\UserBudgetSnapshot;
 use Carbon\CarbonImmutable;
 use Illuminate\Validation\ValidationException;
 
@@ -19,33 +19,33 @@ it('updates transaction name and note only', function () {
 
     UserBudgetSetting::factory()->create(['user_id' => $user->id]);
     UserBudgetSnapshot::factory()->create([
-        'user_id'         => $user->id,
+        'user_id' => $user->id,
         'current_balance' => '1000.00',
     ]);
 
     $category = SystemCategory::factory()->create(['type' => TransactionType::EXPENSE]);
 
     $transaction = Transaction::factory()->create([
-        'user_id'     => $user->id,
+        'user_id' => $user->id,
         'category_id' => $category->id,
-        'name'        => 'Old Name',
-        'note'        => 'Old Note',
-        'amount'      => '100.00',
-        'type'        => TransactionType::EXPENSE,
+        'name' => 'Old Name',
+        'note' => 'Old Note',
+        'amount' => '100.00',
+        'type' => TransactionType::EXPENSE,
     ]);
 
     $dto = new UpdateTransactionData(
-        nameProvided: true, 
+        nameProvided: true,
         name: 'New Name',
-        amountProvided: false, 
+        amountProvided: false,
         amount: null,
-        typeProvided: false, 
+        typeProvided: false,
         type: null,
-        categoryIdProvided: false, 
+        categoryIdProvided: false,
         categoryId: null,
-        noteProvided: true, 
+        noteProvided: true,
         note: 'New Note',
-        transactionDateProvided: false, 
+        transactionDateProvided: false,
         transactionDate: null,
     );
 
@@ -60,31 +60,31 @@ it('updates amount', function () {
 
     UserBudgetSetting::factory()->create(['user_id' => $user->id]);
     UserBudgetSnapshot::factory()->create([
-        'user_id'         => $user->id,
+        'user_id' => $user->id,
         'current_balance' => '900.00',
     ]);
 
     $category = SystemCategory::factory()->create(['type' => TransactionType::EXPENSE]);
 
     $transaction = Transaction::factory()->create([
-        'user_id'     => $user->id,
+        'user_id' => $user->id,
         'category_id' => $category->id,
-        'amount'      => '100.00',
-        'type'        => TransactionType::EXPENSE,
+        'amount' => '100.00',
+        'type' => TransactionType::EXPENSE,
     ]);
 
     $dto = new UpdateTransactionData(
-        nameProvided: false, 
+        nameProvided: false,
         name: null,
-        amountProvided: true, 
+        amountProvided: true,
         amount: '250.00',
-        typeProvided: false, 
+        typeProvided: false,
         type: null,
-        categoryIdProvided: false, 
+        categoryIdProvided: false,
         categoryId: null,
-        noteProvided: false, 
+        noteProvided: false,
         note: null,
-        transactionDateProvided: false, 
+        transactionDateProvided: false,
         transactionDate: null,
     );
 
@@ -99,31 +99,31 @@ it('rejects type change (Rule 25)', function () {
 
     UserBudgetSetting::factory()->create(['user_id' => $user->id]);
     UserBudgetSnapshot::factory()->create([
-        'user_id'         => $user->id,
+        'user_id' => $user->id,
         'current_balance' => '900.00',
     ]);
 
     $category = SystemCategory::factory()->create(['type' => TransactionType::EXPENSE]);
 
     $transaction = Transaction::factory()->create([
-        'user_id'     => $user->id,
+        'user_id' => $user->id,
         'category_id' => $category->id,
-        'amount'      => '100.00',
-        'type'        => TransactionType::EXPENSE,
+        'amount' => '100.00',
+        'type' => TransactionType::EXPENSE,
     ]);
 
     $dto = new UpdateTransactionData(
-        nameProvided: false, 
+        nameProvided: false,
         name: null,
-        amountProvided: false, 
+        amountProvided: false,
         amount: null,
-        typeProvided: true, 
+        typeProvided: true,
         type: TransactionType::INCOME,
-        categoryIdProvided: false, 
+        categoryIdProvided: false,
         categoryId: null,
-        noteProvided: false, 
+        noteProvided: false,
         note: null,
-        transactionDateProvided: false, 
+        transactionDateProvided: false,
         transactionDate: null,
     );
 
@@ -136,32 +136,32 @@ it('updates transaction date', function () {
 
     UserBudgetSetting::factory()->create(['user_id' => $user->id]);
     UserBudgetSnapshot::factory()->create([
-        'user_id'         => $user->id,
+        'user_id' => $user->id,
         'current_balance' => '1000.00',
     ]);
 
     $category = SystemCategory::factory()->create(['type' => TransactionType::EXPENSE]);
 
     $transaction = Transaction::factory()->create([
-        'user_id'          => $user->id,
-        'category_id'      => $category->id,
+        'user_id' => $user->id,
+        'category_id' => $category->id,
         'transaction_date' => '2026-03-01',
-        'amount'           => '100.00',
-        'type'             => TransactionType::EXPENSE,
+        'amount' => '100.00',
+        'type' => TransactionType::EXPENSE,
     ]);
 
     $dto = new UpdateTransactionData(
-        nameProvided: false, 
+        nameProvided: false,
         name: null,
-        amountProvided: false, 
+        amountProvided: false,
         amount: null,
-        typeProvided: false, 
+        typeProvided: false,
         type: null,
-        categoryIdProvided: false, 
+        categoryIdProvided: false,
         categoryId: null,
-        noteProvided: false, 
+        noteProvided: false,
         note: null,
-        transactionDateProvided: true, 
+        transactionDateProvided: true,
         transactionDate: CarbonImmutable::parse('2026-03-15'),
     );
 
@@ -175,33 +175,33 @@ it('throws validation exception when category type does not match transaction ty
 
     UserBudgetSetting::factory()->create(['user_id' => $user->id]);
     UserBudgetSnapshot::factory()->create([
-        'user_id'         => $user->id,
+        'user_id' => $user->id,
         'current_balance' => '1000.00',
     ]);
 
     $expenseCategory = SystemCategory::factory()->create(['type' => TransactionType::EXPENSE]);
-    $incomeCategory  = SystemCategory::factory()->create(['type' => TransactionType::INCOME]);
+    $incomeCategory = SystemCategory::factory()->create(['type' => TransactionType::INCOME]);
 
     $transaction = Transaction::factory()->create([
-        'user_id'     => $user->id,
+        'user_id' => $user->id,
         'category_id' => $expenseCategory->id,
-        'type'        => TransactionType::EXPENSE,
-        'amount'      => '100.00',
+        'type' => TransactionType::EXPENSE,
+        'amount' => '100.00',
     ]);
 
     // Try to assign an income category to an expense transaction
     $dto = new UpdateTransactionData(
-        nameProvided: false, 
+        nameProvided: false,
         name: null,
-        amountProvided: false, 
+        amountProvided: false,
         amount: null,
-        typeProvided: false, 
+        typeProvided: false,
         type: null,
-        categoryIdProvided: true, 
+        categoryIdProvided: true,
         categoryId: $incomeCategory->id,
-        noteProvided: false, 
+        noteProvided: false,
         note: null,
-        transactionDateProvided: false, 
+        transactionDateProvided: false,
         transactionDate: null,
     );
 
@@ -210,36 +210,36 @@ it('throws validation exception when category type does not match transaction ty
 })->throws(ValidationException::class);
 
 it('fails when user tries to update other users transaction', function () {
-    $user      = User::factory()->create();
+    $user = User::factory()->create();
     $otherUser = User::factory()->create();
 
     UserBudgetSetting::factory()->create(['user_id' => $otherUser->id]);
     UserBudgetSnapshot::factory()->create([
-        'user_id'         => $otherUser->id,
+        'user_id' => $otherUser->id,
         'current_balance' => '500.00',
     ]);
 
     $category = SystemCategory::factory()->create(['type' => TransactionType::EXPENSE]);
 
     $transaction = Transaction::factory()->create([
-        'user_id'     => $otherUser->id,
+        'user_id' => $otherUser->id,
         'category_id' => $category->id,
-        'type'        => TransactionType::EXPENSE,
-        'amount'      => '100.00',
+        'type' => TransactionType::EXPENSE,
+        'amount' => '100.00',
     ]);
 
     $dto = new UpdateTransactionData(
-        nameProvided: true, 
+        nameProvided: true,
         name: 'Hacked',
-        amountProvided: false, 
+        amountProvided: false,
         amount: null,
-        typeProvided: false, 
+        typeProvided: false,
         type: null,
-        categoryIdProvided: false, 
+        categoryIdProvided: false,
         categoryId: null,
-        noteProvided: false, 
+        noteProvided: false,
         note: null,
-        transactionDateProvided: false, 
+        transactionDateProvided: false,
         transactionDate: null,
     );
 

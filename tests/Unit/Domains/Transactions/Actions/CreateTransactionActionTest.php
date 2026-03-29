@@ -9,8 +9,8 @@ use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
-use App\Models\UserBudgetSnapshot;
 use App\Models\UserBudgetSetting;
+use App\Models\UserBudgetSnapshot;
 use Illuminate\Validation\ValidationException;
 
 it('creates income transaction', function () {
@@ -18,7 +18,7 @@ it('creates income transaction', function () {
 
     UserBudgetSetting::factory()->create(['user_id' => $user->id]);
     UserBudgetSnapshot::factory()->create([
-        'user_id'         => $user->id,
+        'user_id' => $user->id,
         'current_balance' => '1000.00',
     ]);
 
@@ -27,12 +27,12 @@ it('creates income transaction', function () {
     ]);
 
     $dto = new CreateTransactionData(
-        categoryId:      $category->id,
-        categoryType:    'system',
-        name:            'Salary',
-        amount:          '500.00',
-        type:            TransactionType::INCOME,
-        note:            'Monthly salary',
+        categoryId: $category->id,
+        categoryType: 'system',
+        name: 'Salary',
+        amount: '500.00',
+        type: TransactionType::INCOME,
+        note: 'Monthly salary',
         transactionDate: now()->toImmutable(),
     );
 
@@ -41,12 +41,12 @@ it('creates income transaction', function () {
     expect($transaction)->toBeInstanceOf(Transaction::class);
 
     $this->assertDatabaseHas('transactions', [
-        'id'          => $transaction->id,
-        'user_id'     => $user->id,
+        'id' => $transaction->id,
+        'user_id' => $user->id,
         'category_id' => $category->id,
-        'name'        => 'Salary',
-        'amount'      => '500.00',
-        'type'        => TransactionType::INCOME->value,
+        'name' => 'Salary',
+        'amount' => '500.00',
+        'type' => TransactionType::INCOME->value,
     ]);
 });
 
@@ -55,7 +55,7 @@ it('creates expense transaction', function () {
 
     UserBudgetSetting::factory()->create(['user_id' => $user->id]);
     UserBudgetSnapshot::factory()->create([
-        'user_id'         => $user->id,
+        'user_id' => $user->id,
         'current_balance' => '1000.00',
     ]);
 
@@ -64,12 +64,12 @@ it('creates expense transaction', function () {
     ]);
 
     $dto = new CreateTransactionData(
-        categoryId:      $category->id,
-        categoryType:    'system',
-        name:            'Groceries',
-        amount:          '200.00',
-        type:            TransactionType::EXPENSE,
-        note:            'Weekly groceries',
+        categoryId: $category->id,
+        categoryType: 'system',
+        name: 'Groceries',
+        amount: '200.00',
+        type: TransactionType::EXPENSE,
+        note: 'Weekly groceries',
         transactionDate: now()->toImmutable(),
     );
 
@@ -79,8 +79,8 @@ it('creates expense transaction', function () {
 
     $this->assertDatabaseHas('transactions', [
         'user_id' => $user->id,
-        'name'    => 'Groceries',
-        'type'    => TransactionType::EXPENSE->value,
+        'name' => 'Groceries',
+        'type' => TransactionType::EXPENSE->value,
     ]);
 });
 
@@ -89,7 +89,7 @@ it('throws validation exception when category type does not match transaction ty
 
     UserBudgetSetting::factory()->create(['user_id' => $user->id]);
     UserBudgetSnapshot::factory()->create([
-        'user_id'         => $user->id,
+        'user_id' => $user->id,
         'current_balance' => '1000.00',
     ]);
 
@@ -99,12 +99,12 @@ it('throws validation exception when category type does not match transaction ty
     ]);
 
     $dto = new CreateTransactionData(
-        categoryId:      $category->id,
-        categoryType:    'system',
-        name:            'Salary',
-        amount:          '500.00',
-        type:            TransactionType::INCOME,
-        note:            null,
+        categoryId: $category->id,
+        categoryType: 'system',
+        name: 'Salary',
+        amount: '500.00',
+        type: TransactionType::INCOME,
+        note: null,
         transactionDate: now()->toImmutable(),
     );
 
@@ -117,17 +117,17 @@ it('fails when category does not exist', function () {
 
     UserBudgetSetting::factory()->create(['user_id' => $user->id]);
     UserBudgetSnapshot::factory()->create([
-        'user_id'         => $user->id,
+        'user_id' => $user->id,
         'current_balance' => '1000.00',
     ]);
 
     $dto = new CreateTransactionData(
-        categoryId:      999999, // non-existent
-        categoryType:    'system',
-        name:            'Salary',
-        amount:          '500.00',
-        type:            TransactionType::INCOME,
-        note:            null,
+        categoryId: 999999, // non-existent
+        categoryType: 'system',
+        name: 'Salary',
+        amount: '500.00',
+        type: TransactionType::INCOME,
+        note: null,
         transactionDate: now()->toImmutable(),
     );
 

@@ -1,11 +1,11 @@
 <?php
 
-use App\Models\User;
+use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\CustomCategory;
 use App\Models\Transaction;
-use App\Domains\Transactions\Enums\TransactionType;
-use Laravel\Sanctum\Sanctum;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
 
@@ -20,21 +20,21 @@ test('authenticated user can delete own expense transaction', function () {
 
     \App\Models\UserBudgetSetting::factory()->create(['user_id' => $user->id]);
     \App\Models\UserBudgetSnapshot::factory()->create([
-        'user_id'         => $user->id,
+        'user_id' => $user->id,
         'current_balance' => '500.00',
     ]);
 
     $category = CustomCategory::factory()->create([
         'user_id' => $user->id,
-        'type'    => TransactionType::EXPENSE,
+        'type' => TransactionType::EXPENSE,
     ]);
 
     $transaction = Transaction::factory()->create([
-        'user_id'       => $user->id,
-        'category_id'   => $category->id,
+        'user_id' => $user->id,
+        'category_id' => $category->id,
         'category_type' => CustomCategory::class,
-        'amount'        => '100.00',
-        'type'          => 'expense',
+        'amount' => '100.00',
+        'type' => 'expense',
     ]);
 
     $this->deleteJson("/api/transaction/transactions/{$transaction->id}")

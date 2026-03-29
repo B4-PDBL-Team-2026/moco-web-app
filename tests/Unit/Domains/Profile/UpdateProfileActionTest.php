@@ -18,7 +18,7 @@ class UpdateProfileActionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->action = new UpdateProfileAction();
+        $this->action = new UpdateProfileAction;
     }
 
     public function test_it_creates_profile_when_none_exists(): void
@@ -36,7 +36,7 @@ class UpdateProfileActionTest extends TestCase
         $this->assertInstanceOf(UserProfile::class, $profile);
         $this->assertEquals('New User', $profile->display_name);
         $this->assertDatabaseHas('user_profiles', [
-            'user_id'      => $user->id,
+            'user_id' => $user->id,
             'display_name' => 'New User',
         ]);
     }
@@ -45,9 +45,9 @@ class UpdateProfileActionTest extends TestCase
     {
         $user = User::factory()->create();
         UserProfile::factory()->create([
-            'user_id'      => $user->id,
+            'user_id' => $user->id,
             'display_name' => 'Old Name',
-            'currency'     => 'IDR',
+            'currency' => 'IDR',
         ]);
 
         $dto = new UpdateProfileData(

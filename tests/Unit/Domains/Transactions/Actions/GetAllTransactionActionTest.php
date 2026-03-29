@@ -13,7 +13,7 @@ use App\Models\User;
 it('returns paginated transactions only for authenticated user', function () {
     $user = User::factory()->create();
     $otherUser = User::factory()->create();
-    
+
     $category = SystemCategory::factory()->create([
         'type' => TransactionType::EXPENSE,
     ]);

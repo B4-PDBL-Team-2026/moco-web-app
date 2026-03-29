@@ -1,11 +1,11 @@
 <?php
 
-use App\Models\User;
+use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\CustomCategory;
 use App\Models\Transaction;
-use App\Domains\Transactions\Enums\TransactionType;
-use Laravel\Sanctum\Sanctum;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
 
