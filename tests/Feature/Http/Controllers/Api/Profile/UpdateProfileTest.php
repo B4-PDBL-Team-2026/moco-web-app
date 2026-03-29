@@ -15,7 +15,7 @@ class UpdateProfileTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->patchJson('/api/profile', [
+        $response = $this->actingAs($user)->patchJson('/api/user/profile', [
             'display_name' => 'New Name',
         ]);
 
@@ -32,7 +32,7 @@ class UpdateProfileTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->patchJson('/api/profile', [
+        $response = $this->actingAs($user)->patchJson('/api/user/profile', [
             'currency' => 'USD',
         ]);
 
@@ -49,7 +49,7 @@ class UpdateProfileTest extends TestCase
             'currency'     => 'IDR',
         ]);
 
-        $this->actingAs($user)->patchJson('/api/profile', [
+        $this->actingAs($user)->patchJson('/api/user/profile', [
             'currency' => 'USD',
         ]);
 
@@ -64,7 +64,7 @@ class UpdateProfileTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->patchJson('/api/profile', [
+        $response = $this->actingAs($user)->patchJson('/api/user/profile', [
             'currency' => 'INVALID',
         ]);
 
@@ -75,7 +75,7 @@ class UpdateProfileTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->patchJson('/api/profile', [
+        $response = $this->actingAs($user)->patchJson('/api/user/profile', [
             'avatar_url' => 'not-a-url',
         ]);
 
@@ -84,7 +84,7 @@ class UpdateProfileTest extends TestCase
 
     public function test_unauthenticated_user_cannot_update_profile(): void
     {
-        $response = $this->patchJson('/api/profile', [
+        $response = $this->patchJson('/api/user/profile', [
             'display_name' => 'Hacker',
         ]);
 

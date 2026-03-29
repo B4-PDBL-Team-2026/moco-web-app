@@ -16,7 +16,7 @@ class ShowProfileTest extends TestCase
         $user = User::factory()->create();
         UserProfile::factory()->create(['user_id' => $user->id, 'display_name' => 'John Doe']);
 
-        $response = $this->actingAs($user)->getJson('/api/profile');
+        $response = $this->actingAs($user)->getJson('/api/user/profile');
 
         $response->assertOk()
             ->assertJsonPath('data.profile.display_name', 'John Doe');
@@ -24,7 +24,7 @@ class ShowProfileTest extends TestCase
 
     public function test_unauthenticated_user_cannot_retrieve_profile(): void
     {
-        $response = $this->getJson('/api/profile');
+        $response = $this->getJson('/api/user/profile');
 
         $response->assertUnauthorized();
     }
@@ -33,7 +33,7 @@ class ShowProfileTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->getJson('/api/profile');
+        $response = $this->actingAs($user)->getJson('/api/user/profile');
 
         $response->assertOk();
     }
