@@ -35,14 +35,14 @@ it('returns correct dashboard summary', function () {
     $result = app(GetDashboardSummaryAction::class)
         ->execute($user, CarbonImmutable::now());
 
-    expect($result['current_balance'])->toBe(4500000)
-        ->and($result['budget_cycle'])->toBe('monthly')
-        ->and($result['safety_ceiling'])->toBe(100000)
-        ->and($result['safety_flooring'])->toBe(30000)
-        ->and($result['today_limit'])->toBe(100000)
-        ->and($result['tomorrow_limit_prediction'])->toBe(95000)
-        ->and($result['raw_today_limit'])->toBe(97500)
-        ->and($result['unpaid_fixed_costs'])->toBeArray();
+    expect($result['currentBalance'])->toBe(4500000)
+        ->and($result['budgetCycle'])->toBe('monthly')
+        ->and($result['safetyCeiling'])->toBe(100000)
+        ->and($result['safetyFlooring'])->toBe(30000)
+        ->and($result['todayLimit'])->toBe(100000)
+        ->and($result['tomorrowLimitPrediction'])->toBe(95000)
+        ->and($result['rawTodayLimit'])->toBe(97500)
+        ->and($result['unpaidFixedCosts'])->toBeArray();
 });
 
 it('today_spent only counts expense transactions today and exclude fixed cost payment transactions record', function () {
@@ -107,7 +107,7 @@ it('today_spent only counts expense transactions today and exclude fixed cost pa
     $result = app(GetDashboardSummaryAction::class)
         ->execute($user, CarbonImmutable::now());
 
-    expect($result['today_spent'])->toBe(50000);
+    expect($result['todaySpent'])->toBe(50000);
 });
 
 it('unpaid_fixed_costs only includes pending and overdue occurrences', function () {
@@ -152,5 +152,5 @@ it('unpaid_fixed_costs only includes pending and overdue occurrences', function 
     $result = app(GetDashboardSummaryAction::class)
         ->execute($user, CarbonImmutable::now());
 
-    expect($result['unpaid_fixed_costs'])->toHaveCount(2);
+    expect($result['unpaidFixedCosts'])->toHaveCount(2);
 });

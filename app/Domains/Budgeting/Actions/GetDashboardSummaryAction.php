@@ -60,16 +60,16 @@ class GetDashboardSummaryAction
             ->toArray();
 
         return [
-            'server_time' => $now->toIso8601String(),
-            'current_balance' => (int) $snapshot->current_balance,
-            'budget_cycle' => $setting->cycle_type->value,
-            'safety_ceiling' => (int) $setting->ceiling_limit,
-            'safety_flooring' => (int) $setting->flooring_limit,
-            'today_spent' => (int) $todaySpent,
-            'today_limit' => (int) $snapshot->daily_allowance_limit,
-            'tomorrow_limit_prediction' => (int) $snapshot->remaining_daily_allowance,
-            'raw_today_limit' => (int) $snapshot->raw_daily_allowance,
-            'unpaid_fixed_costs' => $unpaidFixedCosts,
+            'serverTime' => $now->toIso8601String(),
+            'currentBalance' => (int) $snapshot->current_balance,
+            'budgetCycle' => $setting->cycle_type->value ?? 'monthly',
+            'safetyCeiling' => (int) $setting->ceiling_limit,
+            'safetyFlooring' => (int) $setting->flooring_limit,
+            'todaySpent' => (int) $todaySpent,
+            'todayLimit' => (int) $snapshot->daily_allowance_limit,
+            'tomorrowLimitPrediction' => (int) $snapshot->remaining_daily_allowance,
+            'rawTodayLimit' => (int) $snapshot->raw_daily_allowance,
+            'unpaidFixedCosts' => $unpaidFixedCosts,
         ];
     }
 }
