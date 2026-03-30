@@ -90,7 +90,7 @@ it('today_spent only counts expense transactions today and exclude fixed cost pa
         'category_type' => SystemCategory::class,
         'type' => TransactionType::EXPENSE->value,
         'amount' => '30000',
-        'transaction_date' => now()->subDay()->toDateString(),
+        'transaction_date' => $yesterday,
     ]);
 
     // today fixed cost payment must not be included
@@ -108,6 +108,75 @@ it('today_spent only counts expense transactions today and exclude fixed cost pa
         ->execute($user, CarbonImmutable::now());
 
     expect($result['todaySpent'])->toBe(50000);
+});
+
+it('calculates today_spent accurately across timezone boundaries', function () {
+    $user = User::factory()->create();
+
+    UserBudgetSetting::factory()->create([
+        'user_id' => $user->id,
+        'timezone' => 'Asia/Jakarta',
+    ]);
+
+    UserBudgetSnapshot::factory()->create([
+        'user_id' => $user->id,
+        'current_cycle_key' => '2026-03',
+    ]);
+
+    $category = SystemCategory::factory()->create(['type' => TransactionType::EXPENSE->value]);
+
+    $nowUtc = CarbonImmutable::parse('2026-03-30 02:00:00', 'UTC');
+
+    // Asia/Jakarta: 29 Maret 23:00 WIB)
+    // UTC: 29 Maret 16:00:00 (must not be included)
+    Transaction::factory()->create([
+        'user_id' => $user->id,
+        'category_id' => $category->id,
+        'category_type' => SystemCategory::class,
+        'type' => TransactionType::EXPENSE->value,
+        'amount' => '10000',
+        'transaction_date' => '2026-03-29 16:00:00',
+    ]);
+
+    // Asia/Jakarta: 30 Maret 01:00 WIB
+    // UTC: 29 Maret 18:00:00 (must be included)
+    Transaction::factory()->create([
+        'user_id' => $user->id,
+        'category_id' => $category->id,
+        'category_type' => SystemCategory::class,
+        'type' => TransactionType::EXPENSE->value,
+        'amount' => '50000',
+        'transaction_date' => '2026-03-29 18:00:00',
+    ]);
+
+    // Asia/Jakarta: 30 Maret 17:00 WIB
+    // UTC: 30 Maret 10:00:00 (must be included)
+    Transaction::factory()->create([
+        'user_id' => $user->id,
+        'category_id' => $category->id,
+        'category_type' => SystemCategory::class,
+        'type' => TransactionType::EXPENSE->value,
+        'amount' => '20000',
+        'transaction_date' => '2026-03-30 10:00:00',
+    ]);
+
+    // Asia/Jakarta: 31 Maret 01:00 WIB
+    // UTC: 30 Maret 18:00:00 (must not be included)
+    Transaction::factory()->create([
+        'user_id' => $user->id,
+        'category_id' => $category->id,
+        'category_type' => SystemCategory::class,
+        'type' => TransactionType::EXPENSE->value,
+        'amount' => '100000',
+        'transaction_date' => '2026-03-30 18:00:00',
+    ]);
+
+    // execute in server time
+    $result = app(GetDashboardSummaryAction::class)
+        ->execute($user, $nowUtc);
+
+    //only two of three transactions must be calculated (50000 + 20000 = 70000)
+    expect($result['todaySpent'])->toBe(70000);
 });
 
 it('unpaid_fixed_costs only includes pending and overdue occurrences', function () {

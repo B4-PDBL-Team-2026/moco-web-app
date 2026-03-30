@@ -26,16 +26,25 @@ class GetDashboardSummaryAction
             ->firstOrFail();
 
         // Determine today's date based on user timezone
-        $userNow = $now->setTimezone($setting->timezone);
-        $today = $userNow->toDateString();
+        $userTimezone = $setting->timezone ?? 'UTC';
+        $userNow = $now->setTimezone($userTimezone);
+
+        $startOfDayUser = $userNow->startOfDay();
+        $endOfDayUser = $userNow->endOfDay();
+
+        $startOfDayUTC = $startOfDayUser->setTimezone('UTC');
+        $endOfDayUTC = $endOfDayUser->setTimezone('UTC');
 
         // today_spent: sum of expense transactions with transaction_date = today
         $todaySpent = Transaction::query()
             ->where('user_id', $user->id)
             ->where('type', TransactionType::EXPENSE->value)
             ->where('source', '!=', TransactionSource::FIXED_COST_PAYMENT->value)
-            ->whereDate('transaction_date', $today)
-            //->whereNull('deleted_at')
+            ->whereBetween('transaction_date', [
+                $startOfDayUTC->toDateTimeString(),
+                $endOfDayUTC->toDateTimeString(),
+            ])
+            ->whereNull('deleted_at')
             ->sum('amount');
 
         // unpaid fixed costs: PENDING + OVERDUE in current cycle
