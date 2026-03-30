@@ -6,6 +6,7 @@ use App\Domains\FixedCosts\DTOs\FilterFixedCostTemplateData;
 use App\Models\FixedCostTemplate;
 use App\Models\SystemCategory;
 use App\Models\User;
+
 function filters(array $overrides = []): FilterFixedCostTemplateData
 {
     return FilterFixedCostTemplateData::fromArray(array_merge([
