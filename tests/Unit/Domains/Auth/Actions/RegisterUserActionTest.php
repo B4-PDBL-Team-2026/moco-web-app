@@ -7,35 +7,69 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 
-test('it registers a user successfully', function () {
-    // Arrange
-    Event::fake();
-    $action = new RegisterUserAction;
-    $dto = new RegisterUserDTO(
-        name: 'Test User',
-        email: 'test@example.com',
-        password: 'password'
+beforeEach(function () {
+    $this->action = app(RegisterUserAction::class);
+
+    $this->dto = new RegisterUserDTO(
+        name: 'John Doe',
+        email: 'john@example.com',
+        password: 'secret1234',
     );
+});
 
-    // Act
-    $result = $action->execute($dto);
+it('returns a user, token, and requires_onboarding flag', function () {
+    $result = $this->action->execute($this->dto);
 
-    // Assert
-    expect($result)->toBeArray()
-        ->toHaveKey('user')
-        ->toHaveKey('token')
-        ->toHaveKey('requires_onboarding', true)
-        ->and($result['user'])->toBeInstanceOf(User::class)
-        ->and($result['user']->name)->toBe('Test User')
-        ->and($result['user']->email)->toBe('test@example.com')
-        ->and(Hash::check('password', $result['user']->password))->toBeTrue();
+    expect($result)->toHaveKeys(['user', 'token', 'requires_onboarding']);
+});
+
+it('requires_onboarding is always true for a new registration', function () {
+    $result = $this->action->execute($this->dto);
+
+    expect($result['requires_onboarding'])->toBeTrue();
+});
+
+it('returns a non-empty plain-text token', function () {
+    $result = $this->action->execute($this->dto);
+
+    expect($result['token'])->toBeString()->not->toBeEmpty();
+});
+
+it('returns the newly created User model', function () {
+    $result = $this->action->execute($this->dto);
+
+    expect($result['user'])->toBeInstanceOf(User::class)
+        ->and($result['user']->exists)->toBeTrue();
+});
+
+it('persists the user to the database', function () {
+    $this->action->execute($this->dto);
 
     $this->assertDatabaseHas('users', [
-        'email' => 'test@example.com',
-        'name' => 'Test User',
+        'name' => 'John Doe',
+        'email' => 'john@example.com',
     ]);
+});
 
-    Event::assertDispatched(Registered::class, function ($event) use ($result) {
-        return $event->user->id === $result['user']->id;
-    });
+it('hashes the password before storing', function () {
+    $this->action->execute($this->dto);
+
+    $stored = User::where('email', 'john@example.com')->first();
+
+    expect(Hash::check('secret1234', $stored->password))->toBeTrue()
+        ->and($stored->password)->not->toBe('secret1234');
+});
+
+it('creates the user with email_verified_at as null (unverified)', function () {
+    $result = $this->action->execute($this->dto);
+
+    expect($result['user']->email_verified_at)->toBeNull();
+});
+
+it('does NOT dispatch the Registered event (email send is now explicit)', function () {
+    Event::fake();
+
+    $this->action->execute($this->dto);
+
+    Event::assertNotDispatched(Registered::class);
 });
