@@ -32,7 +32,7 @@ class StoreTransactionRequest extends FormRequest
             'amount' => ['required', 'decimal:0,2', 'gt:0'],
             'type' => ['required', Rule::enum(TransactionType::class)],
             'note' => ['nullable', 'string', 'max:1000'],
-            'transactionDate' => ['required', 'date', 'before_or_equal:today'],
+            'transactionDate' => ['required', 'date', 'before_or_equal:now'],
         ];
     }
 }
