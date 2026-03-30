@@ -25,8 +25,6 @@ class RegisterUserAction
             'password' => Hash::make($dto->password),
         ]);
 
-        event(new Registered($user));
-
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return [
