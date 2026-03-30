@@ -9,11 +9,11 @@ use Laravel\Sanctum\Sanctum;
 uses(RefreshDatabase::class);
 
 test('guest cannot store transaction', function () {
-    $this->postJson('/api/transaction/transactions', [])
+    $this->postJson('/api/transaction', [])
         ->assertUnauthorized();
 });
 
-test('authenticated user can create income transaction (Rule 19)', function () {
+test('authenticated user can create income transaction', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user);
 
@@ -37,7 +37,7 @@ test('authenticated user can create income transaction (Rule 19)', function () {
         'transactionDate' => now()->toDateString(),
     ];
 
-    $response = $this->postJson('/api/transaction/transactions', $payload);
+    $response = $this->postJson('/api/transaction', $payload);
     $response->assertCreated();
     $this->assertDatabaseHas('transactions', ['name' => 'Salary']);
 });

@@ -4,13 +4,10 @@ use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\CustomCategory;
 use App\Models\Transaction;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 
-uses(RefreshDatabase::class);
-
 test('guest cannot update transaction', function () {
-    $this->putJson('/api/transaction/transactions/1', [])
+    $this->putJson('/api/transaction/1', [])
         ->assertUnauthorized();
 });
 
@@ -33,7 +30,7 @@ test('authenticated user cannot change transaction type (Rule 25)', function () 
 
     $payload = ['type' => 'income'];
 
-    $this->putJson("/api/transaction/transactions/{$transaction->id}", $payload)
+    $this->putJson("/api/transaction/{$transaction->id}", $payload)
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['type'], 'data');
 });

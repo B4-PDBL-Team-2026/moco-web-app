@@ -4,13 +4,12 @@ use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\CustomCategory;
 use App\Models\Transaction;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Models\UserBudgetSetting;
+use App\Models\UserBudgetSnapshot;
 use Laravel\Sanctum\Sanctum;
 
-uses(RefreshDatabase::class);
-
 test('guest cannot delete transaction', function () {
-    $this->deleteJson('/api/transaction/transactions/1')
+    $this->deleteJson('/api/transaction/999')
         ->assertUnauthorized();
 });
 
@@ -18,8 +17,8 @@ test('authenticated user can delete own expense transaction', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user);
 
-    \App\Models\UserBudgetSetting::factory()->create(['user_id' => $user->id]);
-    \App\Models\UserBudgetSnapshot::factory()->create([
+    UserBudgetSetting::factory()->create(['user_id' => $user->id]);
+    UserBudgetSnapshot::factory()->create([
         'user_id' => $user->id,
         'current_balance' => '500.00',
     ]);
@@ -37,7 +36,7 @@ test('authenticated user can delete own expense transaction', function () {
         'type' => 'expense',
     ]);
 
-    $this->deleteJson("/api/transaction/transactions/{$transaction->id}")
+    $this->deleteJson("/api/transaction/{$transaction->id}")
         ->assertNoContent();
 
     $this->assertSoftDeleted('transactions', ['id' => $transaction->id]);

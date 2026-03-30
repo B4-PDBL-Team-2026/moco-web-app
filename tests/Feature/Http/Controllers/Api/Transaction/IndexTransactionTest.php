@@ -1,13 +1,10 @@
 <?php
 
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 
-uses(RefreshDatabase::class);
-
 test('guest cannot access index', function () {
-    $this->getJson('/api/transaction/transactions')
+    $this->getJson('/api/transaction/')
         ->assertUnauthorized();
 });
 
@@ -15,7 +12,7 @@ test('index endpoint validates month', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user);
 
-    $this->getJson('/api/transaction/transactions?month=13')
+    $this->getJson('/api/transaction/?month=13')
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['month'], 'data');
 });
