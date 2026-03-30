@@ -14,11 +14,11 @@ final readonly class UpdateTransactionData
         public bool $amountProvided,
         public ?string $amount,
 
-        public bool $typeProvided,
-        public ?TransactionType $type,
-
         public bool $categoryIdProvided,
         public ?int $categoryId,
+
+        public bool $categoryTypeProvided,
+        public ?string $categoryType,
 
         public bool $noteProvided,
         public ?string $note,
@@ -36,14 +36,14 @@ final readonly class UpdateTransactionData
             amountProvided: array_key_exists('amount', $data),
             amount: array_key_exists('amount', $data) ? (string) $data['amount'] : null,
 
-            typeProvided: array_key_exists('type', $data),
-            type: array_key_exists('type', $data)
-                ? TransactionType::from($data['type'])
-                : null,
-
             categoryIdProvided: array_key_exists('categoryId', $data),
             categoryId: array_key_exists('categoryId', $data) && $data['categoryId'] !== null
                 ? (int) $data['categoryId']
+                : null,
+
+            categoryTypeProvided: array_key_exists('categoryType', $data),
+            categoryType: array_key_exists('categoryType', $data) && $data['categoryType'] !== null
+                ? (string) $data['categoryType']
                 : null,
 
             noteProvided: array_key_exists('note', $data),

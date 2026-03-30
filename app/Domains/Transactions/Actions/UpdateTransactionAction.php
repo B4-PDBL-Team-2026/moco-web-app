@@ -34,19 +34,18 @@ class UpdateTransactionAction
             throw new UnauthorizedException('You are not authorized to perform this action.');
         }
 
-        // Rule 25: reject type change
-        if ($dto->typeProvided) {
-            throw ValidationException::withMessages([
-                'type' => ['Changing transaction type is not allowed.'],
-            ]);
-        }
+        // Rule 27: validate category type matches transaction type
+        $resolvedCategoryType = null;
 
         // Rule 27: validate category type matches transaction type
         if ($dto->categoryIdProvided && $dto->categoryId !== null) {
-            $category = SystemCategory::find($dto->categoryId)
-                ?? CustomCategory::where('id', $dto->categoryId)
+            if ($dto->categoryType === 'system') {
+                $category = SystemCategory::find($dto->categoryId);
+            } else {
+                $category = CustomCategory::where('id', $dto->categoryId)
                     ->where('user_id', $user->id)
                     ->first();
+            }
 
             if (! $category) {
                 throw ValidationException::withMessages([
@@ -59,6 +58,8 @@ class UpdateTransactionAction
                     'categoryId' => ['Category type does not match the transaction type.'],
                 ]);
             }
+
+            $resolvedCategoryType = $category->getMorphClass();
         }
 
         // Rule 23: amount change triggers recalculation
@@ -92,6 +93,10 @@ class UpdateTransactionAction
 
         if ($dto->categoryIdProvided) {
             $metadataFields['categoryId'] = $dto->categoryId;
+
+            if ($resolvedCategoryType) {
+                $metadataFields['categoryType'] = $resolvedCategoryType;
+            }
         }
 
         if (! empty($metadataFields)) {
