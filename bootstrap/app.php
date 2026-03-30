@@ -1,6 +1,7 @@
 <?php
 
 use App\Commons\Exceptions\BusinessRuleException;
+use App\Http\Middleware\CheckDailyBudgetRecalculation;
 use App\Http\Middleware\EnsureOnboardingIsCompleted;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Auth\AuthenticationException;
@@ -27,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->alias([
             'hasOnboarded' => EnsureOnboardingIsCompleted::class,
+            'hasRecaculatedToday' => CheckDailyBudgetRecalculation::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -30,41 +30,43 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/system', 'getAllSystemCategory');
     });
 
-    // Fixed Cost Endpoints
-    Route::prefix('fixed-costs')->controller(FixedCostController::class)->group(function () {
-        Route::post('/', 'store');
-        Route::patch('/{templateId}', 'update');
-        Route::delete('/{templateId}', 'destroy');
+    Route::middleware('hasRecaculatedToday')->group(function () {
+        // Fixed Cost Endpoints
+        Route::prefix('fixed-costs')->controller(FixedCostController::class)->group(function () {
+            Route::post('/', 'store');
+            Route::patch('/{templateId}', 'update');
+            Route::delete('/{templateId}', 'destroy');
 
-        Route::prefix('occurrences')->group(function () {
-            Route::get('/', 'indexOccurrences');
-            Route::post('/{occurrenceId}/confirm', 'confirmPayment');
-            Route::post('/{occurrenceId}/cancel', 'cancelPayment');
-            Route::patch('/{occurrenceId}/amount', 'updateOccurrenceAmount');
-            Route::patch('/{occurrenceId}/metadata', 'updateOccurrenceMetadata');
+            Route::prefix('occurrences')->group(function () {
+                Route::get('/', 'indexOccurrences');
+                Route::post('/{occurrenceId}/confirm', 'confirmPayment');
+                Route::post('/{occurrenceId}/cancel', 'cancelPayment');
+                Route::patch('/{occurrenceId}/amount', 'updateOccurrenceAmount');
+                Route::patch('/{occurrenceId}/metadata', 'updateOccurrenceMetadata');
+            });
         });
-    });
 
-    // Transaction Endpoints
-    Route::controller(TransactionController::class)->prefix('transaction')->group(function () {
-        Route::get('/', 'index');
-        Route::post('/', 'store');
-        Route::get('/{transaction}', 'show');
-        Route::put('/{transaction}', 'update');
-        Route::delete('/{transaction}', 'destroy');
-    });
+        // Transaction Endpoints
+        Route::controller(TransactionController::class)->prefix('transaction')->group(function () {
+            Route::get('/', 'index');
+            Route::post('/', 'store');
+            Route::get('/{transaction}', 'show');
+            Route::put('/{transaction}', 'update');
+            Route::delete('/{transaction}', 'destroy');
+        });
 
-    // Notification Routes
-    Route::prefix('/notifications')->group(function () {
-        Route::get('/', [NotificationController::class, 'index']);
-        Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
-        Route::post('/{id}/read', [NotificationController::class, 'markAsRead']);
-    });
+        // Notification Routes
+        Route::prefix('/notifications')->group(function () {
+            Route::get('/', [NotificationController::class, 'index']);
+            Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
+            Route::post('/{id}/read', [NotificationController::class, 'markAsRead']);
+        });
 
-    // User Endpoints (profile + dashboard)
-    Route::prefix('user')->group(function () {
-        Route::get('/profile', [ProfileController::class, 'show']);
-        Route::patch('/profile', [ProfileController::class, 'update']);
-        Route::get('/dashboard', [DashboardController::class, 'index']);
+        // User Endpoints (profile + dashboard)
+        Route::prefix('user')->group(function () {
+            Route::get('/profile', [ProfileController::class, 'show']);
+            Route::patch('/profile', [ProfileController::class, 'update']);
+            Route::get('/dashboard', [DashboardController::class, 'index']);
+        });
     });
 });
