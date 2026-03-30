@@ -33,6 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('hasRecaculatedToday')->group(function () {
         // Fixed Cost Endpoints
         Route::prefix('fixed-costs')->controller(FixedCostController::class)->group(function () {
+            Route::get('/', 'index');
             Route::post('/', 'store');
             Route::patch('/{templateId}', 'update');
             Route::delete('/{templateId}', 'destroy');

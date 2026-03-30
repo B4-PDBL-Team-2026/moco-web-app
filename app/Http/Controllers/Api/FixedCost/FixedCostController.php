@@ -7,6 +7,7 @@ use App\Domains\FixedCosts\Actions\ConfirmFixedCostPaymentAction;
 use App\Domains\FixedCosts\Actions\CreateFixedCostTemplateAction;
 use App\Domains\FixedCosts\Actions\DeleteFixedCostTemplateAction;
 use App\Domains\FixedCosts\Actions\ListCurrentCycleOccurrencesAction;
+use App\Domains\FixedCosts\Actions\ListFixedCostTemplateAction;
 use App\Domains\FixedCosts\Actions\UpdateFixedCostOccurrenceAmountAction;
 use App\Domains\FixedCosts\Actions\UpdateFixedCostOccurrenceMetadataAction;
 use App\Domains\FixedCosts\Actions\UpdateFixedCostTemplateAction;
@@ -14,6 +15,7 @@ use App\Domains\FixedCosts\DTOs\CreateFixedCostTemplateData;
 use App\Domains\FixedCosts\DTOs\UpdateFixedCostOccurrenceAmountData;
 use App\Domains\FixedCosts\DTOs\UpdateFixedCostTemplateData;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\FixedCost\IndexFixedCostTemplateRequest;
 use App\Http\Requests\FixedCost\StoreFixedCostTemplateRequest;
 use App\Http\Requests\FixedCost\UpdateFixedCostOccurrenceAmountRequest;
 use App\Http\Requests\FixedCost\UpdateFixedCostOccurrenceMetadataRequest;
@@ -26,6 +28,32 @@ use Throwable;
 class FixedCostController extends Controller
 {
     use ApiResponse;
+
+    /**
+     * GET /api/fixed-costs
+     *
+     * Returns a paginated, filterable list of the authenticated user's
+     * fixed cost templates.
+     *
+     * Query parameters (all optional):
+     *   - keyword   string  Filter by partial name match.
+     *   - dueDay    int     Filter by exact due_day value (1–31).
+     *   - cycleType string  Filter by cycle type (weekly|monthly).
+     *   - isActive  bool    Filter by active status.
+     *   - perPage   int     Items per page (default 15, max 100).
+     *   - page      int     Page number (default 1).
+     */
+    public function index(
+        IndexFixedCostTemplateRequest $request,
+        ListFixedCostTemplateAction $action,
+    ): JsonResponse {
+        $result = $action->execute(
+            userId: auth()->id(),
+            filters: $request->toDto(),
+        );
+
+        return $this->success(data: $result, message: 'Fixed cost templates retrieved successfully.');
+    }
 
     /**
      * POST /api/fixed-costs
