@@ -35,7 +35,7 @@ class GetDashboardSummaryAction
             ->where('type', TransactionType::EXPENSE->value)
             ->where('source', '!=', TransactionSource::FIXED_COST_PAYMENT->value)
             ->whereDate('transaction_date', $today)
-            ->whereNull('deleted_at')
+            //->whereNull('deleted_at')
             ->sum('amount');
 
         // unpaid fixed costs: PENDING + OVERDUE in current cycle
