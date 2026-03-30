@@ -6,6 +6,7 @@ use App\Domains\Auth\Actions\ForgotPasswordAction;
 use App\Domains\Auth\Actions\LoginUserAction;
 use App\Domains\Auth\Actions\LogoutUserAction;
 use App\Domains\Auth\Actions\RegisterUserAction;
+use App\Domains\Auth\Actions\RequestEmailVerificationAction;
 use App\Domains\Auth\Actions\ResetPasswordAction;
 use App\Domains\Auth\Actions\VerifyEmailAction;
 use App\Domains\Auth\DTOs\LoginUserDTO;
@@ -72,6 +73,13 @@ class AuthController extends Controller
         }
 
         return $this->success(null, $result['message']);
+    }
+
+    public function sendVerificationEmail(RequestEmailVerificationAction $action): JsonResponse
+    {
+        $result = $action->execute(auth()->user());
+
+        return $this->success($result, $result['message']);
     }
 
     public function verifyEmail(Request $request, VerifyEmailAction $action): JsonResponse
