@@ -20,7 +20,8 @@ class ListFixedCostTemplateAction
     public function execute(int $userId, FilterFixedCostTemplateData $filters): LengthAwarePaginator
     {
         $query = FixedCostTemplate::query()
-            ->where('user_id', $userId);
+            ->where('user_id', $userId)
+            ->where('deleted_at', null);
 
         if ($filters->keyword !== null) {
             $query->where('name', 'like', '%'.$filters->keyword.'%');
