@@ -4,11 +4,11 @@ use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Category\CategoryController;
 use App\Http\Controllers\Api\Dashboard\DashboardController;
 use App\Http\Controllers\Api\FixedCost\FixedCostController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\Onboarding\OnboardingController;
 use App\Http\Controllers\Api\Profile\ProfileController;
 use App\Http\Controllers\Api\Transaction\TransactionController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\NotificationController;
 
 Route::prefix('auth')->controller(AuthController::class)->group(function () {
     Route::post('/register', 'register');
@@ -54,18 +54,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{transaction}', 'destroy');
     });
 
-    Route::middleware('auth:sanctum')->group(function () {
     // Notification Routes
-    Route::get('/notifications', [NotificationController::class, 'index']);
-    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
-    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
-});
-
-    // User Endpoints (profile + dashboard)
-    Route::prefix('user')->group(function () {
-        Route::get('/profile', [ProfileController::class, 'show']);
-        Route::patch('/profile', [ProfileController::class, 'update']);
-        Route::get('/dashboard', [DashboardController::class, 'index']);
+    Route::prefix('/notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index']);
+        Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
+        Route::post('/{id}/read', [NotificationController::class, 'markAsRead']);
     });
 
     // User Endpoints (profile + dashboard)
