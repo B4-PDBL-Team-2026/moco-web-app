@@ -2,14 +2,13 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\FixedCostOccurrence;
 use App\Notifications\FixedCostReminder;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
 
 class SendFixedCostReminders extends Command
 {
-
     protected $signature = 'fixed-cost:remind';
 
     public function handle()

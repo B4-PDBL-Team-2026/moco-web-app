@@ -10,7 +10,7 @@ use Laravel\Sanctum\Sanctum;
 uses(RefreshDatabase::class);
 
 test('guest cannot show transaction', function () {
-    $this->getJson('/api/transaction/transactions/1')
+    $this->getJson('/api/transaction/1')
         ->assertUnauthorized();
 });
 
@@ -31,7 +31,7 @@ test('authenticated user can show own transaction', function () {
         'type' => 'income',
     ]);
 
-    $this->getJson("/api/transaction/transactions/{$transaction->id}")
+    $this->getJson("/api/transaction/{$transaction->id}")
         ->assertOk()
         ->assertJsonPath('data.id', $transaction->id);
 });
