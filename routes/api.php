@@ -10,6 +10,19 @@ use App\Http\Controllers\Api\Profile\ProfileController;
 use App\Http\Controllers\Api\Transaction\TransactionController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/send-test-email', function () {
+    try {
+        Mail::raw('smtp server successfully configure', function ($message) {
+            $message->to('some.user@gmail.com')
+                ->subject('Test SMTP Laravel Sukses!');
+        });
+
+        return 'Test email berhasil dikirim! Coba cek inbox lo.';
+    } catch (\Exception $e) {
+        return 'Gagal ngirim email. Error-nya: '.$e->getMessage();
+    }
+});
+
 Route::prefix('auth')->controller(AuthController::class)->group(function () {
     Route::post('/register', 'register');
     Route::post('/login', 'login');
