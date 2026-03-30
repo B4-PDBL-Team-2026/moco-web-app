@@ -1,5 +1,8 @@
 <?php
 
+uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(Tests\TestCase::class)->in('Unit');
+
 use App\Domains\Budgeting\Services\TransactionBalanceService;
 use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\Transaction;

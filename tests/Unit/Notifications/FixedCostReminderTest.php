@@ -4,7 +4,6 @@ use App\Models\FixedCostOccurrence;
 use App\Models\FixedCostTemplate;
 use App\Models\User;
 use App\Notifications\FixedCostReminder;
-use Illuminate\Support\Facades\Notification;
 
 it('formats the notification message correctly based on occurrence data', function () {
     $user = User::factory()->make(['name' => 'Wina Rahmalia']);
@@ -33,7 +32,6 @@ it('defines correct delivery channels', function () {
     $notification = new FixedCostReminder($occurrence);
     $user = User::factory()->make();
 
-   
     $channels = $notification->via($user);
 
     expect($channels)->toContain('mail', 'database');

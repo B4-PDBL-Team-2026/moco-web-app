@@ -1,18 +1,26 @@
 <?php
 
+uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(Tests\TestCase::class)->in('Unit');
+
 use App\Domains\Transactions\Actions\DeleteTransactionAction;
 use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Models\UserBudgetSetting;
+use App\Models\UserBudgetSnapshot;
 
-it('deletes expense transaction and restores user balance', function () {
-    $user = User::factory()->create([
-        'balance' => '800.00',
+it('deletes expense transaction', function () {
+    $user = User::factory()->create();
+
+    UserBudgetSetting::factory()->create(['user_id' => $user->id]);
+    UserBudgetSnapshot::factory()->create([
+        'user_id' => $user->id,
+        'current_balance' => '800.00',
     ]);
 
     $category = SystemCategory::factory()->create([
-        'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
 
@@ -23,24 +31,21 @@ it('deletes expense transaction and restores user balance', function () {
         'amount' => '200.00',
     ]);
 
-    $action = app(DeleteTransactionAction::class);
+    app(DeleteTransactionAction::class)->execute($user, $transaction);
 
-    $action->execute($user, $transaction);
-
-    $this->assertDatabaseMissing('transactions', [
-        'id' => $transaction->id,
-    ]);
-
-    expect($user->fresh()->balance)->toBe('1000.00');
+    $this->assertSoftDeleted('transactions', ['id' => $transaction->id]);
 });
 
-it('deletes income transaction and reduces user balance', function () {
-    $user = User::factory()->create([
-        'balance' => '1500.00',
+it('deletes income transaction when balance remains non-negative', function () {
+    $user = User::factory()->create();
+
+    UserBudgetSetting::factory()->create(['user_id' => $user->id]);
+    UserBudgetSnapshot::factory()->create([
+        'user_id' => $user->id,
+        'current_balance' => '1500.00',
     ]);
 
     $category = SystemCategory::factory()->create([
-        'user_id' => $user->id,
         'type' => TransactionType::INCOME,
     ]);
 
@@ -51,19 +56,22 @@ it('deletes income transaction and reduces user balance', function () {
         'amount' => '500.00',
     ]);
 
-    $action = app(DeleteTransactionAction::class);
+    app(DeleteTransactionAction::class)->execute($user, $transaction);
 
-    $action->execute($user, $transaction);
-
-    expect($user->fresh()->balance)->toBe('1000.00');
+    $this->assertSoftDeleted('transactions', ['id' => $transaction->id]);
 });
 
 it('fails when user tries to delete other users transaction', function () {
     $user = User::factory()->create();
     $otherUser = User::factory()->create();
 
-    $category = SystemCategory::factory()->create([
+    UserBudgetSetting::factory()->create(['user_id' => $otherUser->id]);
+    UserBudgetSnapshot::factory()->create([
         'user_id' => $otherUser->id,
+        'current_balance' => '500.00',
+    ]);
+
+    $category = SystemCategory::factory()->create([
         'type' => TransactionType::EXPENSE,
     ]);
 
@@ -74,7 +82,6 @@ it('fails when user tries to delete other users transaction', function () {
         'amount' => '100.00',
     ]);
 
-    $action = app(DeleteTransactionAction::class);
+    app(DeleteTransactionAction::class)->execute($user, $transaction);
 
-    $action->execute($user, $transaction);
 })->throws(\Illuminate\Validation\UnauthorizedException::class);

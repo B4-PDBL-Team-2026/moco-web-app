@@ -20,6 +20,6 @@ class UserBalanceCalculator
             ->where('type', TransactionType::EXPENSE->value)
             ->sum('amount') ?? 0;
 
-        return MoneyService::sub((string) $totalIncome, (string) $totalExpense, 2);
+        return MoneyService::sub((string) $totalIncome, (string) $totalExpense);
     }
 }

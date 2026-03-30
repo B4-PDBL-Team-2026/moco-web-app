@@ -1,6 +1,6 @@
 <?php
 
-use App\Commons\MoneyService;
+use App\Commons\Services\MoneyService;
 
 test('it normalizes value to two decimal string', function () {
     expect(MoneyService::normalize(100))->toBe('100.00')

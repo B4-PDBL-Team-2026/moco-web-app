@@ -2,14 +2,13 @@
 
 namespace Tests\Feature\Http\Controllers\Api\Notification;
 
-use Tests\TestCase;
-use App\Models\User;
-use App\Notifications\FixedCostReminder;
 use App\Models\FixedCostOccurrence;
 use App\Models\FixedCostTemplate;
-use Illuminate\Support\Facades\Notification;
+use App\Models\User;
+use App\Notifications\FixedCostReminder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
+use Tests\TestCase;
 
 class NotificationApiTest extends TestCase
 {
@@ -31,11 +30,11 @@ class NotificationApiTest extends TestCase
         $response = $this->getJson('/api/notifications');
 
         $response->assertStatus(200)
-                 ->assertJsonStructure([
-                     'success',
-                     'data' => ['data', 'current_page'],
-                     'message'
-                 ]);
+            ->assertJsonStructure([
+                'success',
+                'data' => ['data', 'current_page'],
+                'message',
+            ]);
     }
 
     public function test_user_can_mark_notification_as_read()
@@ -52,7 +51,7 @@ class NotificationApiTest extends TestCase
         $this->assertEquals(0, $user->fresh()->unreadNotifications->count());
     }
 
-       private function createDummyOccurrence($user)
+    private function createDummyOccurrence($user)
     {
         $template = FixedCostTemplate::create([
             'user_id' => $user->id,
@@ -61,7 +60,7 @@ class NotificationApiTest extends TestCase
             'due_day' => 10,
             'cycle_type' => 'monthly',
             'category_type' => 'expense',
-            'category_id' => 1
+            'category_id' => 1,
         ]);
 
         return FixedCostOccurrence::create([
@@ -74,7 +73,7 @@ class NotificationApiTest extends TestCase
             'cycle_key' => '2026-03',
             'cycle_type' => 'monthly',
             'category_type' => 'expense',
-            'category_id' => 1
+            'category_id' => 1,
         ]);
     }
 }

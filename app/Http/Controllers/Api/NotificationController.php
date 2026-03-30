@@ -3,25 +3,22 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
 
 class NotificationController extends Controller
 {
-
     public function index()
     {
-       /** @var \App\Models\User $user */
-    $user = Auth::user();
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
-    $notifications = $user->notifications()->paginate(20);
+        $notifications = $user->notifications()->paginate(20);
 
-    return response()->json([
-        'success' => true,
-        'data' => $notifications,
-        'message' => 'Notifications retrieved successfully.'
-    ]);
+        return response()->json([
+            'success' => true,
+            'data' => $notifications,
+            'message' => 'Notifications retrieved successfully.',
+        ]);
     }
 
     public function markAsRead($id)
@@ -35,7 +32,7 @@ class NotificationController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Notification marked as read.'
+            'message' => 'Notification marked as read.',
         ]);
     }
 
@@ -43,7 +40,7 @@ class NotificationController extends Controller
     {
         return response()->json([
             'success' => true,
-            'count' => Auth::user()->unreadNotifications->count()
+            'count' => Auth::user()->unreadNotifications->count(),
         ]);
     }
 }

@@ -2,21 +2,31 @@
 
 namespace App\Domains\Transactions\Actions;
 
+use App\Commons\Services\MoneyService;
+use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
 use App\Domains\Budgeting\Services\TransactionBalanceService;
+use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Models\UserBudgetSnapshot;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\UnauthorizedException;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class DeleteTransactionAction
 {
     public function __construct(
-        private readonly TransactionBalanceService $transactionBalanceService
+        private readonly TransactionBalanceService $transactionBalanceService,
+        private readonly RecalculateBudgetSnapshotAction $recalculateBudgetSnapshotAction,
     ) {}
 
     /**
-     * @throws Throwable
+     * Rule 28: Expense transactions can always be deleted (triggers recalculation).
+     *          Income transactions can only be deleted if balance - amount >= 0.
+     *
+     * @throws ValidationException|UnauthorizedException|Throwable
      */
     public function execute(User $user, Transaction $transaction): void
     {
@@ -25,17 +35,32 @@ class DeleteTransactionAction
                 throw new UnauthorizedException('You are not authorized to perform this action.');
             }
 
-            $newBalance = $this->transactionBalanceService->reverseTransaction(
-                currentBalance: (string) $user->balance,
-                type: $transaction->type,
-                amount: (string) $transaction->amount
-            );
+            // Rule 28: income deletion requires balance check
+            if ($transaction->type === TransactionType::INCOME) {
+                $snapshot = UserBudgetSnapshot::where('user_id', $user->id)->firstOrFail();
+                $currentBalance = (string) $snapshot->current_balance;
 
-            $user->update([
-                'balance' => $newBalance,
-            ]);
+                $balanceAfterDeletion = $this->transactionBalanceService->reverseTransaction(
+                    currentBalance: $currentBalance,
+                    type: $transaction->type,
+                    amount: (string) $transaction->amount,
+                );
+
+                // Rule 28 + Rule 1: reject if deletion causes balance to go negative
+                if (MoneyService::lt($balanceAfterDeletion, '0.00')) {
+                    throw ValidationException::withMessages([
+                        'transaction' => ['Cannot delete this income transaction as it would cause the balance to go negative.'],
+                    ]);
+                }
+            }
 
             $transaction->delete();
+
+            // Rule 28: trigger recalculation after deletion
+            $this->recalculateBudgetSnapshotAction->execute(
+                userId: $user->id,
+                now: CarbonImmutable::now(),
+            );
         });
     }
 }

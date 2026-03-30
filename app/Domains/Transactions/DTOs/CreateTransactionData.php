@@ -9,8 +9,9 @@ final readonly class CreateTransactionData
 {
     public function __construct(
         public int $categoryId,
+        public string $categoryType,
         public string $name,
-        public float $amount,
+        public string $amount,
         public TransactionType $type,
         public ?string $note,
         public CarbonImmutable $transactionDate,
@@ -20,8 +21,9 @@ final readonly class CreateTransactionData
     {
         return new self(
             categoryId: (int) $data['categoryId'],
+            categoryType: $data['categoryType'] ?? 'system',
             name: $data['name'],
-            amount: $data['amount'],
+            amount: (string) $data['amount'],
             type: TransactionType::from($data['type']),
             note: $data['note'] ?? null,
             transactionDate: CarbonImmutable::parse($data['transactionDate']),

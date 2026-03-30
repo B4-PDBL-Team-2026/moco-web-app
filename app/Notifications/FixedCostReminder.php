@@ -23,21 +23,20 @@ class FixedCostReminder extends Notification
         return ['mail', 'database'];
     }
 
- 
     public function toMail($notifiable): MailMessage
-{
-    $name = $this->occurrence->template->name;
-    $amount = number_format($this->occurrence->amount, 0, ',', '.');
+    {
+        $name = $this->occurrence->template->name;
+        $amount = number_format($this->occurrence->amount, 0, ',', '.');
 
-    return (new MailMessage)
-        ->subject("Pengingat Pembayaran: {$name}")
+        return (new MailMessage)
+            ->subject("Pengingat Pembayaran: {$name}")
 
-        ->line("Halo {$notifiable->name}")
-        ->line("Pembayaran {$name} sebesar {$amount} akan segera jatuh tempo.")
-        ->line("Pastikan saldo kamu cukup untuk menghindari keterlambatan.")
-        ->action('Lihat Tagihan', url('/dashboard'))
-        ->line('Terima kasih telah menggunakan Moco App!');
-}
+            ->line("Halo {$notifiable->name}")
+            ->line("Pembayaran {$name} sebesar {$amount} akan segera jatuh tempo.")
+            ->line('Pastikan saldo kamu cukup untuk menghindari keterlambatan.')
+            ->action('Lihat Tagihan', url('/dashboard'))
+            ->line('Terima kasih telah menggunakan Moco App!');
+    }
 
     public function toArray($notifiable): array
     {

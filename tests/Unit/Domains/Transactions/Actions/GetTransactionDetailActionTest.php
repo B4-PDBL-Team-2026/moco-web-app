@@ -10,7 +10,6 @@ it('returns transaction by id for owner', function () {
     $user = User::factory()->create();
 
     $category = SystemCategory::factory()->create([
-        'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
 
@@ -31,7 +30,6 @@ it('fails when transaction does not belong to user', function () {
     $otherUser = User::factory()->create();
 
     $category = SystemCategory::factory()->create([
-        'user_id' => $otherUser->id,
         'type' => TransactionType::EXPENSE,
     ]);
 

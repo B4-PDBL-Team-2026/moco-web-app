@@ -17,6 +17,7 @@ use App\Http\Requests\Transaction\UpdateTransactionRequest;
 use App\Models\Transaction;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Throwable;
 
@@ -30,7 +31,7 @@ class TransactionController extends Controller
 
         $filterData = FilterTransactionData::fromArray($request->validated());
 
-        $result = $action->execute(auth()->id(), $filterData);
+        $result = $action->execute(Auth::id(), $filterData);
 
         return $this->success($result, 'Transactions retrieved successfully.');
     }
@@ -44,11 +45,12 @@ class TransactionController extends Controller
 
         $dto = CreateTransactionData::fromArray($request->validated());
 
-        $result = $action->execute(auth()->user(), $dto);
+        $result = $action->execute(Auth::user(), $dto);
 
         return $this->success(
             $result,
             'Transaction created successfully.',
+            201
         );
     }
 
@@ -56,7 +58,7 @@ class TransactionController extends Controller
     {
         Gate::authorize('view', $transaction);
 
-        $result = $action->execute(auth()->user(), $transaction);
+        $result = $action->execute(Auth::user(), $transaction);
 
         return $this->success($result, 'Transaction retrieved successfully.');
     }
@@ -70,7 +72,7 @@ class TransactionController extends Controller
 
         $dto = UpdateTransactionData::fromArray($request->validated());
 
-        $result = $action->execute(auth()->user(), $transaction, $dto);
+        $result = $action->execute(Auth::user(), $transaction, $dto);
 
         return $this->success($result, 'Transaction updated successfully.');
     }
@@ -82,8 +84,9 @@ class TransactionController extends Controller
     {
         Gate::authorize('delete', $transaction);
 
-        $action->execute(auth()->user(), $transaction);
+        $action->execute(Auth::user(), $transaction);
 
-        return $this->success(message: 'Transaction deleted successfully.');
+        // Return 204 No Content
+        return response()->json(null, 204);
     }
 }

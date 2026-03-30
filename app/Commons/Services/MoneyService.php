@@ -10,7 +10,9 @@ final class MoneyService
 
     public static function normalize(string|int|float $value): string
     {
-        return number_format((float) $value, self::SCALE, '.', '');
+        $cleanValue = str_replace(',', '', (string) $value);
+
+        return number_format((float) $cleanValue, self::SCALE, '.', '');
     }
 
     public static function add(string $left, string $right): string

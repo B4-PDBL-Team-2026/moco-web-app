@@ -15,18 +15,24 @@ class StoreTransactionRequest extends FormRequest
 
     public function rules(): array
     {
+        $categoryType = $this->input('categoryType');
+
         return [
+            'categoryType' => ['required', 'string', Rule::in(['system', 'custom'])],
+
+            'categoryId' => [
+                'required',
+                'integer',
+                $categoryType === 'system'
+                    ? Rule::exists('system_categories', 'id')
+                    : Rule::exists('custom_categories', 'id')->where('user_id', $this->user()->id),
+            ],
+
             'name' => ['required', 'string', 'max:255'],
             'amount' => ['required', 'decimal:0,2', 'gt:0'],
             'type' => ['required', Rule::enum(TransactionType::class)],
             'note' => ['nullable', 'string', 'max:1000'],
-            'transactionDate' => ['required', 'date'],
-            'categoryId' => [
-                'required',
-                'integer',
-                Rule::exists('categories', 'id')
-                    ->where(fn ($query) => $query->where('user_id', auth()->id())),
-            ],
+            'transactionDate' => ['required', 'date', 'before_or_equal:today'],
         ];
     }
 }

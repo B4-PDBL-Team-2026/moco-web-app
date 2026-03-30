@@ -1,5 +1,8 @@
 <?php
 
+uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(Tests\TestCase::class)->in('Unit');
+
 use App\Domains\Transactions\Actions\GetAllTransactionAction;
 use App\Domains\Transactions\DTOs\FilterTransactionData;
 use App\Domains\Transactions\Enums\TransactionType;
@@ -12,12 +15,10 @@ it('returns paginated transactions only for authenticated user', function () {
     $otherUser = User::factory()->create();
 
     $category = SystemCategory::factory()->create([
-        'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
 
     $otherCategory = SystemCategory::factory()->create([
-        'user_id' => $otherUser->id,
         'type' => TransactionType::EXPENSE,
     ]);
 
@@ -52,7 +53,6 @@ it('filters transactions by month', function () {
     $user = User::factory()->create();
 
     $category = SystemCategory::factory()->create([
-        'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
 
@@ -87,7 +87,6 @@ it('filters transactions by year using transaction_date', function () {
     $user = User::factory()->create();
 
     $category = SystemCategory::factory()->create([
-        'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
 
@@ -122,7 +121,6 @@ it('filters transactions by search keyword', function () {
     $user = User::factory()->create();
 
     $category = SystemCategory::factory()->create([
-        'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
 
@@ -158,12 +156,10 @@ it('filters transactions by category id', function () {
     $user = User::factory()->create();
 
     $categoryA = SystemCategory::factory()->create([
-        'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
 
     $categoryB = SystemCategory::factory()->create([
-        'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
 
@@ -197,7 +193,6 @@ it('uses requested per page pagination value', function () {
     $user = User::factory()->create();
 
     $category = SystemCategory::factory()->create([
-        'user_id' => $user->id,
         'type' => TransactionType::EXPENSE,
     ]);
 
