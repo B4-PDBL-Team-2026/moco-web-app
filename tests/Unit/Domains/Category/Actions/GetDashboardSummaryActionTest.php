@@ -175,7 +175,7 @@ it('calculates today_spent accurately across timezone boundaries', function () {
     $result = app(GetDashboardSummaryAction::class)
         ->execute($user, $nowUtc);
 
-    //only two of three transactions must be calculated (50000 + 20000 = 70000)
+    // only two of three transactions must be calculated (50000 + 20000 = 70000)
     expect($result['todaySpent'])->toBe(70000);
 });
 
