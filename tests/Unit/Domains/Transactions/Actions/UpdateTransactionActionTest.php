@@ -1,6 +1,5 @@
 <?php
 
-
 use App\Domains\Transactions\Actions\UpdateTransactionAction;
 use App\Domains\Transactions\DTOs\UpdateTransactionData;
 use App\Domains\Transactions\Enums\TransactionType;

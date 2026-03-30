@@ -4,7 +4,6 @@ namespace App\Domains\Auth\Actions;
 
 use App\Domains\Auth\DTOs\RegisterUserDTO;
 use App\Models\User;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Hash;
 
 class RegisterUserAction

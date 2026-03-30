@@ -2,7 +2,6 @@
 
 namespace App\Domains\Transactions\DTOs;
 
-use App\Domains\Transactions\Enums\TransactionType;
 use Carbon\CarbonImmutable;
 
 final readonly class UpdateTransactionData

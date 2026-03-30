@@ -27,10 +27,6 @@ class AuthController extends Controller
 
     /**
      * Register a new user in the system.
-     *
-     * @param  RegisterRequest  $request
-     * @param  RegisterUserAction  $action
-     * @return JsonResponse
      */
     public function register(RegisterRequest $request, RegisterUserAction $action): JsonResponse
     {
@@ -46,10 +42,6 @@ class AuthController extends Controller
 
     /**
      * Authenticate a user and return an access token.
-     *
-     * @param  LoginRequest  $request
-     * @param  LoginUserAction  $action
-     * @return JsonResponse
      */
     public function login(LoginRequest $request, LoginUserAction $action): JsonResponse
     {
@@ -65,10 +57,6 @@ class AuthController extends Controller
 
     /**
      * Handle an incoming password reset link request.
-     *
-     * @param  ForgotPasswordRequest  $request
-     * @param  ForgotPasswordAction  $action
-     * @return JsonResponse
      */
     public function forgotPassword(ForgotPasswordRequest $request, ForgotPasswordAction $action): JsonResponse
     {
@@ -83,10 +71,6 @@ class AuthController extends Controller
 
     /**
      * Handle an incoming new password reset request.
-     *
-     * @param  ResetPasswordRequest  $request
-     * @param  ResetPasswordAction  $action
-     * @return JsonResponse
      */
     public function resetPassword(ResetPasswordRequest $request, ResetPasswordAction $action): JsonResponse
     {
@@ -105,9 +89,6 @@ class AuthController extends Controller
 
     /**
      * Send a new email verification notification.
-     *
-     * @param  RequestEmailVerificationAction  $action
-     * @return JsonResponse
      */
     public function sendVerificationEmail(RequestEmailVerificationAction $action): JsonResponse
     {
@@ -118,10 +99,6 @@ class AuthController extends Controller
 
     /**
      * Verify the user's email address using the signed route hash.
-     *
-     * @param  Request  $request
-     * @param  VerifyEmailAction  $action
-     * @return JsonResponse
      */
     public function verifyEmail(Request $request, VerifyEmailAction $action): JsonResponse
     {
@@ -139,10 +116,6 @@ class AuthController extends Controller
 
     /**
      * Log the user out of the application and revoke their current token.
-     *
-     * @param  Request  $request
-     * @param  LogoutUserAction  $action
-     * @return JsonResponse
      */
     public function logout(Request $request, LogoutUserAction $action): JsonResponse
     {
