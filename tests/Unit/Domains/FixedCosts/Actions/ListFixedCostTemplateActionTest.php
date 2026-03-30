@@ -14,7 +14,7 @@ function filters(array $overrides = []): FilterFixedCostTemplateData
     ], $overrides));
 }
 
-function makeTemplate(User $user, array $overrides = []): FixedCostTemplate
+function setupTemplate(User $user, array $overrides = []): FixedCostTemplate
 {
     $cat = SystemCategory::factory()->create();
 
@@ -49,10 +49,10 @@ it('returns an empty paginator when user has no templates', function () {
 });
 
 it('only returns templates belonging to the given user', function () {
-    makeTemplate($this->user, ['name' => 'Mine']);
+    setupTemplate($this->user, ['name' => 'Mine']);
 
     $other = User::factory()->create();
-    makeTemplate($other, ['name' => 'Not Mine']);
+    setupTemplate($other, ['name' => 'Not Mine']);
 
     $result = $this->action->execute($this->user->id, filters());
 
@@ -61,10 +61,10 @@ it('only returns templates belonging to the given user', function () {
 });
 
 it('excludes soft-deleted templates', function () {
-    $t = makeTemplate($this->user, ['name' => 'Deleted']);
+    $t = setupTemplate($this->user, ['name' => 'Deleted']);
     $t->delete();
 
-    makeTemplate($this->user, ['name' => 'Active']);
+    setupTemplate($this->user, ['name' => 'Active']);
 
     $result = $this->action->execute($this->user->id, filters());
 
@@ -73,9 +73,9 @@ it('excludes soft-deleted templates', function () {
 });
 
 it('returns templates ordered by name ascending', function () {
-    makeTemplate($this->user, ['name' => 'Spotify']);
-    makeTemplate($this->user, ['name' => 'Netflix']);
-    makeTemplate($this->user, ['name' => 'Amazon Prime']);
+    setupTemplate($this->user, ['name' => 'Spotify']);
+    setupTemplate($this->user, ['name' => 'Netflix']);
+    setupTemplate($this->user, ['name' => 'Amazon Prime']);
 
     $result = $this->action->execute($this->user->id, filters());
 
@@ -84,8 +84,8 @@ it('returns templates ordered by name ascending', function () {
 });
 
 it('uses id as a stable tie-breaker when names collide', function () {
-    $first = makeTemplate($this->user, ['name' => 'Duplicate']);
-    $second = makeTemplate($this->user, ['name' => 'Duplicate']);
+    $first = setupTemplate($this->user, ['name' => 'Duplicate']);
+    $second = setupTemplate($this->user, ['name' => 'Duplicate']);
 
     $result = $this->action->execute($this->user->id, filters());
 
@@ -94,9 +94,9 @@ it('uses id as a stable tie-breaker when names collide', function () {
 });
 
 it('filters by keyword with a partial name match', function () {
-    makeTemplate($this->user, ['name' => 'Netflix']);
-    makeTemplate($this->user, ['name' => 'Spotify']);
-    makeTemplate($this->user, ['name' => 'Amazon Prime']);
+    setupTemplate($this->user, ['name' => 'Netflix']);
+    setupTemplate($this->user, ['name' => 'Spotify']);
+    setupTemplate($this->user, ['name' => 'Amazon Prime']);
 
     $result = $this->action->execute($this->user->id, filters(['keyword' => 'flix']));
 
@@ -105,7 +105,7 @@ it('filters by keyword with a partial name match', function () {
 });
 
 it('keyword filter is case-insensitive on MySQL/SQLite', function () {
-    makeTemplate($this->user, ['name' => 'Netflix']);
+    setupTemplate($this->user, ['name' => 'Netflix']);
 
     $result = $this->action->execute($this->user->id, filters(['keyword' => 'NETFLIX']));
 
@@ -113,9 +113,9 @@ it('keyword filter is case-insensitive on MySQL/SQLite', function () {
 });
 
 it('keyword filter matches templates containing the keyword anywhere in the name', function () {
-    makeTemplate($this->user, ['name' => 'My Netflix Subscription']);
-    makeTemplate($this->user, ['name' => 'Netflix Basic']);
-    makeTemplate($this->user, ['name' => 'Spotify']);
+    setupTemplate($this->user, ['name' => 'My Netflix Subscription']);
+    setupTemplate($this->user, ['name' => 'Netflix Basic']);
+    setupTemplate($this->user, ['name' => 'Spotify']);
 
     $result = $this->action->execute($this->user->id, filters(['keyword' => 'Netflix']));
 
@@ -123,7 +123,7 @@ it('keyword filter matches templates containing the keyword anywhere in the name
 });
 
 it('returns empty result when keyword matches nothing', function () {
-    makeTemplate($this->user, ['name' => 'Netflix']);
+    setupTemplate($this->user, ['name' => 'Netflix']);
 
     $result = $this->action->execute($this->user->id, filters(['keyword' => 'zzznomatch']));
 
@@ -131,8 +131,8 @@ it('returns empty result when keyword matches nothing', function () {
 });
 
 it('ignores keyword filter when keyword is null', function () {
-    makeTemplate($this->user, ['name' => 'Netflix']);
-    makeTemplate($this->user, ['name' => 'Spotify']);
+    setupTemplate($this->user, ['name' => 'Netflix']);
+    setupTemplate($this->user, ['name' => 'Spotify']);
 
     $result = $this->action->execute($this->user->id, filters(['keyword' => null]));
 
@@ -140,8 +140,8 @@ it('ignores keyword filter when keyword is null', function () {
 });
 
 it('ignores keyword filter when keyword is an empty string', function () {
-    makeTemplate($this->user, ['name' => 'Netflix']);
-    makeTemplate($this->user, ['name' => 'Spotify']);
+    setupTemplate($this->user, ['name' => 'Netflix']);
+    setupTemplate($this->user, ['name' => 'Spotify']);
 
     $result = $this->action->execute($this->user->id, filters(['keyword' => '  ']));
 
@@ -149,9 +149,9 @@ it('ignores keyword filter when keyword is an empty string', function () {
 });
 
 it('filters by exact due_day', function () {
-    makeTemplate($this->user, ['due_day' => 10, 'name' => 'A']);
-    makeTemplate($this->user, ['due_day' => 15, 'name' => 'B']);
-    makeTemplate($this->user, ['due_day' => 15, 'name' => 'C']);
+    setupTemplate($this->user, ['due_day' => 10, 'name' => 'A']);
+    setupTemplate($this->user, ['due_day' => 15, 'name' => 'B']);
+    setupTemplate($this->user, ['due_day' => 15, 'name' => 'C']);
 
     $result = $this->action->execute($this->user->id, filters(['dueDay' => 15]));
 
@@ -160,7 +160,7 @@ it('filters by exact due_day', function () {
 });
 
 it('returns empty when no template has the given due_day', function () {
-    makeTemplate($this->user, ['due_day' => 10]);
+    setupTemplate($this->user, ['due_day' => 10]);
 
     $result = $this->action->execute($this->user->id, filters(['dueDay' => 31]));
 
@@ -168,8 +168,8 @@ it('returns empty when no template has the given due_day', function () {
 });
 
 it('ignores due_day filter when dueDay is null', function () {
-    makeTemplate($this->user, ['due_day' => 5]);
-    makeTemplate($this->user, ['due_day' => 20]);
+    setupTemplate($this->user, ['due_day' => 5]);
+    setupTemplate($this->user, ['due_day' => 20]);
 
     $result = $this->action->execute($this->user->id, filters(['dueDay' => null]));
 
@@ -177,8 +177,8 @@ it('ignores due_day filter when dueDay is null', function () {
 });
 
 it('filters by cycle_type monthly', function () {
-    makeTemplate($this->user, ['cycle_type' => 'monthly', 'name' => 'Monthly']);
-    makeTemplate($this->user, ['cycle_type' => 'weekly',  'name' => 'Weekly', 'due_day' => 3]);
+    setupTemplate($this->user, ['cycle_type' => 'monthly', 'name' => 'Monthly']);
+    setupTemplate($this->user, ['cycle_type' => 'weekly',  'name' => 'Weekly', 'due_day' => 3]);
 
     $result = $this->action->execute($this->user->id, filters(['cycleType' => 'monthly']));
 
@@ -187,9 +187,9 @@ it('filters by cycle_type monthly', function () {
 });
 
 it('filters by cycle_type weekly', function () {
-    makeTemplate($this->user, ['cycle_type' => 'monthly', 'name' => 'Monthly']);
-    makeTemplate($this->user, ['cycle_type' => 'weekly',  'name' => 'Weekly A', 'due_day' => 1]);
-    makeTemplate($this->user, ['cycle_type' => 'weekly',  'name' => 'Weekly B', 'due_day' => 3]);
+    setupTemplate($this->user, ['cycle_type' => 'monthly', 'name' => 'Monthly']);
+    setupTemplate($this->user, ['cycle_type' => 'weekly',  'name' => 'Weekly A', 'due_day' => 1]);
+    setupTemplate($this->user, ['cycle_type' => 'weekly',  'name' => 'Weekly B', 'due_day' => 3]);
 
     $result = $this->action->execute($this->user->id, filters(['cycleType' => 'weekly']));
 
@@ -197,8 +197,8 @@ it('filters by cycle_type weekly', function () {
 });
 
 it('ignores cycleType filter when cycleType is null', function () {
-    makeTemplate($this->user, ['cycle_type' => 'monthly']);
-    makeTemplate($this->user, ['cycle_type' => 'weekly', 'due_day' => 2]);
+    setupTemplate($this->user, ['cycle_type' => 'monthly']);
+    setupTemplate($this->user, ['cycle_type' => 'weekly', 'due_day' => 2]);
 
     $result = $this->action->execute($this->user->id, filters(['cycleType' => null]));
 
@@ -206,8 +206,8 @@ it('ignores cycleType filter when cycleType is null', function () {
 });
 
 it('filters by isActive true', function () {
-    makeTemplate($this->user, ['is_active' => true,  'name' => 'Active']);
-    makeTemplate($this->user, ['is_active' => false, 'name' => 'Inactive']);
+    setupTemplate($this->user, ['is_active' => true,  'name' => 'Active']);
+    setupTemplate($this->user, ['is_active' => false, 'name' => 'Inactive']);
 
     $result = $this->action->execute($this->user->id, filters(['isActive' => true]));
 
@@ -216,8 +216,8 @@ it('filters by isActive true', function () {
 });
 
 it('filters by isActive false', function () {
-    makeTemplate($this->user, ['is_active' => true,  'name' => 'Active']);
-    makeTemplate($this->user, ['is_active' => false, 'name' => 'Inactive']);
+    setupTemplate($this->user, ['is_active' => true,  'name' => 'Active']);
+    setupTemplate($this->user, ['is_active' => false, 'name' => 'Inactive']);
 
     $result = $this->action->execute($this->user->id, filters(['isActive' => false]));
 
@@ -226,8 +226,8 @@ it('filters by isActive false', function () {
 });
 
 it('returns both active and inactive when isActive filter is null', function () {
-    makeTemplate($this->user, ['is_active' => true]);
-    makeTemplate($this->user, ['is_active' => false]);
+    setupTemplate($this->user, ['is_active' => true]);
+    setupTemplate($this->user, ['is_active' => false]);
 
     $result = $this->action->execute($this->user->id, filters(['isActive' => null]));
 
@@ -235,9 +235,9 @@ it('returns both active and inactive when isActive filter is null', function () 
 });
 
 it('applies multiple filters simultaneously', function () {
-    makeTemplate($this->user, ['name' => 'Netflix', 'cycle_type' => 'monthly', 'due_day' => 15, 'is_active' => true]);
-    makeTemplate($this->user, ['name' => 'Netflix Paused', 'cycle_type' => 'monthly', 'due_day' => 15, 'is_active' => false]);
-    makeTemplate($this->user, ['name' => 'Spotify', 'cycle_type' => 'monthly', 'due_day' => 10, 'is_active' => true]);
+    setupTemplate($this->user, ['name' => 'Netflix', 'cycle_type' => 'monthly', 'due_day' => 15, 'is_active' => true]);
+    setupTemplate($this->user, ['name' => 'Netflix Paused', 'cycle_type' => 'monthly', 'due_day' => 15, 'is_active' => false]);
+    setupTemplate($this->user, ['name' => 'Spotify', 'cycle_type' => 'monthly', 'due_day' => 10, 'is_active' => true]);
 
     $result = $this->action->execute($this->user->id, filters([
         'keyword' => 'Netflix',
@@ -251,7 +251,7 @@ it('applies multiple filters simultaneously', function () {
 });
 
 it('returns empty when combined filters have no matching records', function () {
-    makeTemplate($this->user, ['name' => 'Netflix', 'cycle_type' => 'monthly', 'due_day' => 15]);
+    setupTemplate($this->user, ['name' => 'Netflix', 'cycle_type' => 'monthly', 'due_day' => 15]);
 
     $result = $this->action->execute($this->user->id, filters([
         'keyword' => 'Netflix',
@@ -263,7 +263,7 @@ it('returns empty when combined filters have no matching records', function () {
 
 it('paginates results correctly', function () {
     foreach (range(1, 5) as $i) {
-        makeTemplate($this->user, ['name' => "Template {$i}"]); // alphabetical: Template 1…5
+        setupTemplate($this->user, ['name' => "Template {$i}"]); // alphabetical: Template 1…5
     }
 
     $page1 = $this->action->execute($this->user->id, filters(['perPage' => 2, 'page' => 1]));
@@ -278,7 +278,7 @@ it('paginates results correctly', function () {
 
 it('returns correct total count across all pages', function () {
     foreach (range(1, 20) as $i) {
-        makeTemplate($this->user, ['name' => "T{$i}"]);
+        setupTemplate($this->user, ['name' => "T{$i}"]);
     }
 
     $result = $this->action->execute($this->user->id, filters(['perPage' => 5, 'page' => 1]));
@@ -288,7 +288,7 @@ it('returns correct total count across all pages', function () {
 });
 
 it('returns an empty last page gracefully when page exceeds total', function () {
-    makeTemplate($this->user);
+    setupTemplate($this->user);
 
     $result = $this->action->execute($this->user->id, filters(['perPage' => 15, 'page' => 99]));
 
@@ -298,7 +298,7 @@ it('returns an empty last page gracefully when page exceeds total', function () 
 
 it('defaults to 15 items per page when perPage is not provided', function () {
     foreach (range(1, 20) as $i) {
-        makeTemplate($this->user, ['name' => "T{$i}"]);
+        setupTemplate($this->user, ['name' => "T{$i}"]);
     }
 
     $result = $this->action->execute($this->user->id, filters());
