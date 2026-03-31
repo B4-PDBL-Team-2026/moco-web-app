@@ -13,7 +13,7 @@ class TransactionFactory extends Factory
         return [
             'user_id' => User::factory(),
             'category_id' => SystemCategory::factory(),
-            'category_type' => (new SystemCategory()->getMorphClass()),
+            'category_type' => (new SystemCategory())->getMorphClass(),
             'name' => $this->faker->words(3, true),
             'amount' => $this->faker->randomFloat(2, 1000, 1000000),
             'type' => $this->faker->randomElement(['income', 'expense']),
