@@ -7,38 +7,34 @@ use Illuminate\Validation\Rule;
 
 class IndexTransactionRequest extends FormRequest
 {
+    /**
+     * Determine if the user is authorized to make this request.
+     */
     public function authorize(): bool
     {
         return true;
     }
 
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
     public function rules(): array
     {
         $categoryType = $this->input('categoryType');
 
         return [
-            'month'        => ['nullable', 'integer', 'between:1,12'],
-            'year'         => ['nullable', 'integer', 'digits:4'],
-            'search'       => ['nullable', 'string', 'max:100'],
-
-            'categoryType' => [
-                'nullable',
-                'string',
-                Rule::in(['system', 'custom']),
-            ],
-
-            'categoryId' => array_filter([
+            'month' => ['nullable', 'integer', 'between:1,12'],
+            'year' => ['nullable', 'integer', 'digits:4'],
+            'search' => ['nullable', 'string', 'max:100'],
+            'categoryId' => [
                 'nullable',
                 'integer',
                 $categoryType === 'system'
                     ? Rule::exists('system_categories', 'id')
-                    : null,
-                $categoryType === 'custom'
-                    ? Rule::exists('custom_categories', 'id')
-                        ->where('user_id', $this->user()->id)
-                    : null,
-            ]),
-
+                    : Rule::exists('custom_categories', 'id')->where('user_id', $this->user()->id),
+            ],
             'perPage' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
     }
