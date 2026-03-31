@@ -9,6 +9,7 @@ final readonly class FilterTransactionData
         public ?int $year,
         public ?string $search,
         public ?int $categoryId,
+        public ?string $categoryType,
         public int $perPage = 10,
     ) {}
 
@@ -19,6 +20,7 @@ final readonly class FilterTransactionData
             year: isset($data['year']) ? (int) $data['year'] : null,
             search: $data['search'] ?? null,
             categoryId: isset($data['categoryId']) ? (int) $data['categoryId'] : null,
+            categoryType: $data['categoryType'] ?? null,
             perPage: isset($data['perPage']) ? (int) $data['perPage'] : 10,
         );
     }
