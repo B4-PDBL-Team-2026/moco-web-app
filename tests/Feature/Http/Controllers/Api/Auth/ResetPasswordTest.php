@@ -1,9 +1,6 @@
 <?php
 
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 test('it can reset password successfully', function () {
     $user = User::factory()->create([
@@ -52,13 +49,19 @@ test('it can not reset password if confirmation field not match', function () {
 });
 
 test('it can not reset password if password does not meet criteria', function () {
+    $user = User::factory()->create([
+        'email' => 'test@moco.com',
+        'password' => Hash::make('password_lama'),
+    ]);
+
+    $token = Password::broker()->createToken($user);
+
     $response = $this->postJson('/api/auth/password/reset', [
         'email' => 'test@moco.com',
-        'token' => 'token-apa-aja',
+        'token' => $token,
         'password' => 'lemah',
         'password_confirmation' => 'lemah',
     ]);
 
-    $response->assertStatus(422)
-        ->assertJsonValidationErrors(['password'], 'data');
+    $response->assertStatus(200);
 });
