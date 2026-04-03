@@ -1,8 +1,5 @@
 <?php
 
-uses(RefreshDatabase::class);
-uses(TestCase::class)->in('Unit');
-
 use App\Domains\Transactions\Actions\DeleteTransactionAction;
 use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\SystemCategory;
@@ -10,9 +7,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
 use App\Models\UserBudgetSnapshot;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\UnauthorizedException;
-use Tests\TestCase;
 
 it('deletes expense transaction', function () {
     $user = User::factory()->create();

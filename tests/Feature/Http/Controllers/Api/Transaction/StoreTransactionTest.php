@@ -5,10 +5,7 @@ use App\Models\CustomCategory;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
 use App\Models\UserBudgetSnapshot;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
-
-uses(RefreshDatabase::class);
 
 test('guest cannot store transaction', function () {
     $this->postJson('/api/transaction', [])

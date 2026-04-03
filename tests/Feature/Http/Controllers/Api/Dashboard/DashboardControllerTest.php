@@ -3,10 +3,7 @@
 use App\Models\User;
 use App\Models\UserBudgetSetting;
 use App\Models\UserBudgetSnapshot;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
-
-uses(RefreshDatabase::class);
 
 test('guest cannot access dashboard', function () {
     $this->getJson('/api/user/dashboard')

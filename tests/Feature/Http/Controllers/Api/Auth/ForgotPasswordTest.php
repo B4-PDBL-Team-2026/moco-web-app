@@ -1,9 +1,6 @@
 <?php
 
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 test('it should send forgot forget password link', function () {
     $user = User::factory()->create(['email' => 'test@moco.com']);
