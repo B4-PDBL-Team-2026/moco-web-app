@@ -63,5 +63,6 @@ test('it can not reset password if password does not meet criteria', function ()
         'password_confirmation' => 'lemah',
     ]);
 
-    $response->assertStatus(200);
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['password'], 'data');
 });
