@@ -124,16 +124,16 @@ export default function EmailVerification({ status, message }: Props) {
                 </div>
 
                 {/* CTA — only shown on success (non-resend), directs user back to app */}
-                {isSuccess && !isResendConfirmation && (
-                    <div className="flex items-center justify-center">
-                        <Link
-                            href="/"
-                            className="btn w-full bg-primary text-center font-medium text-on-primary"
-                        >
-                            Ke Beranda
-                        </Link>
-                    </div>
-                )}
+                {/*{isSuccess && !isResendConfirmation && (*/}
+                {/*    <div className="flex items-center justify-center">*/}
+                {/*        <Link*/}
+                {/*            href="/"*/}
+                {/*            className="btn w-full bg-primary text-center font-medium text-on-primary"*/}
+                {/*        >*/}
+                {/*            Ke Beranda*/}
+                {/*        </Link>*/}
+                {/*    </div>*/}
+                {/*)}*/}
 
                 {/* Error state: nudge user to re-request from the app */}
                 {!isSuccess && (
