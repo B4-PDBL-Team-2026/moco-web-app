@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head} from '@inertiajs/react';
 
 interface Props {
     status: 'success' | 'error';
