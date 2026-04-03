@@ -10,6 +10,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "ext-bcmath": "*",
         "dedoc/scramble": "^0.13.14",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^12.0",
@@ -17,7 +18,7 @@
         "laravel/tinker": "^2.10.1",
         "laravel/wayfinder": "^0.1.11",
         "scalar/laravel": "^0.2.0",
-        "ext-bcmath": "*"
+        "sentry/sentry-laravel": "^4.24"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
