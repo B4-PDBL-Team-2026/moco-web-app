@@ -1,11 +1,13 @@
 <?php
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
-uses(Tests\TestCase::class)->in('Unit');
+uses(RefreshDatabase::class);
+uses(TestCase::class)->in('Unit');
 
 use App\Domains\Budgeting\Services\TransactionBalanceService;
 use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\Transaction;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 it('adds amount to balance for income transaction', function () {
     $service = app(TransactionBalanceService::class);

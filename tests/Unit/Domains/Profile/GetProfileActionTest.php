@@ -5,6 +5,7 @@ namespace Tests\Unit\Domains\Profile\Actions;
 use App\Domains\Profile\Actions\GetProfileAction;
 use App\Models\User;
 use App\Models\UserProfile;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -34,7 +35,7 @@ class GetProfileActionTest extends TestCase
 
     public function test_it_throws_exception_when_user_not_found(): void
     {
-        $this->expectException(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        $this->expectException(ModelNotFoundException::class);
 
         $this->action->execute(99999);
     }

@@ -105,7 +105,7 @@ test('does not change amount or status (BR §15)', function () {
 test('snapshot is not recalculated on metadata update (BR §15)', function () {
     [$user, $occ] = metadataSetup();
 
-    $snapshotBefore = App\Models\UserBudgetSnapshot::where('user_id', $user->id)->first();
+    $snapshotBefore = UserBudgetSnapshot::where('user_id', $user->id)->first();
     $balanceBefore = (string) $snapshotBefore->current_balance;
 
     Sanctum::actingAs($user);

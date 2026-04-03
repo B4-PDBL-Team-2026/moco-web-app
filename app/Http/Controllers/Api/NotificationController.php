@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
     public function index()
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         $notifications = $user->notifications()->paginate(20);
@@ -23,7 +24,7 @@ class NotificationController extends Controller
 
     public function markAsRead($id)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         // Cari notifikasi spesifik milik user ini dan tandai sudah dibaca

@@ -11,6 +11,7 @@ use App\Models\SystemCategory;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
 use App\Models\UserBudgetSnapshot;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 function setupUserForAdd(string $cycleType = 'monthly'): array
 {
@@ -142,7 +143,7 @@ it('throws ModelNotFoundException when user has no budget settings', function ()
     $category = SystemCategory::factory()->create();
 
     expect(fn () => $this->action->execute($user->id, makeDto([], $category)))
-        ->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        ->toThrow(ModelNotFoundException::class);
 });
 
 it('throws InvalidArgumentException when name is empty', function () {

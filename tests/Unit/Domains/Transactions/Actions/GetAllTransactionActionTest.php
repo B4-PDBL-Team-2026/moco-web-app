@@ -7,6 +7,7 @@ use App\Models\CustomCategory;
 use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 if (! function_exists('txFilters')) {
     function txFilters(array $overrides = []): FilterTransactionData
@@ -45,7 +46,7 @@ beforeEach(function () {
 it('returns a LengthAwarePaginator', function () {
     $result = $this->action->execute($this->user->id, txFilters());
 
-    expect($result)->toBeInstanceOf(Illuminate\Contracts\Pagination\LengthAwarePaginator::class);
+    expect($result)->toBeInstanceOf(LengthAwarePaginator::class);
 });
 
 it('returns paginated transactions only for the given user', function () {

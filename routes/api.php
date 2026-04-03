@@ -18,7 +18,7 @@ Route::get('/send-test-email', function () {
         });
 
         return 'Test email berhasil dikirim! Coba cek inbox lo.';
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
         return 'Gagal ngirim email. Error-nya: '.$e->getMessage();
     }
 });

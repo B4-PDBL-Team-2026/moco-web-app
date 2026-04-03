@@ -5,6 +5,7 @@ use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
+use Illuminate\Validation\UnauthorizedException;
 
 it('returns transaction by id for owner', function () {
     $user = User::factory()->create();
@@ -41,4 +42,4 @@ it('fails when transaction does not belong to user', function () {
     $action = app(GetTransactionDetailAction::class);
 
     $action->execute($user, $transaction);
-})->throws(\Illuminate\Validation\UnauthorizedException::class);
+})->throws(UnauthorizedException::class);

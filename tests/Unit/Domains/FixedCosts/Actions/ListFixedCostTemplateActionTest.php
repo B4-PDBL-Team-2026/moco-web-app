@@ -6,6 +6,7 @@ use App\Domains\FixedCosts\DTOs\FilterFixedCostTemplateData;
 use App\Models\FixedCostTemplate;
 use App\Models\SystemCategory;
 use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 function filters(array $overrides = []): FilterFixedCostTemplateData
 {
@@ -38,7 +39,7 @@ beforeEach(function () {
 it('returns a LengthAwarePaginator instance', function () {
     $result = $this->action->execute($this->user->id, filters());
 
-    expect($result)->toBeInstanceOf(Illuminate\Contracts\Pagination\LengthAwarePaginator::class);
+    expect($result)->toBeInstanceOf(LengthAwarePaginator::class);
 });
 
 it('returns an empty paginator when user has no templates', function () {

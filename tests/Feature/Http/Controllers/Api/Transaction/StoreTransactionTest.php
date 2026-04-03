@@ -3,6 +3,8 @@
 use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\CustomCategory;
 use App\Models\User;
+use App\Models\UserBudgetSetting;
+use App\Models\UserBudgetSnapshot;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 
@@ -17,8 +19,8 @@ test('authenticated user can create income transaction', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user);
 
-    \App\Models\UserBudgetSetting::factory()->create(['user_id' => $user->id]);
-    \App\Models\UserBudgetSnapshot::factory()->create([
+    UserBudgetSetting::factory()->create(['user_id' => $user->id]);
+    UserBudgetSnapshot::factory()->create([
         'user_id' => $user->id,
         'current_balance' => '5000.00',
     ]);

@@ -9,6 +9,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
 use App\Models\UserBudgetSnapshot;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 it('creates expense transaction', function () {
     $user = User::factory()->create();
@@ -93,4 +94,4 @@ it('fails when category does not exist', function () {
 
     app(CreateTransactionAction::class)->execute($user, $dto);
 
-})->throws(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
+})->throws(ModelNotFoundException::class);

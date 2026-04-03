@@ -7,6 +7,7 @@ use App\Models\FixedCostTemplate;
 use App\Models\SystemCategory;
 use App\Models\User;
 use App\Models\UserBudgetSnapshot;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 function setupForMetadata(): array
 {
@@ -103,7 +104,7 @@ it('does not change amount, status, or financial fields (BR §15)', function () 
 });
 
 it('works on occurrences of any status (no status restriction)', function () {
-    foreach (App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus::cases() as $status) {
+    foreach (FixedCostOccurenceStatus::cases() as $status) {
         [$user, $occurrence] = setupForMetadata();
         $occurrence->update(['status' => $status->value]);
 
@@ -139,12 +140,12 @@ it('throws ModelNotFoundException when occurrence belongs to another user', func
     $otherUser = User::factory()->create();
 
     expect(fn () => $this->action->execute($otherUser->id, $occurrence->id, ['name' => 'X']))
-        ->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        ->toThrow(ModelNotFoundException::class);
 });
 
 it('throws ModelNotFoundException for a non-existent occurrence id', function () {
     $user = User::factory()->create();
 
     expect(fn () => $this->action->execute($user->id, 99999, ['name' => 'X']))
-        ->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        ->toThrow(ModelNotFoundException::class);
 });

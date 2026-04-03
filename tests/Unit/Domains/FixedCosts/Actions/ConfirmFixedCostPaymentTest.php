@@ -10,6 +10,7 @@ use App\Models\FixedCostTemplate;
 use App\Models\SystemCategory;
 use App\Models\User;
 use App\Models\UserBudgetSnapshot;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 function setupForConfirm(string $balance = '500000.00'): array
 {
@@ -152,7 +153,7 @@ it('throws ModelNotFoundException when occurrence belongs to another user', func
     ]);
 
     expect(fn () => $this->action->execute($otherUser->id, $occurrence->id))
-        ->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        ->toThrow(ModelNotFoundException::class);
 });
 
 it('throws ModelNotFoundException when trying to confirm an already PAID occurrence', function () {
@@ -160,7 +161,7 @@ it('throws ModelNotFoundException when trying to confirm an already PAID occurre
     $occurrence->update(['status' => FixedCostOccurenceStatus::PAID->value]);
 
     expect(fn () => $this->action->execute($user->id, $occurrence->id))
-        ->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        ->toThrow(ModelNotFoundException::class);
 });
 
 it('throws ModelNotFoundException when trying to confirm a VOID occurrence', function () {
@@ -168,12 +169,12 @@ it('throws ModelNotFoundException when trying to confirm a VOID occurrence', fun
     $occurrence->update(['status' => FixedCostOccurenceStatus::VOID->value]);
 
     expect(fn () => $this->action->execute($user->id, $occurrence->id))
-        ->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        ->toThrow(ModelNotFoundException::class);
 });
 
 it('throws ModelNotFoundException for a non-existent occurrence id', function () {
     [$user] = setupForConfirm();
 
     expect(fn () => $this->action->execute($user->id, 99999))
-        ->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        ->toThrow(ModelNotFoundException::class);
 });

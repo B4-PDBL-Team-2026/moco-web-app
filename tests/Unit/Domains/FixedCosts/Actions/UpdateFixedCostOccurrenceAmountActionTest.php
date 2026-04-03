@@ -14,6 +14,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
 use App\Models\UserBudgetSnapshot;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 function setupUserWithBalance(string $balanceAmount): array
 {
@@ -142,7 +143,7 @@ it('throws ModelNotFoundException when occurrence is VOID', function () {
     ]);
 
     expect(fn () => $this->action->execute($user->id, $occurrence->id, new UpdateFixedCostOccurrenceAmountData('200000.00')))
-        ->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        ->toThrow(ModelNotFoundException::class);
 });
 
 it('throws InvalidArgumentException when amount is zero', function () {
@@ -168,5 +169,5 @@ it('throws ModelNotFoundException when occurrence belongs to another user', func
     $otherUser = User::factory()->create();
 
     expect(fn () => $this->action->execute($otherUser->id, $occurrence->id, new UpdateFixedCostOccurrenceAmountData('200000.00')))
-        ->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        ->toThrow(ModelNotFoundException::class);
 });

@@ -6,6 +6,7 @@ use App\Models\FixedCostOccurrence;
 use App\Models\FixedCostTemplate;
 use App\Models\SystemCategory;
 use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 function setupForDelete(): array
 {
@@ -129,7 +130,7 @@ it('throws ModelNotFoundException when template belongs to another user', functi
     $otherUser = User::factory()->create();
 
     expect(fn () => $this->action->execute($otherUser->id, $template->id))
-        ->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        ->toThrow(ModelNotFoundException::class);
 });
 
 it('throws ModelNotFoundException when template is already soft-deleted', function () {
@@ -137,12 +138,12 @@ it('throws ModelNotFoundException when template is already soft-deleted', functi
     $template->delete();
 
     expect(fn () => $this->action->execute($user->id, $template->id))
-        ->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        ->toThrow(ModelNotFoundException::class);
 });
 
 it('throws ModelNotFoundException for a non-existent template id', function () {
     $user = User::factory()->create();
 
     expect(fn () => $this->action->execute($user->id, 99999))
-        ->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        ->toThrow(ModelNotFoundException::class);
 });

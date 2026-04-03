@@ -10,6 +10,7 @@ use App\Models\FixedCostTemplate;
 use App\Models\SystemCategory;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 function setupUserForUpdate(string $cycleType = 'monthly'): array
 {
@@ -250,7 +251,7 @@ it('throws ModelNotFoundException when template belongs to another user', functi
     ]);
 
     expect(fn () => $this->action->execute($otherUser->id, $template->id, UpdateFixedCostTemplateData::fromArray(['name' => 'X'])))
-        ->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        ->toThrow(ModelNotFoundException::class);
 });
 
 it('throws ModelNotFoundException for a soft-deleted template', function () {
@@ -258,5 +259,5 @@ it('throws ModelNotFoundException for a soft-deleted template', function () {
     $template->delete();
 
     expect(fn () => $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray(['name' => 'X'])))
-        ->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        ->toThrow(ModelNotFoundException::class);
 });

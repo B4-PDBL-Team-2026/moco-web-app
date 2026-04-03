@@ -12,6 +12,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSnapshot;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 function setupForCancel(string $status = 'paid', ?string $dueDateStr = null): array
 {
@@ -150,14 +151,14 @@ it('throws ModelNotFoundException when occurrence is already VOID', function () 
     [$user, $occurrence] = setupForCancel('void');
 
     expect(fn () => $this->action->execute($user->id, $occurrence->id))
-        ->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        ->toThrow(ModelNotFoundException::class);
 });
 
 it('throws ModelNotFoundException when occurrence is already SKIPPED', function () {
     [$user, $occurrence] = setupForCancel('skipped');
 
     expect(fn () => $this->action->execute($user->id, $occurrence->id))
-        ->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        ->toThrow(ModelNotFoundException::class);
 });
 
 it('throws ModelNotFoundException when occurrence belongs to another user', function () {
@@ -165,12 +166,12 @@ it('throws ModelNotFoundException when occurrence belongs to another user', func
     $otherUser = User::factory()->create();
 
     expect(fn () => $this->action->execute($otherUser->id, $occurrence->id))
-        ->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        ->toThrow(ModelNotFoundException::class);
 });
 
 it('throws ModelNotFoundException for non-existent occurrence id', function () {
     $user = User::factory()->create();
 
     expect(fn () => $this->action->execute($user->id, 99999))
-        ->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        ->toThrow(ModelNotFoundException::class);
 });

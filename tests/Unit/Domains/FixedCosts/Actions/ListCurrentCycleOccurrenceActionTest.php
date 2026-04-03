@@ -7,6 +7,7 @@ use App\Models\FixedCostTemplate;
 use App\Models\SystemCategory;
 use App\Models\User;
 use App\Models\UserBudgetSnapshot;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 function setupForList(): array
 {
@@ -212,5 +213,5 @@ it('throws ModelNotFoundException when user has no budget snapshot (not onboarde
     $user = User::factory()->create();
 
     expect(fn () => $this->action->execute($user->id))
-        ->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        ->toThrow(ModelNotFoundException::class);
 });

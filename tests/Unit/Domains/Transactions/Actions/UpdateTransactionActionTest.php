@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\UserBudgetSetting;
 use App\Models\UserBudgetSnapshot;
 use Carbon\CarbonImmutable;
+use Illuminate\Validation\UnauthorizedException;
 use Illuminate\Validation\ValidationException;
 
 it('updates transaction name and note only', function () {
@@ -281,4 +282,4 @@ it('fails when user tries to update other users transaction', function () {
 
     app(UpdateTransactionAction::class)->execute($user, $transaction, $dto);
 
-})->throws(\Illuminate\Validation\UnauthorizedException::class);
+})->throws(UnauthorizedException::class);
