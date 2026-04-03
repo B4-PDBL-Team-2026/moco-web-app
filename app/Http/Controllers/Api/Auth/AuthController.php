@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Auth;
 
+use App\Domains\Auth\Actions\DeleteUserAction;
 use App\Domains\Auth\Actions\ForgotPasswordAction;
 use App\Domains\Auth\Actions\LoginUserAction;
 use App\Domains\Auth\Actions\LogoutUserAction;
@@ -11,6 +12,7 @@ use App\Domains\Auth\Actions\SendEmailVerificationAction;
 use App\Domains\Auth\DTOs\LoginUserDTO;
 use App\Domains\Auth\DTOs\RegisterUserDTO;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\ConfirmDeleteUserRequest;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
@@ -18,6 +20,7 @@ use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Throwable;
 
 class AuthController extends Controller
 {
@@ -103,5 +106,25 @@ class AuthController extends Controller
         $action->execute($request->user());
 
         return $this->success(message: 'Successfully logged out.');
+    }
+
+    /**
+     * DELETE /api/user
+     *
+     * Permanently deletes the authenticated user's account and all associated
+     * data. Requires the user's current password as confirmation.
+     *
+     * After a successful deletion the client should discard the token it holds
+     * — it has already been revoked server-side.
+     *
+     * @throws Throwable
+     */
+    public function destroy(
+        ConfirmDeleteUserRequest $request,
+        DeleteUserAction $action,
+    ): JsonResponse {
+        $action->execute($request->user());
+
+        return $this->success(message: 'Account deleted successfully.');
     }
 }

@@ -30,8 +30,9 @@ Route::prefix('auth')->controller(AuthController::class)->group(function () {
     Route::post('/password/reset', 'resetPassword');
 
     Route::middleware('auth:sanctum')->group(function () {
-        Route::delete('/logout', 'logout');
         Route::post('/verify-email/request', 'sendVerificationEmail');
+        Route::delete('/logout', 'logout');
+        Route::delete('/user', 'destroy');
     });
 });
 
