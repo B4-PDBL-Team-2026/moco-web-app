@@ -28,13 +28,10 @@ Route::prefix('auth')->controller(AuthController::class)->group(function () {
     Route::post('/login', 'login');
     Route::post('/password/email', 'forgotPassword');
     Route::post('/password/reset', 'resetPassword');
-    Route::get('/verify-email/{id}/{hash}', 'verifyEmail')
-        ->middleware(['signed'])
-        ->name('verification.verify');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/logout', 'logout');
-        Route::get('/verify-email/request', 'sendVerificationEmail');
+        Route::post('/verify-email/request', 'sendVerificationEmail');
     });
 });
 

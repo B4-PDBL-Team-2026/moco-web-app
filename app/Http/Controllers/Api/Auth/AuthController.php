@@ -6,9 +6,8 @@ use App\Domains\Auth\Actions\ForgotPasswordAction;
 use App\Domains\Auth\Actions\LoginUserAction;
 use App\Domains\Auth\Actions\LogoutUserAction;
 use App\Domains\Auth\Actions\RegisterUserAction;
-use App\Domains\Auth\Actions\RequestEmailVerificationAction;
 use App\Domains\Auth\Actions\ResetPasswordAction;
-use App\Domains\Auth\Actions\VerifyEmailAction;
+use App\Domains\Auth\Actions\SendEmailVerificationAction;
 use App\Domains\Auth\DTOs\LoginUserDTO;
 use App\Domains\Auth\DTOs\RegisterUserDTO;
 use App\Http\Controllers\Controller;
@@ -16,7 +15,6 @@ use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
-use App\Models\User;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -90,28 +88,11 @@ class AuthController extends Controller
     /**
      * Send a new email verification notification.
      */
-    public function sendVerificationEmail(RequestEmailVerificationAction $action): JsonResponse
+    public function sendVerificationEmail(SendEmailVerificationAction $action): JsonResponse
     {
         $result = $action->execute(auth()->user());
 
         return $this->success($result, $result['message']);
-    }
-
-    /**
-     * Verify the user's email address using the signed route hash.
-     */
-    public function verifyEmail(Request $request, VerifyEmailAction $action): JsonResponse
-    {
-        /** @var User $user */
-        $user = User::query()->findOrFail($request->route('id'));
-
-        if (! hash_equals(sha1($user->getEmailForVerification()), (string) $request->route('hash'))) {
-            return $this->error('Verification link is invalid.', 403);
-        }
-
-        $result = $action->execute($user);
-
-        return $this->success(null, $result['message'], 200);
     }
 
     /**
