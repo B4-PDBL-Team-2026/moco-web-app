@@ -11,7 +11,7 @@ use App\Traits\ApiResponse;
  * Separated from registration so the client controls when the email is dispatched,
  * rather than it firing automatically on every register call.
  */
-class RequestEmailVerificationAction
+class SendEmailVerificationAction
 {
     use ApiResponse;
 
