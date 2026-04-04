@@ -14,7 +14,7 @@ final readonly class CreateTransactionData
         public string $amount,
         public TransactionType $type,
         public ?string $note,
-        public CarbonImmutable $transactionDate,
+        public CarbonImmutable $transactionAt,
     ) {}
 
     public static function fromArray(array $data): self
@@ -26,7 +26,7 @@ final readonly class CreateTransactionData
             amount: (string) $data['amount'],
             type: TransactionType::from($data['type']),
             note: $data['note'] ?? null,
-            transactionDate: CarbonImmutable::parse($data['transactionDate']),
+            transactionAt: CarbonImmutable::parse($data['transactionAt'])->utc(),
         );
     }
 }

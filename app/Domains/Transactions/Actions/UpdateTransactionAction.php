@@ -27,7 +27,7 @@ class UpdateTransactionAction
      *
      * @throws ValidationException|UnauthorizedException|Throwable
      */
-    public function execute(User $user, Transaction $transaction, UpdateTransactionData $dto): Transaction
+    public function execute(User $user, Transaction $transaction, UpdateTransactionData $data): Transaction
     {
         // Authorization check
         if ($user->id !== $transaction->user_id) {
@@ -38,11 +38,11 @@ class UpdateTransactionAction
         $resolvedCategoryType = null;
 
         // Rule 27: validate category type matches transaction type
-        if ($dto->categoryIdProvided && $dto->categoryId !== null) {
-            if ($dto->categoryType === 'system') {
-                $category = SystemCategory::find($dto->categoryId);
+        if ($data->categoryIdProvided && $data->categoryId !== null) {
+            if ($data->categoryType === 'system') {
+                $category = SystemCategory::find($data->categoryId);
             } else {
-                $category = CustomCategory::where('id', $dto->categoryId)
+                $category = CustomCategory::where('id', $data->categoryId)
                     ->where('user_id', $user->id)
                     ->first();
             }
@@ -63,36 +63,36 @@ class UpdateTransactionAction
         }
 
         // Rule 23: amount change triggers recalculation
-        if ($dto->amountProvided && $dto->amount !== null) {
+        if ($data->amountProvided && $data->amount !== null) {
             $transaction = $this->updateTransactionAmountAction->execute(
                 user: $user,
                 transaction: $transaction,
-                newAmount: $dto->amount,
+                newAmount: $data->amount,
             );
         }
 
         // Rule 26: date change, no recalculation
-        if ($dto->transactionDateProvided && $dto->transactionDate !== null) {
+        if ($data->transactionAtProvided && $data->transactionAt !== null) {
             $transaction = $this->updateTransactionDateAction->execute(
                 user: $user,
                 transaction: $transaction,
-                newDate: $dto->transactionDate,
+                newDate: $data->transactionAt,
             );
         }
 
         // Rule 27: metadata change, no recalculation
         $metadataFields = [];
 
-        if ($dto->nameProvided) {
-            $metadataFields['name'] = $dto->name;
+        if ($data->nameProvided) {
+            $metadataFields['name'] = $data->name;
         }
 
-        if ($dto->noteProvided) {
-            $metadataFields['note'] = $dto->note;
+        if ($data->noteProvided) {
+            $metadataFields['note'] = $data->note;
         }
 
-        if ($dto->categoryIdProvided) {
-            $metadataFields['categoryId'] = $dto->categoryId;
+        if ($data->categoryIdProvided) {
+            $metadataFields['categoryId'] = $data->categoryId;
 
             if ($resolvedCategoryType) {
                 $metadataFields['categoryType'] = $resolvedCategoryType;

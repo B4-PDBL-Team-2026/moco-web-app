@@ -22,8 +22,8 @@ final readonly class UpdateTransactionData
         public bool $noteProvided,
         public ?string $note,
 
-        public bool $transactionDateProvided,
-        public ?CarbonImmutable $transactionDate,
+        public bool $transactionAtProvided,
+        public ?CarbonImmutable $transactionAt,
     ) {}
 
     public static function fromArray(array $data): self
@@ -48,9 +48,9 @@ final readonly class UpdateTransactionData
             noteProvided: array_key_exists('note', $data),
             note: $data['note'] ?? null,
 
-            transactionDateProvided: array_key_exists('transactionDate', $data),
-            transactionDate: array_key_exists('transactionDate', $data)
-                ? CarbonImmutable::parse($data['transactionDate'])
+            transactionAtProvided: array_key_exists('transactionAt', $data),
+            transactionAt: array_key_exists('transactionAt', $data)
+                ? CarbonImmutable::parse($data['transactionAt'])->utc()
                 : null,
         );
     }

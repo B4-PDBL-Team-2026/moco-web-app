@@ -21,7 +21,7 @@ class Transaction extends Model
         'user_id',
         'category_id',
         'category_type',
-        'transaction_date',
+        'transaction_at',
         'source',
         'effective_at',
         'fixed_cost_occurrence_id',
@@ -30,7 +30,7 @@ class Transaction extends Model
     protected $casts = [
         'amount' => 'decimal:2',
         'type' => TransactionType::class,
-        'transaction_date' => 'date:Y-m-d',
+        'transaction_at' => 'immutable_datetime',
     ];
 
     public function user(): BelongsTo

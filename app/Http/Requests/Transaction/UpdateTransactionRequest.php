@@ -15,8 +15,6 @@ class UpdateTransactionRequest extends FormRequest
 
     public function rules(): array
     {
-        $categoryType = $this->input('categoryType');
-
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'amount' => ['sometimes', 'required', 'decimal:0,2', 'gt:0'],
@@ -31,7 +29,7 @@ class UpdateTransactionRequest extends FormRequest
                 Rule::in(['system', 'custom']),
             ],
             'note' => ['sometimes', 'nullable', 'string', 'max:1000'],
-            'transactionDate' => ['sometimes', 'required', 'date'],
+            'transactionAt' => ['sometimes', 'required', 'date', 'before_or_equal:now'],
         ];
     }
 }

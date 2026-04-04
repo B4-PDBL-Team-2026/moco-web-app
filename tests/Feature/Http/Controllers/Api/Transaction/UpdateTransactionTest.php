@@ -7,6 +7,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
 use App\Models\UserBudgetSnapshot;
+use Carbon\CarbonImmutable;
 use Laravel\Sanctum\Sanctum;
 
 beforeEach(function () {
@@ -186,20 +187,53 @@ test('validation fails if category type does not match transaction type', functi
         ->assertJsonValidationErrors(['categoryId'], 'data');
 });
 
-test('updates transaction date without throwing errors', function () {
+test('successfully updates transaction date', function () {
     $transaction = Transaction::factory()->create([
         'user_id' => $this->user->id,
-        'transaction_date' => '2026-03-01',
+        'transaction_at' => '2026-03-01',
     ]);
 
     Sanctum::actingAs($this->user);
 
     $this->putJson("/api/transaction/{$transaction->id}", [
-        'transactionDate' => '2026-03-15',
+        'transactionAt' => '2026-03-15',
     ])->assertOk();
 
     $this->assertDatabaseHas('transactions', [
         'id' => $transaction->id,
-        'transaction_date' => '2026-03-15',
+        'transaction_at' => '2026-03-15 00:00:00',
+    ]);
+});
+
+test('fails to update transaction to a future date due to validation', function () {
+    $this->travelTo(CarbonImmutable::parse('2026-04-04 12:00:00', 'UTC'));
+
+    $transaction = Transaction::factory()->create(['user_id' => $this->user->id]);
+
+    Sanctum::actingAs($this->user);
+
+    $this->putJson("/api/transaction/{$transaction->id}", [
+        'transactionAt' => '2026-04-04T15:00:00Z',
+    ])->assertStatus(422)
+        ->assertJsonValidationErrors(['transactionAt'], 'data');
+});
+
+test('feature: verifies UTC conversion when updating date via API', function () {
+    $this->travelTo(CarbonImmutable::parse('2026-04-04 23:00:00', 'UTC'));
+
+    $transaction = Transaction::factory()->create([
+        'user_id' => $this->user->id,
+        'transaction_at' => '2026-04-04 00:00:00',
+    ]);
+
+    Sanctum::actingAs($this->user);
+
+    $this->putJson("/api/transaction/{$transaction->id}", [
+        'transactionAt' => '2026-04-04T22:00:00+07:00',
+    ])->assertOk();
+
+    $this->assertDatabaseHas('transactions', [
+        'id' => $transaction->id,
+        'transaction_at' => '2026-04-04 15:00:00',
     ]);
 });

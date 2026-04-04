@@ -25,7 +25,7 @@ it('throws validation exception when category type does not match transaction ty
         amount: '10000',
         type: TransactionType::INCOME,
         note: null,
-        transactionDate: CarbonImmutable::now(),
+        transactionAt: CarbonImmutable::now(),
     );
 
     $action = app(CreateTransactionAction::class);
@@ -57,7 +57,7 @@ it('creates income transaction successfully', function () {
         amount: '100000',
         type: TransactionType::INCOME,
         note: null,
-        transactionDate: CarbonImmutable::now(),
+        transactionAt: CarbonImmutable::now(),
     );
 
     $action = app(CreateTransactionAction::class);
@@ -96,7 +96,7 @@ it('rejects expense when amount exceeds balance', function () {
         amount: '999999999',
         type: TransactionType::EXPENSE,
         note: null,
-        transactionDate: CarbonImmutable::now(),
+        transactionAt: CarbonImmutable::now(),
     );
 
     $action = app(CreateTransactionAction::class);

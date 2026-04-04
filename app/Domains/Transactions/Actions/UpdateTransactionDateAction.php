@@ -2,6 +2,7 @@
 
 namespace App\Domains\Transactions\Actions;
 
+use App\Commons\Exceptions\BusinessRuleException;
 use App\Models\Transaction;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -25,14 +26,12 @@ class UpdateTransactionDateAction
 
             // Rule 26: reject future dates
             if ($newDate->startOfDay()->greaterThan($today)) {
-                throw ValidationException::withMessages([
-                    'transactionDate' => ['Transaction date cannot be set to a future date.'],
-                ]);
+                throw new BusinessRuleException('Transaction date cannot be set to a future date.');
             }
 
             // Rule 26: no recalculation triggered — only update the date
             $transaction->update([
-                'transaction_date' => $newDate->toDateString(),
+                'transaction_at' => $newDate->utc()->toDateTimeString(),
             ]);
 
             return $transaction->refresh();

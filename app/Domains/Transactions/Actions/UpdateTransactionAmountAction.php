@@ -2,10 +2,10 @@
 
 namespace App\Domains\Transactions\Actions;
 
+use App\Commons\Exceptions\BusinessRuleException;
 use App\Commons\Services\MoneyService;
 use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
 use App\Domains\Budgeting\Services\TransactionBalanceService;
-use App\Domains\Transactions\Services\UserBalanceCalculator;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSnapshot;
@@ -18,7 +18,6 @@ class UpdateTransactionAmountAction
 {
     public function __construct(
         private readonly TransactionBalanceService $transactionBalanceService,
-        private readonly UserBalanceCalculator $userBalanceCalculator,
         private readonly RecalculateBudgetSnapshotAction $recalculateBudgetSnapshotAction,
     ) {}
 
@@ -47,9 +46,7 @@ class UpdateTransactionAmountAction
 
             // Rule 24 + Rule 1: reject if update causes balance to go negative
             if (MoneyService::lt($projectedBalance, '0.00')) {
-                throw ValidationException::withMessages([
-                    'amount' => ['This update would cause the balance to go negative.'],
-                ]);
+                throw new BusinessRuleException('This update would cause the balance to go negative.');
             }
 
             $transaction->update(['amount' => $normalizedAmount]);

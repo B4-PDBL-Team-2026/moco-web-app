@@ -30,15 +30,19 @@ class CreateExpenseTransactionAction
      *
      * @throws ValidationException|Throwable
      */
-    public function execute(User $user, CreateTransactionData $dto): Transaction
+    public function execute(User $user, CreateTransactionData $data): Transaction
     {
-        return DB::transaction(function () use ($user, $dto) {
-            $amount = MoneyService::normalize($dto->amount);
+        return DB::transaction(function () use ($user, $data) {
+            $amount = MoneyService::normalize($data->amount);
+
+            if ((float) $amount <= 0) {
+                throw new BusinessRuleException('Transaction amount must be greater than 0.');
+            }
 
             $categoryType = $this->transactionValidationService->resolveAndEnsureCategoryAllowed(
-                categoryType: $dto->categoryType,
-                categoryId: $dto->categoryId,
-                transactionType: $dto->type->value,
+                categoryType: $data->categoryType,
+                categoryId: $data->categoryId,
+                transactionType: $data->type->value,
                 user: $user,
             );
 
@@ -51,13 +55,13 @@ class CreateExpenseTransactionAction
 
             $transaction = Transaction::query()->create([
                 'user_id' => $user->id,
-                'category_id' => $dto->categoryId,
+                'category_id' => $data->categoryId,
                 'category_type' => $categoryType,
-                'name' => $dto->name,
+                'name' => $data->name,
                 'amount' => $amount,
                 'type' => TransactionType::EXPENSE->value,
-                'note' => $dto->note,
-                'transaction_date' => $dto->transactionDate->toDateString(),
+                'note' => $data->note,
+                'transaction_at' => $data->transactionAt,
                 'source' => TransactionSource::MANUAL->value,
             ]);
 
