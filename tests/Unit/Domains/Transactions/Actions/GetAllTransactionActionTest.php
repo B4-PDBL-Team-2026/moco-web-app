@@ -33,7 +33,7 @@ if (! function_exists('makeTx')) {
             'category_id' => $cat->id,
             'category_type' => SystemCategory::class, // Nanti kalau morphMap udah jalan, ganti jadi 'system'
             'type' => TransactionType::EXPENSE->value,
-            'transaction_date' => '2026-03-15',
+            'transaction_at' => '2026-03-15',
         ], $overrides));
     }
 }
@@ -70,19 +70,19 @@ it('returns empty collection when user has no transactions', function () {
 });
 
 it('filters transactions by month', function () {
-    makeTx($this->user, ['transaction_date' => '2026-03-10']);
-    makeTx($this->user, ['transaction_date' => '2026-02-10']);
+    makeTx($this->user, ['transaction_at' => '2026-03-10']);
+    makeTx($this->user, ['transaction_at' => '2026-02-10']);
 
     $result = $this->action->execute($this->user->id, txFilters(['month' => 3]));
 
     expect($result->total())->toBe(1)
-        ->and($result->items()[0]->transaction_date->format('m'))->toBe('03');
+        ->and($result->items()[0]->transaction_at->format('m'))->toBe('03');
 });
 
 it('returns all transactions when month filter is null', function () {
-    makeTx($this->user, ['transaction_date' => '2026-01-10']);
-    makeTx($this->user, ['transaction_date' => '2026-06-10']);
-    makeTx($this->user, ['transaction_date' => '2026-12-10']);
+    makeTx($this->user, ['transaction_at' => '2026-01-10']);
+    makeTx($this->user, ['transaction_at' => '2026-06-10']);
+    makeTx($this->user, ['transaction_at' => '2026-12-10']);
 
     $result = $this->action->execute($this->user->id, txFilters(['month' => null]));
 
@@ -90,7 +90,7 @@ it('returns all transactions when month filter is null', function () {
 });
 
 it('returns empty when month filter matches no transactions', function () {
-    makeTx($this->user, ['transaction_date' => '2026-03-10']);
+    makeTx($this->user, ['transaction_at' => '2026-03-10']);
 
     $result = $this->action->execute($this->user->id, txFilters(['month' => 12]));
 
@@ -98,19 +98,19 @@ it('returns empty when month filter matches no transactions', function () {
 });
 
 it('filters transactions by year', function () {
-    makeTx($this->user, ['transaction_date' => '2026-01-10']);
-    makeTx($this->user, ['transaction_date' => '2025-01-10']);
+    makeTx($this->user, ['transaction_at' => '2026-01-10']);
+    makeTx($this->user, ['transaction_at' => '2025-01-10']);
 
     $result = $this->action->execute($this->user->id, txFilters(['year' => 2026]));
 
     expect($result->total())->toBe(1)
-        ->and($result->items()[0]->transaction_date->format('Y'))->toBe('2026');
+        ->and($result->items()[0]->transaction_at->format('Y'))->toBe('2026');
 });
 
 it('returns all transactions when year filter is null', function () {
-    makeTx($this->user, ['transaction_date' => '2024-01-10']);
-    makeTx($this->user, ['transaction_date' => '2025-01-10']);
-    makeTx($this->user, ['transaction_date' => '2026-01-10']);
+    makeTx($this->user, ['transaction_at' => '2024-01-10']);
+    makeTx($this->user, ['transaction_at' => '2025-01-10']);
+    makeTx($this->user, ['transaction_at' => '2026-01-10']);
 
     $result = $this->action->execute($this->user->id, txFilters(['year' => null]));
 
@@ -118,7 +118,7 @@ it('returns all transactions when year filter is null', function () {
 });
 
 it('returns empty when year filter matches no transactions', function () {
-    makeTx($this->user, ['transaction_date' => '2026-03-10']);
+    makeTx($this->user, ['transaction_at' => '2026-03-10']);
 
     $result = $this->action->execute($this->user->id, txFilters(['year' => 2020]));
 
@@ -126,14 +126,14 @@ it('returns empty when year filter matches no transactions', function () {
 });
 
 it('filters by both month and year together', function () {
-    makeTx($this->user, ['transaction_date' => '2026-03-10']); // match
-    makeTx($this->user, ['transaction_date' => '2025-03-10']); // wrong year
-    makeTx($this->user, ['transaction_date' => '2026-04-10']); // wrong month
+    makeTx($this->user, ['transaction_at' => '2026-03-10']); // match
+    makeTx($this->user, ['transaction_at' => '2025-03-10']); // wrong year
+    makeTx($this->user, ['transaction_at' => '2026-04-10']); // wrong month
 
     $result = $this->action->execute($this->user->id, txFilters(['month' => 3, 'year' => 2026]));
 
     expect($result->total())->toBe(1)
-        ->and($result->items()[0]->transaction_date->format('Y-m'))->toBe('2026-03');
+        ->and($result->items()[0]->transaction_at->format('Y-m'))->toBe('2026-03');
 });
 
 it('filters transactions by partial name search', function () {

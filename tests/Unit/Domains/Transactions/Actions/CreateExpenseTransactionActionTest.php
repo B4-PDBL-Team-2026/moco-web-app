@@ -114,7 +114,7 @@ it('parses transaction date from local timezone offset to UTC correctly', functi
         'amount' => '50000',
         'type' => TransactionType::EXPENSE->value,
         'note' => 'Sate ayam',
-        'transactionDate' => '2026-04-04T13:00:00+07:00',
+        'transactionAt' => '2026-04-04T13:00:00+07:00',
     ];
 
     $dto = CreateTransactionData::fromArray($payload);

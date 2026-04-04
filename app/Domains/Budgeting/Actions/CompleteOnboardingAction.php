@@ -110,7 +110,7 @@ final readonly class CompleteOnboardingAction
                 'type' => TransactionType::INCOME->value,
                 'name' => 'initial balance',
                 'amount' => $data->initialBalance,
-                'transaction_date' => now($data->timezone)->toDateString(),
+                'transaction_at' => now($data->timezone)->toDateString(),
                 'category_id' => $initialAllowanceCategory,
                 'category_type' => SystemCategory::class,
             ]

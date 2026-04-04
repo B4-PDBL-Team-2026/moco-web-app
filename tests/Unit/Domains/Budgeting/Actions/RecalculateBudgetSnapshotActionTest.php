@@ -37,7 +37,7 @@ it('recalculates user budget status correctly', function () {
         'source' => TransactionSource::INITIAL_BALANCE->value,
         'name' => 'initial balance',
         'amount' => '1000.00',
-        'transaction_date' => '2026-03-20',
+        'transaction_at' => '2026-03-20',
     ]);
 
     FixedCostOccurrence::factory()->create([
@@ -84,7 +84,7 @@ it('stores flooring as daily allowance and zero as actual daily allowance when r
         'source' => TransactionSource::INITIAL_BALANCE->value,
         'name' => 'initial balance',
         'amount' => '100.00',
-        'transaction_date' => '2026-03-20',
+        'transaction_at' => '2026-03-20',
     ]);
 
     FixedCostOccurrence::factory()->create([
@@ -127,7 +127,7 @@ it('stores flooring as displayed daily allowance when raw is below flooring', fu
         'source' => TransactionSource::INITIAL_BALANCE->value,
         'name' => 'initial balance',
         'amount' => '100.00',
-        'transaction_date' => '2026-03-20',
+        'transaction_at' => '2026-03-20',
     ]);
 
     $status = app(RecalculateBudgetSnapshotAction::class)->execute(
@@ -162,7 +162,7 @@ it('stores ceiling capped daily allowance and uncapped actual daily allowance', 
         'source' => TransactionSource::INITIAL_BALANCE->value,
         'name' => 'initial balance',
         'amount' => '1000.00',
-        'transaction_date' => '2026-03-20',
+        'transaction_at' => '2026-03-20',
     ]);
 
     $status = app(RecalculateBudgetSnapshotAction::class)->execute(
@@ -195,7 +195,7 @@ it('ignores unknown transaction types when calculating balance', function () {
         'type' => TransactionType::INCOME->value,
         'amount' => '1000.00',
         'name' => 'initial balance',
-        'transaction_date' => '2026-03-20',
+        'transaction_at' => '2026-03-20',
     ]);
 
     DB::table('transactions')->insert([
@@ -205,7 +205,7 @@ it('ignores unknown transaction types when calculating balance', function () {
         'type' => 'UNKNOWN_TYPE',
         'name' => 'unknown transaction type',
         'amount' => '500.00',
-        'transaction_date' => '2026-03-20',
+        'transaction_at' => '2026-03-20',
         'created_at' => now(),
         'updated_at' => now(),
     ]);
@@ -259,7 +259,7 @@ it('does not update daily_allowance_limit when recalculated on the same day', fu
         'source' => TransactionSource::INITIAL_BALANCE->value,
         'amount' => '1000.00',
         'name' => 'Initial Balance',
-        'transaction_date' => '2026-03-01',
+        'transaction_at' => '2026-03-01',
     ]);
 
     // transaction entry created
@@ -270,7 +270,7 @@ it('does not update daily_allowance_limit when recalculated on the same day', fu
         'type' => TransactionType::EXPENSE->value,
         'amount' => '400.00', // Sisa uang harusnya tinggal 600
         'name' => 'Jajan Siang',
-        'transaction_date' => '2026-03-20',
+        'transaction_at' => '2026-03-20',
     ]);
 
     // force call recaltulate snapshot
@@ -305,7 +305,7 @@ it('updates daily_allowance_limit when recalculated on a new day', function () {
         'source' => TransactionSource::INITIAL_BALANCE->value,
         'name' => 'initial balance',
         'amount' => '1000.00',
-        'transaction_date' => '2026-03-20',
+        'transaction_at' => '2026-03-20',
     ]);
 
     // last snapshot time
@@ -334,7 +334,7 @@ it('updates daily_allowance_limit when recalculated on a new day', function () {
         'type' => TransactionType::EXPENSE->value,
         'amount' => '450.00',
         'name' => 'Belanja Bulanan',
-        'transaction_date' => '2026-03-20',
+        'transaction_at' => '2026-03-20',
     ]);
 
     $todayTime = CarbonImmutable::parse('2026-03-21 07:00:00', 'Asia/Jakarta');
@@ -368,7 +368,7 @@ it('determines new day strictly based on user timezone, not UTC server time', fu
         'source' => TransactionSource::INITIAL_BALANCE->value,
         'name' => 'initial balance',
         'amount' => '1000.00',
-        'transaction_date' => '2026-03-20',
+        'transaction_at' => '2026-03-20',
     ]);
 
     $lateNightJakarta = CarbonImmutable::parse('2026-03-20 23:00:00', 'Asia/Jakarta');
@@ -394,7 +394,7 @@ it('determines new day strictly based on user timezone, not UTC server time', fu
         'type' => TransactionType::EXPENSE->value,
         'amount' => '450.00',
         'name' => 'Midnight Snack',
-        'transaction_date' => '2026-03-20',
+        'transaction_at' => '2026-03-20',
     ]);
 
     // 21 Maret 01:00 PM Asia/Jakarta, 20 Maret 06:00 PM UTC)

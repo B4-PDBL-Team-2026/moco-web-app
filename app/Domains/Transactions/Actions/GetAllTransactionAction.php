@@ -12,14 +12,14 @@ class GetAllTransactionAction
     {
         return Transaction::with('category')
             ->where('user_id', $userId)
-            ->when($data->month, fn ($query) => $query->whereMonth('transaction_date', $data->month))
-            ->when($data->year, fn ($query) => $query->whereYear('transaction_date', $data->year))
+            ->when($data->month, fn ($query) => $query->whereMonth('transaction_at', $data->month))
+            ->when($data->year, fn ($query) => $query->whereYear('transaction_at', $data->year))
             ->when($data->search, fn ($query) => $query->where('name', 'like', "%{$data->search}%"))
             ->when($data->categoryId, fn ($query) => $query
                 ->where('category_id', $data->categoryId)
                 ->when($data->categoryType, fn ($query) => $query->where('category_type', $data->categoryType))
             )
-            ->latest('transaction_date')
+            ->latest('transaction_at')
             ->latest()
             ->paginate($data->perPage);
 

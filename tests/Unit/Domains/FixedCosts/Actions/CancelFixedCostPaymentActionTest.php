@@ -62,7 +62,7 @@ function attachTransaction(User $user, FixedCostOccurrence $occurrence): Transac
         'amount' => '150000.00',
         'category_id' => $occurrence->category_id,
         'category_type' => SystemCategory::class,
-        'transaction_date' => now()->toDateString(),
+        'transaction_at' => now()->toDateString(),
     ]);
 }
 

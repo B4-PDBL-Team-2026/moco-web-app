@@ -107,7 +107,7 @@ it('updates a PAID occurrence and intelligently syncs the linked transaction', f
         'source' => TransactionSource::FIXED_COST_PAYMENT->value,
         'name' => 'Paid Gym',
         'amount' => '150000.00',
-        'transaction_date' => now(),
+        'transaction_at' => now(),
     ]);
 
     $this->action->execute($user->id, $occurrence->id, new UpdateFixedCostOccurrenceAmountData('200000.00'));

@@ -70,7 +70,7 @@ it('today_spent only counts expense transactions today and exclude fixed cost pa
         'category_type' => SystemCategory::class,
         'type' => TransactionType::EXPENSE->value,
         'amount' => '50000',
-        'transaction_date' => $today,
+        'transaction_at' => $today,
     ]);
 
     // today income's must not be included
@@ -80,7 +80,7 @@ it('today_spent only counts expense transactions today and exclude fixed cost pa
         'category_type' => SystemCategory::class,
         'type' => TransactionType::INCOME->value,
         'amount' => '200000',
-        'transaction_date' => $today,
+        'transaction_at' => $today,
     ]);
 
     // yesterday expense's must not be included
@@ -90,7 +90,7 @@ it('today_spent only counts expense transactions today and exclude fixed cost pa
         'category_type' => SystemCategory::class,
         'type' => TransactionType::EXPENSE->value,
         'amount' => '30000',
-        'transaction_date' => $yesterday,
+        'transaction_at' => $yesterday,
     ]);
 
     // today fixed cost payment must not be included
@@ -101,7 +101,7 @@ it('today_spent only counts expense transactions today and exclude fixed cost pa
         'type' => TransactionType::EXPENSE->value,
         'source' => TransactionSource::FIXED_COST_PAYMENT->value,
         'amount' => '1000000',
-        'transaction_date' => $today,
+        'transaction_at' => $today,
     ]);
 
     $result = app(GetDashboardSummaryAction::class)
@@ -135,7 +135,7 @@ it('calculates today_spent accurately across timezone boundaries', function () {
         'category_type' => SystemCategory::class,
         'type' => TransactionType::EXPENSE->value,
         'amount' => '10000',
-        'transaction_date' => '2026-03-29 16:00:00',
+        'transaction_at' => '2026-03-29 16:00:00',
     ]);
 
     // Asia/Jakarta: 30 Maret 01:00 WIB
@@ -146,7 +146,7 @@ it('calculates today_spent accurately across timezone boundaries', function () {
         'category_type' => SystemCategory::class,
         'type' => TransactionType::EXPENSE->value,
         'amount' => '50000',
-        'transaction_date' => '2026-03-29 18:00:00',
+        'transaction_at' => '2026-03-29 18:00:00',
     ]);
 
     // Asia/Jakarta: 30 Maret 17:00 WIB
@@ -157,7 +157,7 @@ it('calculates today_spent accurately across timezone boundaries', function () {
         'category_type' => SystemCategory::class,
         'type' => TransactionType::EXPENSE->value,
         'amount' => '20000',
-        'transaction_date' => '2026-03-30 10:00:00',
+        'transaction_at' => '2026-03-30 10:00:00',
     ]);
 
     // Asia/Jakarta: 31 Maret 01:00 WIB
@@ -168,7 +168,7 @@ it('calculates today_spent accurately across timezone boundaries', function () {
         'category_type' => SystemCategory::class,
         'type' => TransactionType::EXPENSE->value,
         'amount' => '100000',
-        'transaction_date' => '2026-03-30 18:00:00',
+        'transaction_at' => '2026-03-30 18:00:00',
     ]);
 
     // execute in server time

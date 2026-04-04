@@ -78,7 +78,7 @@ final readonly class ConfirmFixedCostPaymentAction
                 'source' => TransactionSource::FIXED_COST_PAYMENT->value,
                 'name' => $occurrence->name,
                 'amount' => $occurrence->amount,
-                'transaction_date' => CarbonImmutable::today()->toDateString(),
+                'transaction_at' => CarbonImmutable::today()->toDateString(),
                 'effective_at' => now(),
             ]);
 

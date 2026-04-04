@@ -90,7 +90,7 @@ test('soft-deletes paid fixed cost linked transaction on cancel', function () {
         'source' => TransactionSource::FIXED_COST_PAYMENT->value,
         'name' => 'Electricity',
         'amount' => '150000.00',
-        'transaction_date' => now()->toDateString(),
+        'transaction_at' => now()->toDateString(),
         'category_type' => $occurrence->category_type,
         'category_id' => $occurrence->category_id,
     ]);
