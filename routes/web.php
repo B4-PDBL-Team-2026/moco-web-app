@@ -9,4 +9,5 @@ Route::prefix('auth')->group(function () {
     Route::get('/verify-email/{id}/{hash}', [AuthController::class, 'verifyEmail'])
         ->middleware(['signed'])
         ->name('verification.verify');
+    Route::get('/account/delete', [AuthController::class, 'showDeleteInfo']);
 });

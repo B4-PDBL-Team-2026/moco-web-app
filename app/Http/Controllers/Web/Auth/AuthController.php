@@ -33,4 +33,17 @@ class AuthController extends Controller
             'message' => $result['message'],
         ]);
     }
+
+    /**
+     * GET /account/delete
+     *
+     * Renders the static account deletion instructions page.
+     * No authentication required — this is a public-facing page
+     * so unauthenticated users (e.g. ex-users) can also access
+     * the deletion instructions.
+     */
+    public function showDeleteInfo(): Response
+    {
+        return Inertia::render('Auth/DeleteAccountInformation');
+    }
 }
