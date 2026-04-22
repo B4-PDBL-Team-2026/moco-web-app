@@ -50,7 +50,10 @@ class GetDashboardSummaryAction
         // unpaid fixed costs: PENDING + OVERDUE in current cycle
         $unpaidOccurrences = FixedCostOccurrence::query()
             ->where('user_id', $user->id)
-            ->where('cycle_key', $snapshot->current_cycle_key)
+            ->whereBetween('due_date', [
+                $snapshot->cycle_start_date,
+                $snapshot->cycle_end_date,
+            ])
             ->whereIn('status', [
                 FixedCostOccurenceStatus::PENDING->value,
                 FixedCostOccurenceStatus::OVERDUE->value,
