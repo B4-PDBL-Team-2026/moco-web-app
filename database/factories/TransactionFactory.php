@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\SystemCategory;
+use App\Models\Category;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -12,8 +12,7 @@ class TransactionFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'category_id' => SystemCategory::factory(),
-            'category_type' => (new SystemCategory)->getMorphClass(),
+            'category_id' => Category::factory(),
             'name' => $this->faker->words(3, true),
             'amount' => $this->faker->randomFloat(2, 1000, 1000000),
             'type' => $this->faker->randomElement(['income', 'expense']),
@@ -21,6 +20,22 @@ class TransactionFactory extends Factory
             'transaction_at' => $this->faker->date('now', 'utc'),
             'created_at' => $this->faker->dateTimeBetween('-1 year', 'now'),
             'updated_at' => $this->faker->dateTimeBetween('-1 year', 'now'),
+        ];
+    }
+
+    public function expense(): array
+    {
+        return [
+            'category_id' => Category::factory()->expense()->create(),
+            'type' => 'expense',
+        ];
+    }
+
+    public function income(): array
+    {
+        return [
+            'category_id' => Category::factory()->income()->create(),
+            'type' => 'income',
         ];
     }
 }

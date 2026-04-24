@@ -23,10 +23,7 @@ class UpdateTransactionRequest extends FormRequest
                 'sometimes',
                 'required',
                 'integer',
-            ],
-            'categoryType' => [
-                'required_with:categoryId',
-                Rule::in(['system', 'custom']),
+                'exists:categories,id',
             ],
             'note' => ['sometimes', 'nullable', 'string', 'max:1000'],
             'transactionAt' => ['sometimes', 'required', 'date', 'before_or_equal:now'],

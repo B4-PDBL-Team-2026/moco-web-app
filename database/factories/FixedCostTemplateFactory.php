@@ -3,8 +3,8 @@
 namespace Database\Factories;
 
 use App\Domains\Budgeting\Enums\CycleType;
+use App\Models\Category;
 use App\Models\FixedCostTemplate;
-use App\Models\SystemCategory;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -25,8 +25,7 @@ class FixedCostTemplateFactory extends Factory
                 ? $this->faker->numberBetween(1, 28)
                 : $this->faker->numberBetween(1, 7),
             'is_active' => true,
-            'category_type' => SystemCategory::class,
-            'category_id' => SystemCategory::factory(),
+            'category_id' => Category::factory()->expense()->create(),
             'created_at' => now(),
             'updated_at' => now(),
         ];

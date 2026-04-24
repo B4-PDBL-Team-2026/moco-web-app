@@ -20,7 +20,6 @@ class FixedCostTemplate extends Model
         'is_active',
         'due_day',
         'category_id',
-        'category_type',
         'user_id',
     ];
 

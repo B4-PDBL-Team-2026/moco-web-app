@@ -33,15 +33,11 @@ class UpdateTransactionMetadataAction
                 $updatePayload['category_id'] = $fields['categoryId'];
             }
 
-            if (array_key_exists('categoryType', $fields)) {
-                $updatePayload['category_type'] = $fields['categoryType'];
-            }
-
             if (! empty($updatePayload)) {
                 $transaction->update($updatePayload);
             }
 
-            // Rule 27: intentionally no recalculation here
+            // intentionally no recalculation here
             return $transaction->refresh();
         });
     }

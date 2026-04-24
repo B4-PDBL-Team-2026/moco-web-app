@@ -17,7 +17,6 @@ class GetAllTransactionAction
             ->when($data->search, fn ($query) => $query->where('name', 'like', "%{$data->search}%"))
             ->when($data->categoryId, fn ($query) => $query
                 ->where('category_id', $data->categoryId)
-                ->when($data->categoryType, fn ($query) => $query->where('category_type', $data->categoryType))
             )
             ->latest('transaction_at')
             ->latest()

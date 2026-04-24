@@ -2,10 +2,10 @@
 
 namespace App\Domains\Transactions\Actions;
 
-use App\Commons\Services\MoneyService;
 use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
 use App\Domains\Budgeting\Services\TransactionBalanceService;
 use App\Domains\Transactions\Enums\TransactionType;
+use App\Domains\Transactions\Services\TransactionValidator;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSnapshot;
@@ -20,6 +20,7 @@ class DeleteTransactionAction
     public function __construct(
         private readonly TransactionBalanceService $transactionBalanceService,
         private readonly RecalculateBudgetSnapshotAction $recalculateBudgetSnapshotAction,
+        private readonly TransactionValidator $transactionValidationService,
     ) {}
 
     /**
@@ -35,7 +36,7 @@ class DeleteTransactionAction
                 throw new UnauthorizedException('You are not authorized to perform this action.');
             }
 
-            // Rule 28: income deletion requires balance check
+            // income deletion requires balance check
             if ($transaction->type === TransactionType::INCOME) {
                 $snapshot = UserBudgetSnapshot::where('user_id', $user->id)->firstOrFail();
                 $currentBalance = (string) $snapshot->current_balance;
@@ -46,17 +47,13 @@ class DeleteTransactionAction
                     amount: (string) $transaction->amount,
                 );
 
-                // Rule 28 + Rule 1: reject if deletion causes balance to go negative
-                if (MoneyService::lt($balanceAfterDeletion, '0.00')) {
-                    throw ValidationException::withMessages([
-                        'transaction' => ['Cannot delete this income transaction as it would cause the balance to go negative.'],
-                    ]);
-                }
+                // reject if deletion causes balance to go negative
+                $this->transactionValidationService->ensureSufficientBalance($balanceAfterDeletion, '0.00');
             }
 
             $transaction->delete();
 
-            // Rule 28: trigger recalculation after deletion
+            // trigger recalculation after deletion
             $this->recalculateBudgetSnapshotAction->execute(
                 userId: $user->id,
                 now: CarbonImmutable::now(),

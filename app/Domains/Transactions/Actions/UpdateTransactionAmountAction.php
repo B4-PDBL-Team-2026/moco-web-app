@@ -2,10 +2,10 @@
 
 namespace App\Domains\Transactions\Actions;
 
-use App\Commons\Exceptions\BusinessRuleException;
 use App\Commons\Services\MoneyService;
 use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
 use App\Domains\Budgeting\Services\TransactionBalanceService;
+use App\Domains\Transactions\Services\TransactionValidator;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSnapshot;
@@ -19,6 +19,7 @@ class UpdateTransactionAmountAction
     public function __construct(
         private readonly TransactionBalanceService $transactionBalanceService,
         private readonly RecalculateBudgetSnapshotAction $recalculateBudgetSnapshotAction,
+        private readonly TransactionValidator $transactionValidationService,
     ) {}
 
     /**
@@ -44,14 +45,12 @@ class UpdateTransactionAmountAction
                 newAmount: $normalizedAmount,
             );
 
-            // Rule 24 + Rule 1: reject if update causes balance to go negative
-            if (MoneyService::lt($projectedBalance, '0.00')) {
-                throw new BusinessRuleException('This update would cause the balance to go negative.');
-            }
+            // reject if update causes balance to go negative
+            $this->transactionValidationService->ensureSufficientBalance($projectedBalance, '0');
 
             $transaction->update(['amount' => $normalizedAmount]);
 
-            // Rule 23: trigger recalculation after amount change
+            // trigger recalculation after amount change
             $this->recalculateBudgetSnapshotAction->execute(
                 userId: $user->id,
                 now: CarbonImmutable::now(),

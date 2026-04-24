@@ -3,10 +3,7 @@
 namespace App\Http\Requests\FixedCost;
 
 use App\Domains\Budgeting\Enums\CycleType;
-use App\Models\CustomCategory;
-use App\Models\SystemCategory;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 
 /**
@@ -32,11 +29,6 @@ class StoreFixedCostTemplateRequest extends FormRequest
             ],
             'dueDay' => ['required', 'integer', 'min:1', 'max:31'],
             'isActive' => ['sometimes', 'boolean'],
-            'categoryType' => [
-                'required',
-                'string',
-                Rule::in([SystemCategory::class, CustomCategory::class]),
-            ],
             'categoryId' => ['required', 'integer', 'min:1'],
         ];
     }
@@ -45,7 +37,6 @@ class StoreFixedCostTemplateRequest extends FormRequest
     {
         return [
             'cycleType.in' => 'Cycle type must be one of: '.implode(', ', array_column(CycleType::cases(), 'value')).'.',
-            'categoryType.in' => 'Category type must be a valid morphable class.',
             'dueDay.min' => 'Due day must be at least 1.',
             'dueDay.max' => 'Due day cannot exceed 31.',
             'amount.gt' => 'Amount must be greater than zero.',
@@ -63,7 +54,6 @@ class StoreFixedCostTemplateRequest extends FormRequest
             'cycleType' => $this->input('cycleType'),
             'dueDay' => (int) $this->input('dueDay'),
             'isActive' => $this->boolean('isActive', true),
-            'categoryType' => $this->input('categoryType'),
             'categoryId' => (int) $this->input('categoryId'),
         ];
     }

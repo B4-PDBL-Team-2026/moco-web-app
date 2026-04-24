@@ -8,9 +8,9 @@ use App\Domains\FixedCosts\Actions\BulkCreateFixedCostTemplateAction;
 use App\Domains\FixedCosts\Actions\GenerateOccurencesForBudgetWindowAction;
 use App\Domains\Transactions\Enums\TransactionSource;
 use App\Domains\Transactions\Enums\TransactionType;
+use App\Models\Category;
 use App\Models\FixedCostOccurrence;
 use App\Models\FixedCostTemplate;
-use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
@@ -99,7 +99,7 @@ final readonly class CompleteOnboardingAction
         int $userId,
         CompleteOnboardingData $data,
     ): void {
-        $initialAllowanceCategory = SystemCategory::query()->where('name', '=', 'Uang saku')->value('id');
+        $initialAllowanceCategory = Category::query()->where('name', '=', 'Uang saku')->value('id');
 
         Transaction::query()->updateOrCreate(
             [
@@ -112,7 +112,6 @@ final readonly class CompleteOnboardingAction
                 'amount' => $data->initialBalance,
                 'transaction_at' => now($data->timezone)->toDateString(),
                 'category_id' => $initialAllowanceCategory,
-                'category_type' => SystemCategory::class,
             ]
         );
     }

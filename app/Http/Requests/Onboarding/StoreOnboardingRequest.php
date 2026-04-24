@@ -3,8 +3,6 @@
 namespace App\Http\Requests\Onboarding;
 
 use App\Domains\Budgeting\Enums\CycleType;
-use App\Models\CustomCategory;
-use App\Models\SystemCategory;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -51,13 +49,6 @@ class StoreOnboardingRequest extends FormRequest
             'fixedCosts.*.categoryId' => [
                 'required',
                 'integer',
-            ],
-            'fixedCosts.*.categoryType' => [
-                'required',
-                Rule::in([
-                    SystemCategory::class,
-                    CustomCategory::class,
-                ]),
             ],
             'fixedCosts.*.isActive' => [
                 'sometimes',

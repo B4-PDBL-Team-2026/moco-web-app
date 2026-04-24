@@ -42,7 +42,7 @@ final readonly class BulkCreateFixedCostTemplateAction
 
         DB::transaction(function () use ($userId, $fixedCosts, $userBudgetCycle): void {
             foreach ($fixedCosts as $fixedCost) {
-                $this->fixedCostValidator->validateFixedCostData($userId, $fixedCost, $userBudgetCycle);
+                $this->fixedCostValidator->validateCreate($userId, $fixedCost, $userBudgetCycle);
 
                 FixedCostTemplate::query()->create([
                     'user_id' => $userId,
@@ -51,7 +51,6 @@ final readonly class BulkCreateFixedCostTemplateAction
                     'cycle_type' => $fixedCost->cycleType->value,
                     'due_day' => $fixedCost->dueDay,
                     'is_active' => $fixedCost->isActive,
-                    'category_type' => $fixedCost->categoryType,
                     'category_id' => $fixedCost->categoryId,
                 ]);
             }

@@ -4,7 +4,6 @@ namespace App\Http\Requests\Transaction;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class IndexTransactionRequest extends FormRequest
 {
@@ -23,7 +22,6 @@ class IndexTransactionRequest extends FormRequest
      */
     public function rules(): array
     {
-        $categoryType = $this->input('categoryType');
 
         return [
             'month' => ['nullable', 'integer', 'between:1,12'],
@@ -32,9 +30,7 @@ class IndexTransactionRequest extends FormRequest
             'categoryId' => [
                 'nullable',
                 'integer',
-                $categoryType === 'system'
-                    ? Rule::exists('system_categories', 'id')
-                    : Rule::exists('custom_categories', 'id')->where('user_id', $this->user()->id),
+                'exists:categories,id',
             ],
             'perPage' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];

@@ -17,22 +17,6 @@ use Throwable;
 
 /**
  * Updates the amount of a specific fixed cost occurrence.
- *
- * Business Rule §17 mandates a strict three-step flow for changing the amount
- * of an already-paid occurrence:
- *   1. Cancel payment  → status becomes VOID, transaction soft-deleted, snapshot recalculated.
- *   2. Edit occurrence amount (this action).
- *   3. Confirm payment → new transaction created, snapshot recalculated again.
- *
- * This action therefore only accepts occurrences in VOID status, enforcing
- * that the caller has already gone through step 1 before reaching step 2.
- *
- * For pending/overdue occurrences the same constraint applies — callers must
- * have the occurrence in VOID state before editing amount, ensuring the
- * reserved-cost accounting stays consistent throughout.
- *
- * After this action completes the occurrence is ready for re-confirmation
- * via ConfirmFixedCostPaymentAction.
  */
 final readonly class UpdateFixedCostOccurrenceAmountAction
 {

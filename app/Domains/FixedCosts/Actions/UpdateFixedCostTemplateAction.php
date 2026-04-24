@@ -2,9 +2,7 @@
 
 namespace App\Domains\FixedCosts\Actions;
 
-use App\Commons\Exceptions\BusinessRuleException;
 use App\Commons\Services\MoneyService;
-use App\Domains\Budgeting\Enums\CycleType;
 use App\Domains\FixedCosts\DTOs\UpdateFixedCostTemplateData;
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
 use App\Domains\FixedCosts\Services\FixedCostValidator;
@@ -56,7 +54,7 @@ final readonly class UpdateFixedCostTemplateAction
             ->firstOrFail(['cycle_type'])
             ->cycle_type;
 
-        $this->validatePayload($userId, $data, $budgetCycle);
+        $this->fixedCostValidator->validateUpdate($userId, $template, $data);
 
         DB::transaction(function () use ($template, $data): void {
             $hasPaidOccurrenceThisCycleOrEarlier = $this->hasPaidOccurrence($template->id);
@@ -80,12 +78,11 @@ final readonly class UpdateFixedCostTemplateAction
                 $templateUpdates['is_active'] = $data->isActive;
             }
 
-            if ($data->categoryId !== null && $data->categoryType !== null) {
+            if ($data->categoryId !== null) {
                 $templateUpdates['category_id'] = $data->categoryId;
-                $templateUpdates['category_type'] = $data->categoryType;
             }
 
-            // Fields deferred when a paid occurrence already exists (BR §18)
+            // Fields deferred when a paid occurrence already exists
             $isAmountChanging = $data->amount !== null
                 && ! MoneyService::eq($data->amount, (string) $template->amount);
 
@@ -112,7 +109,7 @@ final readonly class UpdateFixedCostTemplateAction
                 // Propagate to any unsettled occurrences immediately.
                 $this->updatePendingOccurrences($template->id, $data);
             } elseif ($sensitiveFieldsRequested && $hasPaidOccurrenceThisCycleOrEarlier) {
-                // BR §18: defer — template stores new value (for next cycle generation),
+                // defer — template stores new value (for next cycle generation),
                 // existing unsettled occurrences in the *current* cycle are left alone
                 // because they were generated from the old template. The next cycle's
                 // GenerateOccurrencesForBudgetWindowAction will pick up the new values.
@@ -176,48 +173,5 @@ final readonly class UpdateFixedCostTemplateAction
         // requires re-resolving the date per cycle window. We leave that to
         // the next occurrence-generation pass (GenerateOccurrencesForBudgetWindowAction)
         // rather than recalculating here, keeping this action free of cycle-window math.
-    }
-
-    /**
-     * Validates the incoming update payload.
-     */
-    private function validatePayload(int $userId, UpdateFixedCostTemplateData $data, CycleType $budgetCycle): void
-    {
-        if ($data->name === '') {
-            throw new InvalidArgumentException('Fixed cost name cannot be empty.');
-        }
-
-        if ($data->amount !== null && MoneyService::lte($data->amount, '0')) {
-            throw new InvalidArgumentException('Fixed cost amount must be greater than zero.');
-        }
-
-        $effectiveCycleType = $data->cycleType;
-
-        if ($data->dueDay !== null) {
-            $resolvedCycle = $effectiveCycleType ?? $budgetCycle;
-
-            if ($resolvedCycle === CycleType::WEEKLY && ($data->dueDay < 1 || $data->dueDay > 7)) {
-                throw new InvalidArgumentException('Weekly due day must be between 1 and 7.');
-            }
-
-            if ($resolvedCycle === CycleType::MONTHLY && ($data->dueDay < 1 || $data->dueDay > 31)) {
-                throw new InvalidArgumentException('Monthly due day must be between 1 and 31.');
-            }
-        }
-
-        if ($effectiveCycleType !== null) {
-            $this->fixedCostValidator->validateCycleCompatibility(
-                budgetCycle: $budgetCycle,
-                fixedCostCycle: $effectiveCycleType,
-            );
-        }
-
-        if ($data->categoryId !== null || $data->categoryType !== null) {
-            if ($data->categoryId === null || $data->categoryType === null) {
-                throw new BusinessRuleException('Both categoryId and categoryType must be provided together.');
-            }
-
-            $this->fixedCostValidator->validateCategory($userId, $data->categoryId, $data->categoryType);
-        }
     }
 }

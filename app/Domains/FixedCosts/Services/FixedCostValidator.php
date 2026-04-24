@@ -3,80 +3,122 @@
 namespace App\Domains\FixedCosts\Services;
 
 use App\Commons\Exceptions\BusinessRuleException;
+use App\Commons\Services\MoneyService;
 use App\Domains\Budgeting\Enums\CycleType;
 use App\Domains\FixedCosts\DTOs\CreateFixedCostTemplateData;
-use App\Models\CustomCategory;
-use App\Models\SystemCategory;
+use App\Domains\FixedCosts\DTOs\UpdateFixedCostTemplateData;
+use App\Domains\Transactions\Enums\TransactionType;
+use App\Models\Category;
+use App\Models\FixedCostTemplate;
+use App\Models\User;
 
-/**
- * Enforces business rules regarding the combination of budget cycles and fixed cost frequencies.
- * This validator ensures logical consistency, preventing scenarios such as
- * assigning a monthly fixed cost (e.g., monthly rent) to a user whose
- * budgeting cycle is strictly evaluated on a weekly basis.
- */
 final readonly class FixedCostValidator
 {
     /**
-     * Ensure the provided fixed cost cycle is compatible with the user's budget cycle.
-     *
-     * @param  CycleType  $budgetCycle  The primary cycle of the user's budget (e.g., WEEKLY, MONTHLY).
-     * @param  CycleType  $fixedCostCycle  The billing frequency of the specific fixed cost template.
-     *
-     * @throws BusinessRuleException If a monthly fixed cost is applied to a weekly budget window.
-     */
-    public function validateCycleCompatibility(
-        CycleType $budgetCycle,
-        CycleType $fixedCostCycle,
-    ): void {
-        if (
-            $budgetCycle === CycleType::WEEKLY &&
-            $fixedCostCycle === CycleType::MONTHLY
-        ) {
-            throw new BusinessRuleException(
-                'Monthly fixed cost is not allowed when budget cycle is weekly.'
-            );
-        }
-    }
-
-    /**
      * @throws BusinessRuleException
      */
-    public function validateFixedCostData(int $userId, CreateFixedCostTemplateData $data, CycleType $userBudgetCycle): void
+    public function validateCreate(int $userId, CreateFixedCostTemplateData $data): void
     {
+        $user = User::with(['budgetSetting'])->findOrFail($userId);
+
+        $this->ensureValidName($data->name);
+        $this->ensureValidAmount($data->amount);
+        $this->ensureValidDueDay($data->cycleType, $data->dueDay);
+
         $this->validateCycleCompatibility(
-            budgetCycle: $userBudgetCycle,
+            budgetCycle: $user->budgetSetting->cycle_type,
             fixedCostCycle: $data->cycleType
         );
 
-        $this->validateCategory($userId, $data->categoryId, $data->categoryType);
+        $this->validateCategory($userId, $data->categoryId);
     }
 
     /**
      * @throws BusinessRuleException
      */
-    public function validateCategory(int $userId, int $categoryId, string $categoryType): void
+    public function validateUpdate(int $userId, FixedCostTemplate $template, UpdateFixedCostTemplateData $data): void
     {
-        if ($categoryType === SystemCategory::class) {
-            if (! SystemCategory::query()->whereKey($categoryId)->exists()) {
-                throw new BusinessRuleException('Invalid system category.');
-            }
+        $user = User::with(['budgetSetting'])->findOrFail($userId);
 
-            return;
+        $effectiveName = $data->name ?? $template->name;
+        $effectiveAmount = $data->amount ?? (string) $template->amount;
+
+        $effectiveCycleType = $data->cycleType ?? CycleType::from($template->cycle_type->value);
+        $effectiveDueDay = $data->dueDay ?? (int) $template->due_day;
+
+        $effectiveCategoryId = $data->categoryId ?? $template->category_id;
+
+        $this->ensureValidName($effectiveName);
+        $this->ensureValidAmount($effectiveAmount);
+        $this->ensureValidDueDay($effectiveCycleType, $effectiveDueDay);
+
+        $this->validateCycleCompatibility(
+            budgetCycle: $user->budgetSetting->cycle_type,
+            fixedCostCycle: $effectiveCycleType
+        );
+
+        if ($data->categoryId !== null) {
+            $this->validateCategory($userId, $effectiveCategoryId);
+        }
+    }
+
+    /**
+     * @throws BusinessRuleException
+     */
+    private function ensureValidName(?string $name): void
+    {
+        if (trim((string) $name) === '') {
+            throw new BusinessRuleException('Fixed cost name cannot be empty.');
+        }
+    }
+
+    /**
+     * @throws BusinessRuleException
+     */
+    private function ensureValidAmount(?string $amount): void
+    {
+        if ($amount !== null && MoneyService::lte($amount, '0')) {
+            throw new BusinessRuleException('Fixed cost amount must be greater than zero.');
+        }
+    }
+
+    /**
+     * @throws BusinessRuleException
+     */
+    private function ensureValidDueDay(CycleType $cycleType, int $dueDay): void
+    {
+        if ($cycleType === CycleType::WEEKLY && ($dueDay < 1 || $dueDay > 7)) {
+            throw new BusinessRuleException('Weekly due day must be between 1 and 7.');
         }
 
-        if ($categoryType === CustomCategory::class) {
-            $exists = CustomCategory::query()
-                ->whereKey($categoryId)
-                ->where('user_id', $userId)
-                ->exists();
+        if ($cycleType === CycleType::MONTHLY && ($dueDay < 1 || $dueDay > 31)) {
+            throw new BusinessRuleException('Monthly due day must be between 1 and 31.');
+        }
+    }
 
-            if (! $exists) {
-                throw new BusinessRuleException('Invalid custom category.');
-            }
+    /**
+     * @throws BusinessRuleException
+     */
+    public function validateCycleCompatibility(CycleType $budgetCycle, CycleType $fixedCostCycle): void
+    {
+        if ($budgetCycle === CycleType::WEEKLY && $fixedCostCycle === CycleType::MONTHLY) {
+            throw new BusinessRuleException('Monthly fixed cost is not allowed when budget cycle is weekly.');
+        }
+    }
 
-            return;
+    /**
+     * @throws BusinessRuleException
+     */
+    private function validateCategory(int $userId, int $categoryId): void
+    {
+        $category = Category::findOrFail($categoryId);
+
+        if (! $category->is_system && $category->user_id !== $userId) {
+            throw new BusinessRuleException('Invalid category ownership.');
         }
 
-        throw new BusinessRuleException('Invalid category type.');
+        if ($category->type !== TransactionType::EXPENSE) {
+            throw new BusinessRuleException('Category must be an expense type.');
+        }
     }
 }

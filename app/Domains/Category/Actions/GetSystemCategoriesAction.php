@@ -2,6 +2,7 @@
 
 namespace App\Domains\Category\Actions;
 
+use App\Models\Category;
 use App\Models\SystemCategory;
 use Cache;
 use Illuminate\Support\Collection;
@@ -27,8 +28,8 @@ final readonly class GetSystemCategoriesAction
     public function execute(): Collection
     {
         return Cache::rememberForever(self::CACHE_KEY, function () {
-            return SystemCategory::query()
-                ->orderBy('name', 'asc')
+            return Category::query()
+                ->orderBy('name')
                 ->get();
         });
     }

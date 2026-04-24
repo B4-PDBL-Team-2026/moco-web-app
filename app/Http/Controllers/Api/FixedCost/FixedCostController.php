@@ -183,10 +183,6 @@ class FixedCostController extends Controller
     /**
      * PATCH /api/fixed-costs/occurrences/{occurrenceId}/amount
      *
-     * Step 2 of BR §17: update the amount of a voided occurrence.
-     * The occurrence MUST be in VOID status (i.e. cancel was already called).
-     * After this, call /confirm to complete the flow.
-     *
      * @throws Throwable
      */
     public function updateOccurrenceAmount(
@@ -206,7 +202,7 @@ class FixedCostController extends Controller
     /**
      * PATCH /api/fixed-costs/occurrences/{occurrenceId}/metadata
      *
-     * Updates name/note only. No recalculation triggered (BR §15).
+     * Updates name/note only. No recalculation triggered
      */
     public function updateOccurrenceMetadata(
         UpdateFixedCostOccurrenceMetadataRequest $request,

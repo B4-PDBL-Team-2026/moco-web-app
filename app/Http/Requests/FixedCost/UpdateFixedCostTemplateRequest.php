@@ -3,8 +3,6 @@
 namespace App\Http\Requests\FixedCost;
 
 use App\Domains\Budgeting\Enums\CycleType;
-use App\Models\CustomCategory;
-use App\Models\SystemCategory;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -29,15 +27,10 @@ class UpdateFixedCostTemplateRequest extends FormRequest
             'cycleType' => ['sometimes', 'string', Rule::in(array_column(CycleType::cases(), 'value'))],
             'dueDay' => ['sometimes', 'integer', 'min:1', 'max:31'],
             'isActive' => ['sometimes', 'boolean'],
-            'categoryType' => [
-                'string',
-                Rule::in([SystemCategory::class, CustomCategory::class]),
-                'required_with:categoryId',
-            ],
             'categoryId' => [
                 'integer',
                 'min:1',
-                'required_with:categoryType',
+                'exists:categories,id',
             ],
         ];
     }
@@ -45,8 +38,6 @@ class UpdateFixedCostTemplateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'categoryType.required_with' => 'categoryType is required when categoryId is provided.',
-            'categoryId.required_with' => 'categoryId is required when categoryType is provided.',
             'amount.gt' => 'Amount must be greater than zero.',
             'cycleType.in' => 'Cycle type must be one of: '.implode(', ', array_column(CycleType::cases(), 'value')).'.',
         ];
@@ -70,9 +61,6 @@ class UpdateFixedCostTemplateRequest extends FormRequest
         }
         if ($this->has('isActive')) {
             $data['isActive'] = $this->boolean('isActive');
-        }
-        if ($this->has('categoryType')) {
-            $data['categoryType'] = $this->input('categoryType');
         }
         if ($this->has('categoryId')) {
             $data['categoryId'] = (int) $this->input('categoryId');

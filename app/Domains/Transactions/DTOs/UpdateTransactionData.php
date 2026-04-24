@@ -16,9 +16,6 @@ final readonly class UpdateTransactionData
         public bool $categoryIdProvided,
         public ?int $categoryId,
 
-        public bool $categoryTypeProvided,
-        public ?string $categoryType,
-
         public bool $noteProvided,
         public ?string $note,
 
@@ -38,11 +35,6 @@ final readonly class UpdateTransactionData
             categoryIdProvided: array_key_exists('categoryId', $data),
             categoryId: array_key_exists('categoryId', $data) && $data['categoryId'] !== null
                 ? (int) $data['categoryId']
-                : null,
-
-            categoryTypeProvided: array_key_exists('categoryType', $data),
-            categoryType: array_key_exists('categoryType', $data) && $data['categoryType'] !== null
-                ? (string) $data['categoryType']
                 : null,
 
             noteProvided: array_key_exists('note', $data),

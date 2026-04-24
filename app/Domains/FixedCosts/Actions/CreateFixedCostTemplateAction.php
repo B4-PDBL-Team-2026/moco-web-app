@@ -47,7 +47,7 @@ class CreateFixedCostTemplateAction
             ->where('user_id', $userId)
             ->firstOrFail(['cycle_type', 'timezone']);
 
-        $this->fixedCostValidator->validateFixedCostData($userId, $fixedCost, $budgetSetting->cycle_type);
+        $this->fixedCostValidator->validateCreate($userId, $fixedCost);
 
         return DB::transaction(function () use ($userId, $fixedCost, $budgetSetting): FixedCostTemplate {
             $template = FixedCostTemplate::query()->create([
@@ -57,10 +57,7 @@ class CreateFixedCostTemplateAction
                 'cycle_type' => $fixedCost->cycleType->value,
                 'due_day' => $fixedCost->dueDay,
                 'is_active' => $fixedCost->isActive,
-                'category_type' => $fixedCost->categoryType,
                 'category_id' => $fixedCost->categoryId,
-                'created_at' => now(),
-                'updated_at' => now(),
             ]);
 
             // Generate the occurrence for the current window immediately so the

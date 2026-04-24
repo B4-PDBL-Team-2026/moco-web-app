@@ -6,7 +6,6 @@ use App\Domains\Transactions\Enums\TransactionType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Transaction extends Model
@@ -20,7 +19,6 @@ class Transaction extends Model
         'note',
         'user_id',
         'category_id',
-        'category_type',
         'transaction_at',
         'source',
         'effective_at',
@@ -38,9 +36,9 @@ class Transaction extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function category(): MorphTo
+    public function category(): BelongsTo
     {
-        return $this->morphTo();
+        return $this->belongsTo(Category::class);
     }
 
     public function fixedCostOccurrence(): BelongsTo

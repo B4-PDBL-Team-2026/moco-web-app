@@ -25,7 +25,6 @@ class FixedCostOccurrence extends Model
         'amount',
         'name',
         'note',
-        'category_type',
         'category_id',
         'paid_at',
         'voided_at',
@@ -50,5 +49,10 @@ class FixedCostOccurrence extends Model
     public function transaction(): HasOne
     {
         return $this->hasOne(Transaction::class, 'fixed_cost_occurrence_id', 'id');
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
     }
 }

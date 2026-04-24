@@ -3,10 +3,10 @@
 namespace Database\Seeders;
 
 use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\SystemCategory;
+use App\Models\Category;
 use Illuminate\Database\Seeder;
 
-class SystemCategorySeeder extends Seeder
+class CategorySeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -15,7 +15,7 @@ class SystemCategorySeeder extends Seeder
     {
         $expenses = config('constants.expenseCategories');
         foreach ($expenses as $name => $icon) {
-            SystemCategory::query()->create([
+            Category::query()->create([
                 'name' => $name,
                 'type' => TransactionType::EXPENSE->value,
                 'icon' => $icon,
@@ -25,7 +25,7 @@ class SystemCategorySeeder extends Seeder
         $incomes = config('constants.incomeCategories');
 
         foreach ($incomes as $name => $icon) {
-            SystemCategory::query()->create([
+            Category::query()->create([
                 'name' => $name,
                 'type' => TransactionType::INCOME->value,
                 'icon' => $icon,

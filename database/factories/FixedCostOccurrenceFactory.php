@@ -4,9 +4,9 @@ namespace Database\Factories;
 
 use App\Domains\Budgeting\Enums\CycleType;
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
+use App\Models\Category;
 use App\Models\FixedCostOccurrence;
 use App\Models\FixedCostTemplate;
-use App\Models\SystemCategory;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -30,8 +30,7 @@ class FixedCostOccurrenceFactory extends Factory
                 : $now->format('o-\WW'),
             'due_date' => $now->toImmutable(),
             'status' => FixedCostOccurenceStatus::PENDING->value,
-            'category_type' => SystemCategory::class,
-            'category_id' => SystemCategory::factory(),
+            'category_id' => Category::factory()->expense()->create(),
             'paid_at' => null,
             'voided_at' => null,
         ];

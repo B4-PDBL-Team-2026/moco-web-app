@@ -18,14 +18,10 @@ class StoreTransactionRequest extends FormRequest
         $categoryType = $this->input('categoryType');
 
         return [
-            'categoryType' => ['required', 'string', Rule::in(['system', 'custom'])],
-
             'categoryId' => [
                 'required',
                 'integer',
-                $categoryType === 'system'
-                    ? Rule::exists('system_categories', 'id')
-                    : Rule::exists('custom_categories', 'id')->where('user_id', $this->user()->id),
+                'exists:categories,id',
             ],
 
             'name' => ['required', 'string', 'max:255'],

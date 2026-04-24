@@ -9,7 +9,6 @@ final readonly class CreateTransactionData
 {
     public function __construct(
         public int $categoryId,
-        public string $categoryType,
         public string $name,
         public string $amount,
         public TransactionType $type,
@@ -21,7 +20,6 @@ final readonly class CreateTransactionData
     {
         return new self(
             categoryId: (int) $data['categoryId'],
-            categoryType: $data['categoryType'] ?? 'system',
             name: $data['name'],
             amount: (string) $data['amount'],
             type: TransactionType::from($data['type']),
