@@ -2,11 +2,12 @@
 
 use App\Commons\Exceptions\BusinessRuleException;
 use App\Domains\Budgeting\Actions\GetDailyLimitAction;
+use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
 use App\Domains\Budgeting\Actions\UpdateDailyLimitAction;
 use App\Domains\Budgeting\DTOs\UpdateDailyLimitData;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Mockery\MockInterface;
 
 describe('GetDailyLimitAction', function () {
     it('returns budget setting when it exists', function () {
@@ -31,7 +32,7 @@ describe('GetDailyLimitAction', function () {
 });
 
 describe('UpdateDailyLimitAction', function () {
-    it('successfully updates user budget setting', function () {
+    it('successfully updates setting and forcefully triggers recalculation', function () {
         $user = User::factory()->create();
         UserBudgetSetting::factory()->create([
             'user_id' => $user->id,
@@ -39,7 +40,13 @@ describe('UpdateDailyLimitAction', function () {
             'ceiling_limit' => 10000,
         ]);
 
-        $action = new UpdateDailyLimitAction;
+        $this->mock(RecalculateBudgetSnapshotAction::class, function (MockInterface $mock) use ($user) {
+            $mock->shouldReceive('execute')
+                ->once()
+                ->with($user->id, null, true);
+        });
+
+        $action = app(UpdateDailyLimitAction::class);
         $dto = new UpdateDailyLimitData(flooringLimit: '20000', ceilingLimit: '50000');
 
         $result = $action->execute($user, $dto);
