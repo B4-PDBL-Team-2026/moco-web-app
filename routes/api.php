@@ -1,10 +1,11 @@
 <?php
 
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\Budgeting\BudgetingController;
 use App\Http\Controllers\Api\Category\CategoryController;
 use App\Http\Controllers\Api\Dashboard\DashboardController;
 use App\Http\Controllers\Api\FixedCost\FixedCostController;
-use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\Notification\NotificationController;
 use App\Http\Controllers\Api\Onboarding\OnboardingController;
 use App\Http\Controllers\Api\Profile\ProfileController;
 use App\Http\Controllers\Api\Transaction\TransactionController;
@@ -83,6 +84,14 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/profile', [ProfileController::class, 'show']);
             Route::patch('/profile', [ProfileController::class, 'update']);
             Route::get('/dashboard', [DashboardController::class, 'index']);
+        });
+
+        // Budgeting
+        Route::prefix('settings')->controller(BudgetingController::class)->group(function () {
+            Route::prefix('dailyLimit')->group(function () {
+                Route::get('/', 'getUserDailyLimit');
+                Route::patch('/', 'updateUserDailyLimit');
+            });
         });
     });
 });
