@@ -54,7 +54,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json([
                     'success' => false,
                     'data' => [
-                        'domain_rule' => [$e->getMessage()],
+                        'businessRule' => [$e->getMessage()],
                     ],
                     'message' => $e->getMessage(),
                 ], 422);
