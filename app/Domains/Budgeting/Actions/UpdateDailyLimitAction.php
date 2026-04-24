@@ -7,13 +7,18 @@ use App\Commons\Services\MoneyService;
 use App\Domains\Budgeting\DTOs\UpdateDailyLimitData;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
+use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class UpdateDailyLimitAction
 {
-    public function __construct() {}
+    public function __construct(
+        private readonly RecalculateBudgetSnapshotAction $recalculateBudgetSnapshotAction,
+    ) {}
 
     /**
      * @throws BusinessRuleException
+     * @throws Throwable
      */
     public function execute(User $user, UpdateDailyLimitData $data): UserBudgetSetting
     {
@@ -23,11 +28,18 @@ class UpdateDailyLimitAction
 
         $setting = $user->budgetSetting;
 
-        $setting->update([
-            'flooring_limit' => $data->flooringLimit,
-            'ceiling_limit' => $data->ceilingLimit,
-        ]);
+        return DB::transaction(function () use ($setting, $data) {
+            $setting->update([
+                'flooring_limit' => $data->flooringLimit,
+                'ceiling_limit' => $data->ceilingLimit,
+            ]);
 
-        return $setting->refresh();
+            $this->recalculateBudgetSnapshotAction->execute(
+                userId: $setting->user_id,
+                forceUpdateLimit: true,
+            );
+
+            return $setting->refresh();
+        });
     }
 }

@@ -26,11 +26,14 @@ class RecalculateBudgetSnapshotAction
     /**
      * @throws Throwable
      */
-    public function execute(int $userId, ?CarbonImmutable $now = null): UserBudgetSnapshot
-    {
+    public function execute(
+        int $userId,
+        ?CarbonImmutable $now = null,
+        bool $forceUpdateLimit = false,
+    ): UserBudgetSnapshot {
         $now ??= CarbonImmutable::now('Asia/Jakarta');
 
-        return DB::transaction(function () use ($userId, $now) {
+        return DB::transaction(function () use ($userId, $now, $forceUpdateLimit) {
             $settings = UserBudgetSetting::query()
                 ->where('user_id', $userId)
                 ->lockForUpdate()
@@ -99,7 +102,7 @@ class RecalculateBudgetSnapshotAction
                 'recalculated_at' => $now,
             ];
 
-            if ($isNewDay) {
+            if ($isNewDay || $forceUpdateLimit) {
                 $payload['daily_allowance_limit'] = $dailyAllowance->amount;
             }
 
