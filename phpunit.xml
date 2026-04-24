@@ -19,7 +19,7 @@
         <exclude>
             <directory>app/Providers</directory>
             <directory>app/Models</directory>
-            <directory>app/DTOs</directory>
+            <directory>app/Domains/*/DTOs</directory>
         </exclude>
     </source>
     <php>
