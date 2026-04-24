@@ -5,9 +5,9 @@ use App\Domains\FixedCosts\Actions\ConfirmFixedCostPaymentAction;
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
 use App\Domains\Transactions\Enums\TransactionSource;
 use App\Domains\Transactions\Enums\TransactionType;
+use App\Models\Category;
 use App\Models\FixedCostOccurrence;
 use App\Models\FixedCostTemplate;
-use App\Models\SystemCategory;
 use App\Models\User;
 use App\Models\UserBudgetSnapshot;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 function setupForConfirm(string $balance = '500000.00'): array
 {
     $user = User::factory()->create();
-    $cat = SystemCategory::factory()->create();
+    $cat = Category::factory()->expense()->create();
 
     UserBudgetSnapshot::factory()->create([
         'user_id' => $user->id,
@@ -29,7 +29,6 @@ function setupForConfirm(string $balance = '500000.00'): array
 
     $template = FixedCostTemplate::factory()->create([
         'user_id' => $user->id,
-        'category_type' => SystemCategory::class,
         'category_id' => $cat->id,
     ]);
 
@@ -42,7 +41,6 @@ function setupForConfirm(string $balance = '500000.00'): array
         'status' => FixedCostOccurenceStatus::PENDING->value,
         'amount' => '150000.00',
         'name' => 'Netflix',
-        'category_type' => SystemCategory::class,
         'category_id' => $cat->id,
     ]);
 
@@ -97,7 +95,6 @@ it('creates a linked expense transaction with correct fields', function () {
         'source' => TransactionSource::FIXED_COST_PAYMENT->value,
         'name' => 'Netflix',
         'amount' => '150000.00',
-        'category_type' => SystemCategory::class,
         'category_id' => $cat->id,
     ]);
 });

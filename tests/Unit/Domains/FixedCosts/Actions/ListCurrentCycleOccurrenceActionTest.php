@@ -2,9 +2,9 @@
 
 use App\Domains\FixedCosts\Actions\ListCurrentCycleOccurrencesAction;
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
+use App\Models\Category;
 use App\Models\FixedCostOccurrence;
 use App\Models\FixedCostTemplate;
-use App\Models\SystemCategory;
 use App\Models\User;
 use App\Models\UserBudgetSnapshot;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -12,10 +12,10 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 function setupForList(): array
 {
     $user = User::factory()->create();
-    $cat = SystemCategory::factory()->create();
+    $cat = Category::factory()->expense()->create();
     $template = FixedCostTemplate::factory()->create([
         'user_id' => $user->id,
-        'category_type' => SystemCategory::class,
+
         'category_id' => $cat->id,
     ]);
 
@@ -41,7 +41,7 @@ function occurrenceOn(User $user, FixedCostTemplate $template, string $dueDate, 
         'status' => FixedCostOccurenceStatus::PENDING->value,
         'amount' => '100000.00',
         'name' => 'Test',
-        'category_type' => SystemCategory::class,
+
         'category_id' => $template->category_id,
     ]);
 }
@@ -183,7 +183,7 @@ it('does not return occurrences belonging to another user', function () {
     $otherUser = User::factory()->create();
     $otherTemplate = FixedCostTemplate::factory()->create([
         'user_id' => $otherUser->id,
-        'category_type' => SystemCategory::class,
+
         'category_id' => $template->category_id,
     ]);
     UserBudgetSnapshot::factory()->create([

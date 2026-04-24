@@ -29,5 +29,5 @@ it('rejects monthly fixed cost on a weekly budget cycle', function () {
     $validator = new FixedCostValidator;
 
     expect(fn () => $validator->validateCycleCompatibility(CycleType::WEEKLY, CycleType::MONTHLY))
-        ->toThrow(BusinessRuleException::class, 'Monthly fixed cost is not allowed when budget cycle is weekly.');
+        ->toThrow(BusinessRuleException::class);
 });

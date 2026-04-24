@@ -5,9 +5,9 @@ use App\Domains\FixedCosts\Actions\CancelFixedCostPaymentAction;
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
 use App\Domains\Transactions\Enums\TransactionSource;
 use App\Domains\Transactions\Enums\TransactionType;
+use App\Models\Category;
 use App\Models\FixedCostOccurrence;
 use App\Models\FixedCostTemplate;
-use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSnapshot;
@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 function setupForCancel(string $status = 'paid', ?string $dueDateStr = null): array
 {
     $user = User::factory()->create();
-    $cat = SystemCategory::factory()->create();
+    $cat = Category::factory()->expense()->create();
 
     UserBudgetSnapshot::factory()->create([
         'user_id' => $user->id,
@@ -30,7 +30,6 @@ function setupForCancel(string $status = 'paid', ?string $dueDateStr = null): ar
 
     $template = FixedCostTemplate::factory()->create([
         'user_id' => $user->id,
-        'category_type' => SystemCategory::class,
         'category_id' => $cat->id,
     ]);
 
@@ -43,7 +42,6 @@ function setupForCancel(string $status = 'paid', ?string $dueDateStr = null): ar
         'status' => $status,
         'amount' => '150000.00',
         'name' => 'Electricity',
-        'category_type' => SystemCategory::class,
         'category_id' => $cat->id,
         'paid_at' => now(),
     ]);
@@ -61,7 +59,6 @@ function attachTransaction(User $user, FixedCostOccurrence $occurrence): Transac
         'name' => 'Electricity',
         'amount' => '150000.00',
         'category_id' => $occurrence->category_id,
-        'category_type' => SystemCategory::class,
         'transaction_at' => now()->toDateString(),
     ]);
 }

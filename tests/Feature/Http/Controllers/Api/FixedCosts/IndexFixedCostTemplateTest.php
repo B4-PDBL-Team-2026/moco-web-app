@@ -2,20 +2,20 @@
 
 use App\Domains\Budgeting\Enums\CycleType;
 use App\Domains\FixedCosts\DTOs\FilterFixedCostTemplateData;
+use App\Models\Category;
 use App\Models\FixedCostTemplate;
-use App\Models\SystemCategory;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
 
 function indexTemplateSetup(): array
 {
     $user = User::factory()->create(['has_onboarded' => true]);
-    $cat = SystemCategory::factory()->create();
+    $cat = Category::factory()->expense()->create();
 
     return [$user, $cat];
 }
 
-function createTemplate(User $user, SystemCategory $cat, array $overrides = []): FixedCostTemplate
+function createTemplate(User $user, Category $cat, array $overrides = []): FixedCostTemplate
 {
     return FixedCostTemplate::factory()->create(array_merge([
         'user_id' => $user->id,
@@ -24,7 +24,6 @@ function createTemplate(User $user, SystemCategory $cat, array $overrides = []):
         'cycle_type' => CycleType::MONTHLY->value,
         'due_day' => 15,
         'is_active' => true,
-        'category_type' => SystemCategory::class,
         'category_id' => $cat->id,
     ], $overrides));
 }
@@ -39,7 +38,6 @@ test('returns 200 with paginated structure', function () {
 
     $response = $this->getJson('/api/fixed-costs')->assertOk();
 
-    // Standard Laravel paginator keys must be present
     $response->assertJsonStructure([
         'data' => [
             'data',
@@ -67,7 +65,7 @@ test('returns templates belonging to the authenticated user only', function () {
     createTemplate($user, $cat, ['name' => 'Mine']);
 
     $other = User::factory()->create();
-    $otherCat = SystemCategory::factory()->create();
+    $otherCat = Category::factory()->expense()->create();
     createTemplate($other, $otherCat, ['name' => 'Not Mine']);
 
     Sanctum::actingAs($user);
@@ -249,7 +247,6 @@ test('respects perPage parameter', function () {
 
 test('respects page parameter', function () {
     [$user, $cat] = indexTemplateSetup();
-    // Names A–E will sort alphabetically: A, B, C, D, E
     foreach (['A', 'B', 'C', 'D', 'E'] as $letter) {
         createTemplate($user, $cat, ['name' => $letter]);
     }
@@ -341,7 +338,6 @@ test('accepts null values for nullable filter params', function () {
     [$user] = indexTemplateSetup();
     Sanctum::actingAs($user);
 
-    // Explicitly passing null values should be treated as "no filter"
     $this->getJson('/api/fixed-costs?keyword=&cycleType=&isActive=')
         ->assertOk();
 });

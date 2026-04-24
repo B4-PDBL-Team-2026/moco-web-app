@@ -4,8 +4,8 @@ use App\Domains\Budgeting\Actions\GetDashboardSummaryAction;
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
 use App\Domains\Transactions\Enums\TransactionSource;
 use App\Domains\Transactions\Enums\TransactionType;
+use App\Models\Category;
 use App\Models\FixedCostOccurrence;
-use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
@@ -61,13 +61,12 @@ it('today_spent only counts expense transactions today and exclude fixed cost pa
     $today = CarbonImmutable::now()->setTimezone('Asia/Jakarta')->toDateString();
     $yesterday = CarbonImmutable::now()->subDay()->setTimezone('Asia/Jakarta')->toDateString();
 
-    $category = SystemCategory::factory()->create(['type' => 'expense']);
-
     // today expense's must be included
+    $category = Category::factory()->expense()->create();
+
     Transaction::factory()->create([
         'user_id' => $user->id,
         'category_id' => $category->id,
-        'category_type' => SystemCategory::class,
         'type' => TransactionType::EXPENSE->value,
         'amount' => '50000',
         'transaction_at' => $today,
@@ -77,7 +76,6 @@ it('today_spent only counts expense transactions today and exclude fixed cost pa
     Transaction::factory()->create([
         'user_id' => $user->id,
         'category_id' => $category->id,
-        'category_type' => SystemCategory::class,
         'type' => TransactionType::INCOME->value,
         'amount' => '200000',
         'transaction_at' => $today,
@@ -87,7 +85,6 @@ it('today_spent only counts expense transactions today and exclude fixed cost pa
     Transaction::factory()->create([
         'user_id' => $user->id,
         'category_id' => $category->id,
-        'category_type' => SystemCategory::class,
         'type' => TransactionType::EXPENSE->value,
         'amount' => '30000',
         'transaction_at' => $yesterday,
@@ -97,7 +94,6 @@ it('today_spent only counts expense transactions today and exclude fixed cost pa
     Transaction::factory()->createQuietly([
         'user_id' => $user->id,
         'category_id' => $category->id,
-        'category_type' => SystemCategory::class,
         'type' => TransactionType::EXPENSE->value,
         'source' => TransactionSource::FIXED_COST_PAYMENT->value,
         'amount' => '1000000',
@@ -123,49 +119,45 @@ it('calculates today_spent accurately across timezone boundaries', function () {
         'current_cycle_key' => '2026-03',
     ]);
 
-    $category = SystemCategory::factory()->create(['type' => TransactionType::EXPENSE->value]);
+    $category = Category::factory()->expense()->create();
 
     $nowUtc = CarbonImmutable::parse('2026-03-30 02:00:00', 'UTC');
 
-    // Asia/Jakarta: 29 Maret 23:00 WIB)
+    // Asia/Jakarta: 29 Maret 23:00
     // UTC: 29 Maret 16:00:00 (must not be included)
     Transaction::factory()->create([
         'user_id' => $user->id,
         'category_id' => $category->id,
-        'category_type' => SystemCategory::class,
         'type' => TransactionType::EXPENSE->value,
         'amount' => '10000',
         'transaction_at' => '2026-03-29 16:00:00',
     ]);
 
-    // Asia/Jakarta: 30 Maret 01:00 WIB
+    // Asia/Jakarta: 30 Maret 01:00
     // UTC: 29 Maret 18:00:00 (must be included)
     Transaction::factory()->create([
         'user_id' => $user->id,
         'category_id' => $category->id,
-        'category_type' => SystemCategory::class,
         'type' => TransactionType::EXPENSE->value,
         'amount' => '50000',
         'transaction_at' => '2026-03-29 18:00:00',
     ]);
 
-    // Asia/Jakarta: 30 Maret 17:00 WIB
+    // Asia/Jakarta: 30 Maret 17:00
     // UTC: 30 Maret 10:00:00 (must be included)
     Transaction::factory()->create([
         'user_id' => $user->id,
         'category_id' => $category->id,
-        'category_type' => SystemCategory::class,
         'type' => TransactionType::EXPENSE->value,
         'amount' => '20000',
         'transaction_at' => '2026-03-30 10:00:00',
     ]);
 
-    // Asia/Jakarta: 31 Maret 01:00 WIB
+    // Asia/Jakarta: 31 Maret 01:00
     // UTC: 30 Maret 18:00:00 (must not be included)
     Transaction::factory()->create([
         'user_id' => $user->id,
         'category_id' => $category->id,
-        'category_type' => SystemCategory::class,
         'type' => TransactionType::EXPENSE->value,
         'amount' => '100000',
         'transaction_at' => '2026-03-30 18:00:00',

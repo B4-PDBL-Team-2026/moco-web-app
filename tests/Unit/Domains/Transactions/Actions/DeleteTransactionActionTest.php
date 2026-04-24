@@ -2,7 +2,7 @@
 
 use App\Domains\Transactions\Actions\DeleteTransactionAction;
 use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\SystemCategory;
+use App\Models\Category;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
@@ -18,9 +18,7 @@ it('deletes expense transaction', function () {
         'current_balance' => '800.00',
     ]);
 
-    $category = SystemCategory::factory()->create([
-        'type' => TransactionType::EXPENSE,
-    ]);
+    $category = Category::factory()->custom($user)->create();
 
     $transaction = Transaction::factory()->create([
         'user_id' => $user->id,
@@ -43,7 +41,7 @@ it('deletes income transaction when balance remains non-negative', function () {
         'current_balance' => '1500.00',
     ]);
 
-    $category = SystemCategory::factory()->create([
+    $category = Category::factory()->create([
         'type' => TransactionType::INCOME,
     ]);
 
@@ -69,7 +67,7 @@ it('fails when user tries to delete other users transaction', function () {
         'current_balance' => '500.00',
     ]);
 
-    $category = SystemCategory::factory()->create([
+    $category = Category::factory()->create([
         'type' => TransactionType::EXPENSE,
     ]);
 

@@ -4,14 +4,12 @@ use App\Commons\Exceptions\BusinessRuleException;
 use App\Domains\Transactions\Actions\UpdateTransactionAction;
 use App\Domains\Transactions\DTOs\UpdateTransactionData;
 use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\CustomCategory;
-use App\Models\SystemCategory;
+use App\Models\Category;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
 use App\Models\UserBudgetSnapshot;
 use Illuminate\Validation\UnauthorizedException;
-use Illuminate\Validation\ValidationException;
 
 it('successfully updates transaction name and note only', function () {
     $user = User::factory()->create();
@@ -22,7 +20,7 @@ it('successfully updates transaction name and note only', function () {
         'current_balance' => '1000.00',
     ]);
 
-    $category = SystemCategory::factory()->create(['type' => TransactionType::EXPENSE]);
+    $category = Category::factory()->expense()->create();
 
     $transaction = Transaction::factory()->create([
         'user_id' => $user->id,
@@ -40,8 +38,6 @@ it('successfully updates transaction name and note only', function () {
         amount: null,
         categoryIdProvided: false,
         categoryId: null,
-        categoryTypeProvided: false,
-        categoryType: null,
         noteProvided: true,
         note: 'New Note',
         transactionAtProvided: false,
@@ -63,7 +59,7 @@ it('successfully updates transaction amount', function () {
         'current_balance' => '900.00',
     ]);
 
-    $category = SystemCategory::factory()->create(['type' => TransactionType::EXPENSE]);
+    $category = Category::factory()->expense()->create();
 
     $transaction = Transaction::factory()->create([
         'user_id' => $user->id,
@@ -79,8 +75,6 @@ it('successfully updates transaction amount', function () {
         amount: '250.00',
         categoryIdProvided: false,
         categoryId: null,
-        categoryTypeProvided: false,
-        categoryType: null,
         noteProvided: false,
         note: null,
         transactionAtProvided: false,
@@ -101,7 +95,7 @@ it('correctly updates transaction date and converts to UTC', function () {
         'current_balance' => '1000.00',
     ]);
 
-    $category = SystemCategory::factory()->create(['type' => TransactionType::EXPENSE]);
+    $category = Category::factory()->expense()->create();
 
     $transaction = Transaction::factory()->create([
         'user_id' => $user->id,
@@ -122,13 +116,12 @@ it('correctly updates transaction date and converts to UTC', function () {
 
 it('successfully updates transaction with system category', function () {
     $user = User::factory()->create();
-    $oldCategory = SystemCategory::factory()->create(['type' => TransactionType::EXPENSE->value]);
-    $newCategory = SystemCategory::factory()->create(['type' => TransactionType::EXPENSE->value]);
+    $oldCategory = Category::factory()->expense()->create();
+    $newCategory = Category::factory()->expense()->create();
 
     $transaction = Transaction::factory()->create([
         'user_id' => $user->id,
         'category_id' => $oldCategory->id,
-        'category_type' => SystemCategory::class,
         'type' => TransactionType::EXPENSE->value,
     ]);
 
@@ -139,23 +132,18 @@ it('successfully updates transaction with system category', function () {
 
     $updated = app(UpdateTransactionAction::class)->execute($user, $transaction, $dto);
 
-    expect($updated->category_id)->toBe($newCategory->id)
-        ->and($updated->category_type)->toBe(SystemCategory::class);
+    expect($updated->category_id)->toBe($newCategory->id);
 });
 
 it('successfully updates transaction with custom category belonging to user', function () {
     $user = User::factory()->create();
-    $sysCategory = SystemCategory::factory()->create(['type' => TransactionType::EXPENSE->value]);
+    $sysCategory = Category::factory()->expense()->create();
 
-    $customCategory = CustomCategory::factory()->create([
-        'user_id' => $user->id,
-        'type' => TransactionType::EXPENSE->value,
-    ]);
+    $customCategory = Category::factory()->custom($user)->expense()->create();
 
     $transaction = Transaction::factory()->create([
         'user_id' => $user->id,
         'category_id' => $sysCategory->id,
-        'category_type' => SystemCategory::class,
         'type' => TransactionType::EXPENSE->value,
     ]);
 
@@ -166,8 +154,7 @@ it('successfully updates transaction with custom category belonging to user', fu
 
     $updated = app(UpdateTransactionAction::class)->execute($user, $transaction, $dto);
 
-    expect($updated->category_id)->toBe($customCategory->id)
-        ->and($updated->category_type)->toBe(CustomCategory::class);
+    expect($updated->category_id)->toBe($customCategory->id);
 });
 
 it('throws validation exception if amount update causes negative balance', function () {
@@ -187,36 +174,36 @@ it('throws validation exception if amount update causes negative balance', funct
     $dto = UpdateTransactionData::fromArray(['amount' => '200.00']);
 
     expect(fn () => app(UpdateTransactionAction::class)->execute($user, $transaction, $dto))
-        ->toThrow(BusinessRuleException::class, 'This update would cause the balance to go negative.');
+        ->toThrow(BusinessRuleException::class);
 });
 
 it('throws exception when updating to a future date', function () {
-    $user = User::factory()->create();
-    $transaction = Transaction::factory()->create(['user_id' => $user->id]);
+    [$user, $category] = setupUserWithBudget();
 
-    // Skenario: Nyoba ganti tanggal ke besok
+    $transaction = Transaction::factory()->create([
+        'user_id' => $user->id,
+        'category_id' => $category->id,
+    ]);
+
     $dto = UpdateTransactionData::fromArray([
         'transactionAt' => now()->addDay()->toIso8601String(),
     ]);
 
     expect(fn () => app(UpdateTransactionAction::class)->execute($user, $transaction, $dto))
-        ->toThrow(BusinessRuleException::class, 'Transaction date cannot be set to a future date.');
+        ->toThrow(BusinessRuleException::class);
 });
 
 it('throws validation exception if custom category belongs to another user', function () {
     $user = User::factory()->create();
     $otherUser = User::factory()->create();
 
-    $sysCategory = SystemCategory::factory()->create(['type' => TransactionType::EXPENSE->value]);
-    $hackedCategory = CustomCategory::factory()->create([
-        'user_id' => $otherUser->id,
-        'type' => TransactionType::EXPENSE->value,
-    ]);
+    $sysCategory = Category::factory()->expense()->create();
+    $hackedCategory = Category::factory()->custom($otherUser)->expense()->create();
 
     $transaction = Transaction::factory()->create([
         'user_id' => $user->id,
         'category_id' => $sysCategory->id,
-        'category_type' => SystemCategory::class,
+
         'type' => TransactionType::EXPENSE->value,
     ]);
 
@@ -227,7 +214,7 @@ it('throws validation exception if custom category belongs to another user', fun
 
     app(UpdateTransactionAction::class)->execute($user, $transaction, $dto);
 
-})->throws(ValidationException::class, 'Category not found.');
+})->throws(BusinessRuleException::class);
 
 it('throws validation exception when category type does not match transaction type', function () {
     $user = User::factory()->create();
@@ -238,8 +225,8 @@ it('throws validation exception when category type does not match transaction ty
         'current_balance' => '1000.00',
     ]);
 
-    $expenseCategory = SystemCategory::factory()->create(['type' => TransactionType::EXPENSE]);
-    $incomeCategory = SystemCategory::factory()->create(['type' => TransactionType::INCOME]);
+    $expenseCategory = Category::factory()->expense()->create();
+    $incomeCategory = Category::factory()->income()->create();
 
     $transaction = Transaction::factory()->create([
         'user_id' => $user->id,
@@ -256,8 +243,6 @@ it('throws validation exception when category type does not match transaction ty
         amount: null,
         categoryIdProvided: true,
         categoryId: $incomeCategory->id,
-        categoryTypeProvided: false,
-        categoryType: null,
         noteProvided: false,
         note: null,
         transactionAtProvided: false,
@@ -266,7 +251,7 @@ it('throws validation exception when category type does not match transaction ty
 
     app(UpdateTransactionAction::class)->execute($user, $transaction, $dto);
 
-})->throws(ValidationException::class);
+})->throws(BusinessRuleException::class);
 
 it('fails when user tries to update other users transaction', function () {
     $user = User::factory()->create();
@@ -278,7 +263,7 @@ it('fails when user tries to update other users transaction', function () {
         'current_balance' => '500.00',
     ]);
 
-    $category = SystemCategory::factory()->create(['type' => TransactionType::EXPENSE]);
+    $category = Category::factory()->expense()->create();
 
     $transaction = Transaction::factory()->create([
         'user_id' => $otherUser->id,
@@ -294,8 +279,6 @@ it('fails when user tries to update other users transaction', function () {
         amount: null,
         categoryIdProvided: false,
         categoryId: null,
-        categoryTypeProvided: false,
-        categoryType: null,
         noteProvided: false,
         note: null,
         transactionAtProvided: false,

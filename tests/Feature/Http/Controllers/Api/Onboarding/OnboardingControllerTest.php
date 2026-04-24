@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\SystemCategory;
+use App\Models\Category;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 
@@ -51,7 +51,7 @@ test('user onboarding fails when budget cycle enum is invalid', function () {
 
 test('user should be able to complete onboarding with fixed costs', function () {
     $user = User::factory()->create();
-    $category = SystemCategory::factory()->create();
+    $category = Category::factory()->expense()->create();
 
     $payload = [
         'budgetCycle' => 'monthly',
@@ -66,7 +66,6 @@ test('user should be able to complete onboarding with fixed costs', function () 
                 'cycleType' => 'monthly',
                 'dueDay' => 25,
                 'categoryId' => $category->id,
-                'categoryType' => SystemCategory::class,
             ],
             [
                 'name' => 'Air Mingguan',
@@ -74,7 +73,6 @@ test('user should be able to complete onboarding with fixed costs', function () 
                 'cycleType' => 'weekly',
                 'dueDay' => 3,
                 'categoryId' => $category->id,
-                'categoryType' => SystemCategory::class,
             ],
         ],
     ];
@@ -93,7 +91,7 @@ test('user should be able to complete onboarding with fixed costs', function () 
 
 test('user onboarding fails when budget cycle and fixed cost cycle are incompatible', function () {
     $user = User::factory()->create();
-    $category = SystemCategory::factory()->create();
+    $category = Category::factory()->expense()->create();
 
     $payload = [
         'budgetCycle' => 'weekly',
@@ -108,7 +106,6 @@ test('user onboarding fails when budget cycle and fixed cost cycle are incompati
                 'cycleType' => 'monthly',
                 'dueDay' => 25,
                 'categoryId' => $category->id,
-                'categoryType' => SystemCategory::class,
             ],
         ],
     ];
@@ -169,7 +166,6 @@ test('user onboarding fails when weekly due day is invalid', function () {
                 'cycleType' => 'weekly',
                 'dueDay' => 8,
                 'categoryId' => 1,
-                'categoryType' => SystemCategory::class,
             ],
         ],
     ];

@@ -2,10 +2,10 @@
 
 use App\Domains\Category\Actions\GetSystemCategoriesAction;
 use App\Models\User;
-use Database\Seeders\SystemCategorySeeder;
+use Database\Seeders\CategorySeeder;
 
 beforeEach(function () {
-    $this->seed(SystemCategorySeeder::class);
+    $this->seed(CategorySeeder::class);
     GetSystemCategoriesAction::clearCache();
 });
 

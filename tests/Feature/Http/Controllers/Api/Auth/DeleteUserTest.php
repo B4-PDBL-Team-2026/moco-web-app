@@ -1,8 +1,8 @@
 <?php
 
+use App\Models\Category;
 use App\Models\FixedCostOccurrence;
 use App\Models\FixedCostTemplate;
-use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
@@ -117,12 +117,11 @@ test('deletes password reset tokens for the user email', function () {
 
 test('deletes all transactions belonging to the user', function () {
     $user = userWithPassword();
-    $cat = SystemCategory::factory()->create();
+    $cat = Category::factory()->expense()->create();
 
     Transaction::factory()->count(3)->create([
         'user_id' => $user->id,
         'category_id' => $cat->id,
-        'category_type' => SystemCategory::class,
     ]);
 
     Sanctum::actingAs($user);
@@ -133,17 +132,17 @@ test('deletes all transactions belonging to the user', function () {
 
 test('deletes all fixed cost templates and their occurrences', function () {
     $user = userWithPassword();
-    $cat = SystemCategory::factory()->create();
+    $cat = Category::factory()->expense()->create();
     $template = FixedCostTemplate::factory()->create([
         'user_id' => $user->id,
         'category_id' => $cat->id,
-        'category_type' => SystemCategory::class,
+
     ]);
     FixedCostOccurrence::factory()->create([
         'user_id' => $user->id,
         'fixed_cost_template_id' => $template->id,
         'category_id' => $cat->id,
-        'category_type' => SystemCategory::class,
+
     ]);
 
     Sanctum::actingAs($user);
@@ -180,12 +179,12 @@ test('does not delete other users', function () {
 test('does not delete transactions belonging to other users', function () {
     $user = userWithPassword();
     $other = User::factory()->create();
-    $cat = SystemCategory::factory()->create();
+    $cat = Category::factory()->expense()->create();
 
     $otherTx = Transaction::factory()->create([
         'user_id' => $other->id,
         'category_id' => $cat->id,
-        'category_type' => SystemCategory::class,
+
     ]);
 
     Sanctum::actingAs($user);

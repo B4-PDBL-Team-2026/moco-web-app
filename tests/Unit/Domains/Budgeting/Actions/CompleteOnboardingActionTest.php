@@ -7,9 +7,9 @@ use App\Domains\Budgeting\Enums\CycleType;
 use App\Domains\FixedCosts\DTOs\CreateFixedCostTemplateData;
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
 use App\Domains\Transactions\Enums\TransactionSource;
+use App\Models\Category;
 use App\Models\FixedCostOccurrence;
 use App\Models\FixedCostTemplate;
-use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -57,7 +57,7 @@ it('completes onboarding without fixed costs', function () {
 
 it('completes onboarding with fixed costs and returns computed result', function () {
     $user = User::factory()->create();
-    $category = SystemCategory::factory()->create();
+    $category = Category::factory()->expense()->create();
 
     $dto = new CompleteOnboardingData(
         cycleType: CycleType::MONTHLY,
@@ -69,10 +69,9 @@ it('completes onboarding with fixed costs and returns computed result', function
                 name: 'Rent',
                 amount: '400.00',
                 cycleType: CycleType::MONTHLY,
+                dueDay: 25,
                 isActive: true,
                 categoryId: $category->id,
-                dueDay: 25,
-                categoryType: SystemCategory::class,
             ),
         ],
         timezone: 'Asia/Jakarta',
@@ -88,7 +87,7 @@ it('completes onboarding with fixed costs and returns computed result', function
 
 it('allows weekly fixed costs within a monthly budget cycle', function () {
     $user = User::factory()->create();
-    $category = SystemCategory::factory()->create();
+    $category = Category::factory()->expense()->create();
 
     $dto = new CompleteOnboardingData(
         cycleType: CycleType::MONTHLY,
@@ -103,7 +102,6 @@ it('allows weekly fixed costs within a monthly budget cycle', function () {
                 isActive: true,
                 categoryId: $category->id,
                 dueDay: 3,
-                categoryType: SystemCategory::class,
             ),
         ],
         timezone: 'Asia/Jakarta',
@@ -117,7 +115,7 @@ it('allows weekly fixed costs within a monthly budget cycle', function () {
 
 it('allows weekly fixed costs within a weekly budget cycle', function () {
     $user = User::factory()->create();
-    $category = SystemCategory::factory()->create();
+    $category = Category::factory()->expense()->create();
 
     $dto = new CompleteOnboardingData(
         cycleType: CycleType::WEEKLY,
@@ -129,10 +127,9 @@ it('allows weekly fixed costs within a weekly budget cycle', function () {
                 name: 'Weekly Groceries',
                 amount: '200.00',
                 cycleType: CycleType::WEEKLY,
+                dueDay: 1,
                 isActive: true,
                 categoryId: $category->id,
-                dueDay: 1,
-                categoryType: SystemCategory::class,
             ),
         ],
         timezone: 'Asia/Jakarta',
@@ -146,7 +143,7 @@ it('allows weekly fixed costs within a weekly budget cycle', function () {
 
 it('rejects monthly fixed costs within a weekly budget cycle', function () {
     $user = User::factory()->create();
-    $category = SystemCategory::factory()->create();
+    $category = Category::factory()->expense()->create();
 
     $dto = new CompleteOnboardingData(
         cycleType: CycleType::WEEKLY,
@@ -161,7 +158,6 @@ it('rejects monthly fixed costs within a weekly budget cycle', function () {
                 isActive: true,
                 categoryId: $category->id,
                 dueDay: 25,
-                categoryType: SystemCategory::class,
             ),
         ],
         timezone: 'Asia/Jakarta',
@@ -178,7 +174,7 @@ it('updates existing onboarding data seamlessly when user steps back and resubmi
     $user = User::factory()->create([
         'created_at' => CarbonImmutable::now()->subMonth()->startOfMonth(),
     ]);
-    $category = SystemCategory::factory()->create();
+    $category = Category::factory()->expense()->create();
 
     $firstAttemptDto = new CompleteOnboardingData(
         cycleType: CycleType::MONTHLY,
@@ -190,10 +186,9 @@ it('updates existing onboarding data seamlessly when user steps back and resubmi
                 name: 'Old Rent',
                 amount: '400.00',
                 cycleType: CycleType::MONTHLY,
+                dueDay: 25,
                 isActive: true,
                 categoryId: $category->id,
-                dueDay: 25,
-                categoryType: SystemCategory::class,
             ),
         ],
         timezone: 'Asia/Jakarta',
@@ -221,19 +216,17 @@ it('updates existing onboarding data seamlessly when user steps back and resubmi
                 name: 'New Rent',
                 amount: '1000.00',
                 cycleType: CycleType::MONTHLY,
+                dueDay: 1,
                 isActive: true,
                 categoryId: $category->id,
-                dueDay: 1,
-                categoryType: SystemCategory::class,
             ),
             new CreateFixedCostTemplateData(
                 name: 'New Internet',
                 amount: '300.00',
                 cycleType: CycleType::MONTHLY,
+                dueDay: 5,
                 isActive: true,
                 categoryId: $category->id,
-                dueDay: 5,
-                categoryType: SystemCategory::class,
             ),
         ],
         timezone: 'Asia/Jakarta',

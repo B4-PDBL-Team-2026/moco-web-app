@@ -2,9 +2,9 @@
 
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
 use App\Domains\FixedCosts\Services\FixedCostProvisionService;
+use App\Models\Category;
 use App\Models\FixedCostOccurrence;
 use App\Models\FixedCostTemplate;
-use App\Models\SystemCategory;
 use App\Models\User;
 use Carbon\Carbon;
 
@@ -15,14 +15,14 @@ function makeUserRegisteredOn(string $date): User
     ]);
 }
 
-function makeTemplate(User $user, SystemCategory $cat): FixedCostTemplate
+function makeTemplate(User $user, Category $cat): FixedCostTemplate
 {
     return FixedCostTemplate::factory()->create([
         'user_id' => $user->id,
         'amount' => '200000.00',
         'cycle_type' => 'monthly',
         'due_day' => 15,
-        'category_type' => SystemCategory::class,
+
         'category_id' => $cat->id,
     ]);
 }
@@ -44,14 +44,14 @@ function makeOccurrence(
         'status' => $status,
         'amount' => $amount,
         'name' => 'Netflix',
-        'category_type' => SystemCategory::class,
+
         'category_id' => $template->category_id,
     ]);
 }
 
 beforeEach(function () {
     $this->service = new FixedCostProvisionService;
-    $this->category = SystemCategory::factory()->create();
+    $this->category = Category::factory()->create();
 });
 
 it('sums pending occurrences due on or after registration date', function () {

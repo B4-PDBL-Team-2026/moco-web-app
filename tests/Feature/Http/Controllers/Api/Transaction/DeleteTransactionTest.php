@@ -1,7 +1,6 @@
 <?php
 
-use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\CustomCategory;
+use App\Models\Category;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
@@ -23,15 +22,11 @@ test('authenticated user can delete own expense transaction', function () {
         'current_balance' => '500.00',
     ]);
 
-    $category = CustomCategory::factory()->create([
-        'user_id' => $user->id,
-        'type' => TransactionType::EXPENSE,
-    ]);
+    $category = Category::factory()->expense()->create();
 
     $transaction = Transaction::factory()->create([
         'user_id' => $user->id,
         'category_id' => $category->id,
-        'category_type' => CustomCategory::class,
         'amount' => '100.00',
         'type' => 'expense',
     ]);

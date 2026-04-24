@@ -2,9 +2,9 @@
 
 use App\Domains\FixedCosts\Actions\UpdateFixedCostOccurrenceMetadataAction;
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
+use App\Models\Category;
 use App\Models\FixedCostOccurrence;
 use App\Models\FixedCostTemplate;
-use App\Models\SystemCategory;
 use App\Models\User;
 use App\Models\UserBudgetSnapshot;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -12,10 +12,10 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 function setupForMetadata(): array
 {
     $user = User::factory()->create();
-    $cat = SystemCategory::factory()->create();
+    $cat = Category::factory()->expense()->create();
     $template = FixedCostTemplate::factory()->create([
         'user_id' => $user->id,
-        'category_type' => SystemCategory::class,
+
         'category_id' => $cat->id,
     ]);
 
@@ -39,7 +39,7 @@ function setupForMetadata(): array
         'status' => FixedCostOccurenceStatus::PAID->value,
         'amount' => '150000.00',
         'name' => 'Old Name',
-        'category_type' => SystemCategory::class,
+
         'category_id' => $cat->id,
     ]);
 

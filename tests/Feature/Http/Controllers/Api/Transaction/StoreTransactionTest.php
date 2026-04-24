@@ -1,7 +1,6 @@
 <?php
 
-use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\CustomCategory;
+use App\Models\Category;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
 use App\Models\UserBudgetSnapshot;
@@ -24,14 +23,10 @@ test('authenticated user can create income transaction', function () {
         'current_balance' => '5000.00',
     ]);
 
-    $category = CustomCategory::factory()->create([
-        'user_id' => $user->id,
-        'type' => TransactionType::INCOME,
-    ]);
+    $category = Category::factory()->income()->create();
 
     $payload = [
         'categoryId' => $category->id,
-        'categoryType' => 'custom',
         'name' => 'Salary',
         'amount' => '1000.00',
         'type' => 'income',
@@ -56,15 +51,11 @@ test('authenticated user can create income transaction and timezone is converted
         'current_balance' => '5000.00',
     ]);
 
-    $category = CustomCategory::factory()->create([
-        'user_id' => $user->id,
-        'type' => TransactionType::INCOME,
-    ]);
+    $category = Category::factory()->income()->create();
 
     // user at Asia/Jakarta
     $payload = [
         'categoryId' => $category->id,
-        'categoryType' => 'custom',
         'name' => 'Salary',
         'amount' => '1000.00',
         'type' => 'income',

@@ -2,9 +2,9 @@
 
 use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
+use App\Models\Category;
 use App\Models\FixedCostOccurrence;
 use App\Models\FixedCostTemplate;
-use App\Models\SystemCategory;
 use App\Models\User;
 use App\Models\UserBudgetSnapshot;
 use Laravel\Sanctum\Sanctum;
@@ -18,7 +18,7 @@ beforeEach(function () {
 function confirmSetup(string $balance = '500000.00', string $status = 'pending'): array
 {
     $user = User::factory()->create();
-    $category = SystemCategory::factory()->create();
+    $category = Category::factory()->expense()->create();
 
     UserBudgetSnapshot::factory()->create([
         'user_id' => $user->id,
@@ -32,7 +32,6 @@ function confirmSetup(string $balance = '500000.00', string $status = 'pending')
 
     $template = FixedCostTemplate::factory()->create([
         'user_id' => $user->id,
-        'category_type' => SystemCategory::class,
         'category_id' => $category->id,
     ]);
 
@@ -45,7 +44,6 @@ function confirmSetup(string $balance = '500000.00', string $status = 'pending')
         'status' => $status,
         'amount' => '150000.00',
         'name' => 'Netflix',
-        'category_type' => SystemCategory::class,
         'category_id' => $category->id,
     ]);
 

@@ -1,23 +1,22 @@
 <?php
 
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
+use App\Models\Category;
 use App\Models\FixedCostOccurrence;
 use App\Models\FixedCostTemplate;
-use App\Models\SystemCategory;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
 
 function deleteSetup(): array
 {
     $user = User::factory()->create();
-    $cat = SystemCategory::factory()->create();
+    $cat = Category::factory()->expense()->create();
     $template = FixedCostTemplate::factory()->create([
         'user_id' => $user->id,
         'name' => 'Gym',
         'amount' => '250000.00',
         'cycle_type' => 'monthly',
         'due_day' => 5,
-        'category_type' => SystemCategory::class,
         'category_id' => $cat->id,
     ]);
 
@@ -49,7 +48,6 @@ test('voids pending occurrences on deletion', function () {
         'status' => FixedCostOccurenceStatus::PENDING->value,
         'amount' => '250000.00',
         'name' => 'Gym',
-        'category_type' => SystemCategory::class,
         'category_id' => $template->category_id,
     ]);
 
@@ -71,7 +69,6 @@ test('preserves paid occurrences on deletion', function () {
         'status' => FixedCostOccurenceStatus::PAID->value,
         'amount' => '250000.00',
         'name' => 'Gym',
-        'category_type' => SystemCategory::class,
         'category_id' => $template->category_id,
         'paid_at' => now(),
     ]);

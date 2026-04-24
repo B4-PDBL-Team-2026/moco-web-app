@@ -1,11 +1,11 @@
 <?php
 
 use App\Domains\Category\Actions\GetSystemCategoriesAction;
-use App\Models\SystemCategory;
-use Database\Seeders\SystemCategorySeeder;
+use App\Models\Category;
+use Database\Seeders\CategorySeeder;
 
 beforeEach(function () {
-    $this->seed(SystemCategorySeeder::class);
+    $this->seed(CategorySeeder::class);
     GetSystemCategoriesAction::clearCache();
 });
 
@@ -23,7 +23,7 @@ it('caches the result after the first call', function () {
 
     $action->execute();
 
-    SystemCategory::factory()->create(['name' => 'Kategori Baru']);
+    Category::factory()->create(['name' => 'Kategori Baru']);
 
     $categories = $action->execute();
     expect($categories)->toHaveCount(17);
@@ -34,7 +34,7 @@ it('returns updated data after cache is cleared', function () {
 
     $action->execute();
 
-    SystemCategory::factory()->create(['name' => 'Zzz Kategori']);
+    Category::factory()->create(['name' => 'Zzz Kategori']);
 
     GetSystemCategoriesAction::clearCache();
 

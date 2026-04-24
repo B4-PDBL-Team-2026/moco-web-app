@@ -5,9 +5,8 @@ use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
 use App\Domains\Transactions\Actions\CreateExpenseTransactionAction;
 use App\Domains\Transactions\DTOs\CreateTransactionData;
 use App\Domains\Transactions\Enums\TransactionType;
-use App\Domains\Transactions\Services\TransactionValidationService;
-use App\Models\CustomCategory;
-use App\Models\SystemCategory;
+use App\Domains\Transactions\Services\TransactionValidator;
+use App\Models\Category;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
@@ -19,7 +18,7 @@ beforeEach(function () {
     $this->mockRecalculate = Mockery::mock(RecalculateBudgetSnapshotAction::class);
     $this->mockRecalculate->shouldReceive('execute')->andReturn(new UserBudgetSnapshot);
 
-    $validationService = app(TransactionValidationService::class);
+    $validationService = app(TransactionValidator::class);
 
     $this->action = new CreateExpenseTransactionAction(
         $this->mockRecalculate,
@@ -36,13 +35,11 @@ it('successfully creates an expense transaction and triggers recalculation', fun
         'current_balance' => '1000.00',
     ]);
 
-    $category = SystemCategory::factory()->create([
-        'type' => TransactionType::EXPENSE,
-    ]);
+    $category = Category::factory()->expense()->create();
 
     $dto = new CreateTransactionData(
         categoryId: $category->id,
-        categoryType: 'system',
+
         name: 'Groceries',
         amount: '200.00',
         type: TransactionType::EXPENSE,
@@ -65,23 +62,19 @@ it('successfully creates an expense transaction and triggers recalculation', fun
 });
 
 it('successfully creates expense transaction using a Custom Category', function () {
-    $user = User::factory()->create();
+    [$user] = setupUserWithBudget();
 
     UserBudgetSnapshot::factory()->create([
         'user_id' => $user->id,
         'current_balance' => '5000000.00',
     ]);
 
-    $customCategory = CustomCategory::factory()->createQuietly([
-        'user_id' => $user->id,
-        'type' => TransactionType::EXPENSE->value,
-    ]);
+    $customCategory = Category::factory()->custom($user)->expense()->create();
 
     $date = CarbonImmutable::parse('2026-03-30 10:00:00', 'UTC');
 
     $dto = new CreateTransactionData(
         categoryId: $customCategory->id,
-        categoryType: CustomCategory::class,
         name: 'Project Freelance',
         amount: '1500000.00',
         type: TransactionType::EXPENSE,
@@ -91,13 +84,11 @@ it('successfully creates expense transaction using a Custom Category', function 
 
     $transaction = $this->action->execute($user, $dto);
 
-    expect($transaction)->toBeInstanceOf(Transaction::class)
-        ->and($transaction->category_type)->toBe(CustomCategory::class);
+    expect($transaction)->toBeInstanceOf(Transaction::class);
 
     $this->assertDatabaseHas('transactions', [
         'user_id' => $user->id,
         'category_id' => $customCategory->id,
-        'category_type' => CustomCategory::class,
         'type' => TransactionType::EXPENSE->value,
         'transaction_at' => '2026-03-30 10:00:00',
     ]);
@@ -126,7 +117,7 @@ it('parses transaction date from local timezone offset to UTC correctly', functi
 
 it('throws an BusinessRuleException if expense amount is zero or negative', function () {
     $user = User::factory()->create();
-    $category = SystemCategory::factory()->createQuietly(['type' => TransactionType::INCOME->value]);
+    $category = Category::factory()->income()->create();
 
     UserBudgetSnapshot::factory()->create([
         'user_id' => $user->id,
@@ -135,7 +126,6 @@ it('throws an BusinessRuleException if expense amount is zero or negative', func
 
     $dto = new CreateTransactionData(
         categoryId: $category->id,
-        categoryType: SystemCategory::class,
         name: 'Hacker Attempt',
         amount: '-5000000.00',
         type: TransactionType::EXPENSE,
@@ -158,13 +148,11 @@ it('throws BusinessRuleException when category type does not match transaction t
     ]);
 
     // Category is EXPENSE but transaction type is INCOME — should fail
-    $category = SystemCategory::factory()->create([
-        'type' => TransactionType::EXPENSE,
-    ]);
+    $category = Category::factory()->custom($user)->expense()->create();
 
     $dto = new CreateTransactionData(
         categoryId: $category->id,
-        categoryType: 'system',
+
         name: 'Salary',
         amount: '500.00',
         type: TransactionType::INCOME,
@@ -187,7 +175,7 @@ it('throws ModelNotFoundException when category does not exist', function () {
 
     $dto = new CreateTransactionData(
         categoryId: 999999, // non-existent
-        categoryType: 'system',
+
         name: 'Salary',
         amount: '500.00',
         type: TransactionType::INCOME,

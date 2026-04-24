@@ -1,7 +1,7 @@
 <?php
 
+use App\Models\Category;
 use App\Models\FixedCostTemplate;
-use App\Models\SystemCategory;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
 use Laravel\Sanctum\Sanctum;
@@ -18,7 +18,7 @@ function updateSetup(): array
         'timezone' => 'Asia/Jakarta',
     ]);
 
-    $cat = SystemCategory::factory()->create();
+    $cat = Category::factory()->expense()->create();
     $template = FixedCostTemplate::factory()->create([
         'user_id' => $user->id,
         'name' => 'Netflix',
@@ -26,7 +26,6 @@ function updateSetup(): array
         'cycle_type' => 'monthly',
         'due_day' => 15,
         'is_active' => true,
-        'category_type' => SystemCategory::class,
         'category_id' => $cat->id,
     ]);
 
@@ -62,24 +61,6 @@ test('returns 422 when cycleType is invalid value', function () {
     $this->patchJson("/api/fixed-costs/{$template->id}", ['cycleType' => 'biweekly'])
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['cycleType'], 'data');
-});
-
-test('returns 422 when categoryId is provided without categoryType', function () {
-    [$user, $template, $cat] = updateSetup();
-    Sanctum::actingAs($user);
-
-    $this->patchJson("/api/fixed-costs/{$template->id}", ['categoryId' => $cat->id])
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors(['categoryType'], 'data');
-});
-
-test('returns 422 when categoryType is provided without categoryId', function () {
-    [$user, $template] = updateSetup();
-    Sanctum::actingAs($user);
-
-    $this->patchJson("/api/fixed-costs/{$template->id}", ['categoryType' => SystemCategory::class])
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors(['categoryId'], 'data');
 });
 
 test('returns 422 when dueDay is 0', function () {

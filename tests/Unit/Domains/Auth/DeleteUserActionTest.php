@@ -1,9 +1,9 @@
 <?php
 
 use App\Domains\Auth\Actions\DeleteUserAction;
+use App\Models\Category;
 use App\Models\FixedCostOccurrence;
 use App\Models\FixedCostTemplate;
-use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
@@ -127,12 +127,12 @@ it('does not delete sessions belonging to other users', function () {
 
 it('deletes all transactions belonging to the user (via cascade)', function () {
     $user = User::factory()->create();
-    $cat = SystemCategory::factory()->create();
+    $cat = Category::factory()->expense()->create();
 
     Transaction::factory()->count(3)->create([
         'user_id' => $user->id,
         'category_id' => $cat->id,
-        'category_type' => SystemCategory::class,
+
     ]);
 
     $this->action->execute($user);
@@ -142,12 +142,12 @@ it('deletes all transactions belonging to the user (via cascade)', function () {
 
 it('deletes all fixed cost templates belonging to the user (via cascade)', function () {
     $user = User::factory()->create();
-    $cat = SystemCategory::factory()->create();
+    $cat = Category::factory()->expense()->create();
 
     FixedCostTemplate::factory()->count(2)->create([
         'user_id' => $user->id,
         'category_id' => $cat->id,
-        'category_type' => SystemCategory::class,
+
     ]);
 
     $this->action->execute($user);
@@ -157,18 +157,18 @@ it('deletes all fixed cost templates belonging to the user (via cascade)', funct
 
 it('deletes all fixed cost occurrences belonging to the user (via cascade)', function () {
     $user = User::factory()->create();
-    $cat = SystemCategory::factory()->create();
+    $cat = Category::factory()->expense()->create();
     $template = FixedCostTemplate::factory()->create([
         'user_id' => $user->id,
         'category_id' => $cat->id,
-        'category_type' => SystemCategory::class,
+
     ]);
 
     FixedCostOccurrence::factory()->create([
         'user_id' => $user->id,
         'fixed_cost_template_id' => $template->id,
         'category_id' => $cat->id,
-        'category_type' => SystemCategory::class,
+
     ]);
 
     $this->action->execute($user);
@@ -198,12 +198,12 @@ it('deletes the user budget snapshot (via cascade)', function () {
 
 it('rolls back all changes if an error occurs mid-transaction', function () {
     $user = User::factory()->create();
-    $cat = SystemCategory::factory()->create();
+    $cat = Category::factory()->expense()->create();
 
     Transaction::factory()->create([
         'user_id' => $user->id,
         'category_id' => $cat->id,
-        'category_type' => SystemCategory::class,
+
     ]);
 
     // Partially mock the action so it throws after token deletion but

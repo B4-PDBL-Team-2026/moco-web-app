@@ -1,8 +1,7 @@
 <?php
 
 use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\CustomCategory;
-use App\Models\SystemCategory;
+use App\Models\Category;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
@@ -51,7 +50,7 @@ test('successfully updates transaction name and note', function () {
     $this->putJson("/api/transaction/{$transaction->id}", [
         'name' => 'New Name',
         'note' => 'New Note',
-    ])->assertOk() // 200
+    ])->assertOk()
         ->assertJsonPath('data.name', 'New Name');
 
     $this->assertDatabaseHas('transactions', [
@@ -80,13 +79,12 @@ test('successfully updates transaction amount', function () {
 });
 
 test('successfully updates category to a system category', function () {
-    $oldCategory = SystemCategory::factory()->create(['type' => TransactionType::EXPENSE->value]);
-    $newCategory = SystemCategory::factory()->create(['type' => TransactionType::EXPENSE->value]);
+    $oldCategory = Category::factory()->expense()->create();
+    $newCategory = Category::factory()->expense()->create();
 
     $transaction = Transaction::factory()->create([
         'user_id' => $this->user->id,
         'category_id' => $oldCategory->id,
-        'category_type' => 'system',
         'type' => TransactionType::EXPENSE->value,
     ]);
 
@@ -94,28 +92,22 @@ test('successfully updates category to a system category', function () {
 
     $this->putJson("/api/transaction/{$transaction->id}", [
         'categoryId' => $newCategory->id,
-        'categoryType' => 'system',
     ])->assertOk();
 
     $this->assertDatabaseHas('transactions', [
         'id' => $transaction->id,
         'category_id' => $newCategory->id,
-        'category_type' => SystemCategory::class,
     ]);
 });
 
 test('successfully updates category to a custom category', function () {
-    $sysCategory = SystemCategory::factory()->create(['type' => TransactionType::EXPENSE->value]);
+    $sysCategory = Category::factory()->expense()->create();
 
-    $customCategory = CustomCategory::factory()->create([
-        'user_id' => $this->user->id,
-        'type' => TransactionType::EXPENSE->value,
-    ]);
+    $customCategory = Category::factory()->custom($this->user)->expense()->create();
 
     $transaction = Transaction::factory()->create([
         'user_id' => $this->user->id,
         'category_id' => $sysCategory->id,
-        'category_type' => 'system',
         'type' => TransactionType::EXPENSE->value,
     ]);
 
@@ -123,35 +115,17 @@ test('successfully updates category to a custom category', function () {
 
     $this->putJson("/api/transaction/{$transaction->id}", [
         'categoryId' => $customCategory->id,
-        'categoryType' => 'custom',
     ])->assertOk();
 
     $this->assertDatabaseHas('transactions', [
         'id' => $transaction->id,
         'category_id' => $customCategory->id,
-        'category_type' => CustomCategory::class,
     ]);
-});
-
-test('validation fails if categoryType is missing when categoryId is provided', function () {
-    $transaction = Transaction::factory()->create([
-        'user_id' => $this->user->id,
-    ]);
-
-    Sanctum::actingAs($this->user);
-
-    $this->putJson("/api/transaction/{$transaction->id}", [
-        'categoryId' => 1,
-    ])->assertStatus(422)
-        ->assertJsonValidationErrors(['categoryType'], 'data');
 });
 
 test('validation fails if user tries to use another users custom category', function () {
     $otherUser = User::factory()->create();
-    $hackedCategory = CustomCategory::factory()->create([
-        'user_id' => $otherUser->id,
-        'type' => TransactionType::EXPENSE->value,
-    ]);
+    $hackedCategory = Category::factory()->custom($otherUser)->expense()->create();
 
     $transaction = Transaction::factory()->create([
         'user_id' => $this->user->id,
@@ -162,19 +136,17 @@ test('validation fails if user tries to use another users custom category', func
 
     $this->putJson("/api/transaction/{$transaction->id}", [
         'categoryId' => $hackedCategory->id,
-        'categoryType' => 'custom',
     ])->assertStatus(422)
-        ->assertJsonValidationErrors(['categoryId'], 'data');
+        ->assertJsonValidationErrors(['businessRule'], 'data');
 });
 
 test('validation fails if category type does not match transaction type', function () {
-    $expenseCategory = SystemCategory::factory()->create(['type' => TransactionType::EXPENSE->value]);
-    $incomeCategory = SystemCategory::factory()->create(['type' => TransactionType::INCOME->value]);
+    $expenseCategory = Category::factory()->expense()->create();
+    $incomeCategory = Category::factory()->income()->create();
 
     $transaction = Transaction::factory()->create([
         'user_id' => $this->user->id,
         'category_id' => $expenseCategory->id,
-        'category_type' => 'system',
         'type' => TransactionType::EXPENSE->value,
     ]);
 
@@ -182,9 +154,8 @@ test('validation fails if category type does not match transaction type', functi
 
     $this->putJson("/api/transaction/{$transaction->id}", [
         'categoryId' => $incomeCategory->id,
-        'categoryType' => 'system',
     ])->assertStatus(422)
-        ->assertJsonValidationErrors(['categoryId'], 'data');
+        ->assertJsonValidationErrors(['businessRule'], 'data');
 });
 
 test('successfully updates transaction date', function () {

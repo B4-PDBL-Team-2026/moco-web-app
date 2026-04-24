@@ -5,9 +5,9 @@ use App\Domains\Budgeting\Enums\CycleType;
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
 use App\Domains\Transactions\Enums\TransactionSource;
 use App\Domains\Transactions\Enums\TransactionType;
+use App\Models\Category;
 use App\Models\FixedCostOccurrence;
 use App\Models\FixedCostTemplate;
-use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSnapshot;
@@ -23,7 +23,8 @@ beforeEach(function () {
 function cancelSetup(string $status = 'paid', ?string $dueDate = null): array
 {
     $user = User::factory()->create();
-    $category = SystemCategory::factory()->create();
+
+    $category = Category::factory()->expense()->create();
 
     UserBudgetSnapshot::factory()->create([
         'user_id' => $user->id,
@@ -36,7 +37,6 @@ function cancelSetup(string $status = 'paid', ?string $dueDate = null): array
 
     $template = FixedCostTemplate::factory()->create([
         'user_id' => $user->id,
-        'category_type' => SystemCategory::class,
         'category_id' => $category->id,
     ]);
 
@@ -49,7 +49,6 @@ function cancelSetup(string $status = 'paid', ?string $dueDate = null): array
         'status' => $status,
         'amount' => '150000.00',
         'name' => 'Electricity',
-        'category_type' => SystemCategory::class,
         'category_id' => $category->id,
         'paid_at' => $status === 'paid' ? now() : null,
     ]);
@@ -91,7 +90,6 @@ test('soft-deletes paid fixed cost linked transaction on cancel', function () {
         'name' => 'Electricity',
         'amount' => '150000.00',
         'transaction_at' => now()->toDateString(),
-        'category_type' => $occurrence->category_type,
         'category_id' => $occurrence->category_id,
     ]);
 

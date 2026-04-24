@@ -1,43 +1,21 @@
  <?php
 
- use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
-use App\Domains\Budgeting\Enums\CycleType;
+use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
-use App\Domains\Transactions\Enums\TransactionSource;
 use App\Domains\Transactions\Enums\TransactionType;
+use App\Models\Category;
 use App\Models\FixedCostOccurrence;
-use App\Models\SystemCategory;
 use App\Models\Transaction;
-use App\Models\User;
-use App\Models\UserBudgetSetting;
 use App\Models\UserBudgetSnapshot;
 use Carbon\CarbonImmutable;
 
 use function Pest\Laravel\assertDatabaseHas;
 
 it('recalculates user budget status correctly', function () {
-    $user = User::factory()->create();
-    $category = SystemCategory::factory()->create();
-
-    UserBudgetSetting::query()->create([
-        'user_id' => $user->id,
-        'cycle_type' => CycleType::MONTHLY->value,
-        'initial_balance' => '1000.00',
-        'flooring_limit' => '0.00',
-        'ceiling_limit' => '999999.00',
-        'timezone' => 'Asia/Jakarta',
-    ]);
-
-    Transaction::query()->create([
-        'user_id' => $user->id,
-        'category_id' => $category->id,
-        'category_type' => SystemCategory::class,
-        'fixed_cost_occurrence_id' => null,
-        'type' => TransactionType::INCOME->value,
-        'source' => TransactionSource::INITIAL_BALANCE->value,
-        'name' => 'initial balance',
-        'amount' => '1000.00',
-        'transaction_at' => '2026-03-20',
+    $this->travelTo(CarbonImmutable::parse('2026-03-01', 'Asia/Jakarta'));
+    [$user] = setupUserWithBudget([
+        'flooring_limit' => '10.00',
+        'ceiling_limit' => '15.00',
     ]);
 
     FixedCostOccurrence::factory()->create([
@@ -46,46 +24,29 @@ it('recalculates user budget status correctly', function () {
         'status' => FixedCostOccurenceStatus::PENDING->value,
         'due_date' => '2026-03-25',
         'amount' => '400.00',
-    ]);
+    ]); // leftover balance: 600.00
 
     $status = app(RecalculateBudgetSnapshotAction::class)->execute(
         $user->id,
-        CarbonImmutable::parse('2026-03-20', 'Asia/Jakarta')
+        now('Asia/Jakarta')->toImmutable()
     );
 
     expect((string) $status->current_balance)->toBe('1000.00')
         ->and((string) $status->reserved_cost)->toBe('400.00')
-        ->and((string) $status->remaining_daily_allowance)->toBe('50.00')
-        ->and((string) $status->raw_daily_allowance)->toBe('50.00')
-        ->and((string) $status->daily_allowance_limit)->toBe('50.00')
+        ->and((string) $status->remaining_daily_allowance)->toBe('15.00')
+        ->and((string) $status->raw_daily_allowance)->toBe('19.35')
+        ->and((string) $status->daily_allowance_limit)->toBe('15.00')
         ->and($status->current_cycle_key)->toBe('2026-03')
-        ->and($status->remaining_days)->toBe(12);
+        ->and($status->remaining_days)->toBe(31);
 });
 
 it('stores flooring as daily allowance and zero as actual daily allowance when reserved reaches balance', function () {
-    $user = User::factory()->create();
-    $category = SystemCategory::factory()->create();
-
-    UserBudgetSetting::query()->create([
-        'user_id' => $user->id,
-        'cycle_type' => CycleType::MONTHLY->value,
+    $this->travelTo(CarbonImmutable::parse('2026-03-01', 'Asia/Jakarta'));
+    [$user] = setupUserWithBudget([
         'initial_balance' => '100.00',
-        'flooring_limit' => '20.00',
-        'ceiling_limit' => '999999.00',
-        'timezone' => 'Asia/Jakarta',
-    ]);
-
-    Transaction::query()->create([
-        'user_id' => $user->id,
-        'category_id' => $category->id,
-        'category_type' => SystemCategory::class,
-        'fixed_cost_occurrence_id' => null,
-        'type' => TransactionType::INCOME->value,
-        'source' => TransactionSource::INITIAL_BALANCE->value,
-        'name' => 'initial balance',
-        'amount' => '100.00',
-        'transaction_at' => '2026-03-20',
-    ]);
+        'flooring_limit' => '10.00',
+        'ceiling_limit' => '15.00',
+    ]); // initial balance: 100.00
 
     FixedCostOccurrence::factory()->create([
         'user_id' => $user->id,
@@ -93,115 +54,62 @@ it('stores flooring as daily allowance and zero as actual daily allowance when r
         'status' => FixedCostOccurenceStatus::PENDING->value,
         'due_date' => '2026-03-25',
         'amount' => '100.00',
-    ]);
+    ]); // leftover balance: 0.00
 
     $status = app(RecalculateBudgetSnapshotAction::class)->execute(
         $user->id,
-        CarbonImmutable::parse('2026-03-20', 'Asia/Jakarta')
+        now()->toImmutable(),
     );
 
-    expect((string) $status->remaining_daily_allowance)->toBe('20.00')
+    // 0.00 / 31 days left
+    expect((string) $status->remaining_daily_allowance)->toBe('10.00')
         ->and((string) $status->raw_daily_allowance)->toBe('0.00')
-        ->and((string) $status->daily_allowance_limit)->toBe('20.00');
+        ->and((string) $status->daily_allowance_limit)->toBe('10.00');
 });
 
 it('stores flooring as displayed daily allowance when raw is below flooring', function () {
-    $user = User::factory()->create();
-    $category = SystemCategory::factory()->create();
-
-    UserBudgetSetting::query()->create([
-        'user_id' => $user->id,
-        'cycle_type' => CycleType::MONTHLY->value,
+    $this->travelTo(CarbonImmutable::parse('2026-03-01', 'Asia/Jakarta'));
+    [$user] = setupUserWithBudget([
         'initial_balance' => '100.00',
-        'flooring_limit' => '50.00',
-        'ceiling_limit' => '999999.00',
-        'timezone' => 'Asia/Jakarta',
-    ]);
-
-    Transaction::query()->create([
-        'user_id' => $user->id,
-        'category_id' => $category->id,
-        'category_type' => SystemCategory::class,
-        'fixed_cost_occurrence_id' => null,
-        'type' => TransactionType::INCOME->value,
-        'source' => TransactionSource::INITIAL_BALANCE->value,
-        'name' => 'initial balance',
-        'amount' => '100.00',
-        'transaction_at' => '2026-03-20',
+        'flooring_limit' => '10.00',
+        'ceiling_limit' => '15.00',
     ]);
 
     $status = app(RecalculateBudgetSnapshotAction::class)->execute(
         $user->id,
-        CarbonImmutable::parse('2026-03-20', 'Asia/Jakarta')
+        now('Asia/Jakarta')->toImmutable(),
     );
 
-    expect((string) $status->remaining_daily_allowance)->toBe('50.00')
-        ->and((string) $status->raw_daily_allowance)->toBe('8.33')
-        ->and((string) $status->daily_allowance_limit)->toBe('50.00');
+    expect((string) $status->remaining_daily_allowance)->toBe('10.00')
+        ->and((string) $status->raw_daily_allowance)->toBe('3.22')
+        ->and((string) $status->daily_allowance_limit)->toBe('10.00');
 });
 
 it('stores ceiling capped daily allowance and uncapped actual daily allowance', function () {
-    $user = User::factory()->create();
-    $category = SystemCategory::factory()->create();
-
-    UserBudgetSetting::query()->create([
-        'user_id' => $user->id,
-        'cycle_type' => CycleType::MONTHLY->value,
+    $this->travelTo(CarbonImmutable::parse('2026-03-01', 'Asia/Jakarta'));
+    [$user] = setupUserWithBudget([
         'initial_balance' => '1000.00',
-        'flooring_limit' => '0.00',
-        'ceiling_limit' => '30.00',
-        'timezone' => 'Asia/Jakarta',
-    ]);
-
-    Transaction::query()->create([
-        'user_id' => $user->id,
-        'category_id' => $category->id,
-        'category_type' => SystemCategory::class,
-        'fixed_cost_occurrence_id' => null,
-        'type' => TransactionType::INCOME->value,
-        'source' => TransactionSource::INITIAL_BALANCE->value,
-        'name' => 'initial balance',
-        'amount' => '1000.00',
-        'transaction_at' => '2026-03-20',
+        'flooring_limit' => '10.00',
+        'ceiling_limit' => '15.00',
     ]);
 
     $status = app(RecalculateBudgetSnapshotAction::class)->execute(
         $user->id,
-        CarbonImmutable::parse('2026-03-20', 'Asia/Jakarta')
+        now('Asia/Jakarta')->toImmutable()
     );
 
-    expect((string) $status->remaining_daily_allowance)->toBe('30.00')
-        ->and((string) $status->raw_daily_allowance)->toBe('83.33')
-        ->and((string) $status->daily_allowance_limit)->toBe('30.00');
+    expect((string) $status->remaining_daily_allowance)->toBe('15.00')
+        ->and((string) $status->raw_daily_allowance)->toBe('32.25')
+        ->and((string) $status->daily_allowance_limit)->toBe('15.00');
 });
 
 it('ignores unknown transaction types when calculating balance', function () {
-    $user = User::factory()->create();
-    $category = SystemCategory::factory()->create();
-
-    UserBudgetSetting::query()->create([
-        'user_id' => $user->id,
-        'cycle_type' => CycleType::MONTHLY->value,
-        'initial_balance' => '0.00',
-        'flooring_limit' => '0.00',
-        'ceiling_limit' => '50000.00',
-        'timezone' => 'Asia/Jakarta',
-    ]);
-
-    Transaction::query()->create([
-        'user_id' => $user->id,
-        'category_id' => $category->id,
-        'category_type' => SystemCategory::class,
-        'type' => TransactionType::INCOME->value,
-        'amount' => '1000.00',
-        'name' => 'initial balance',
-        'transaction_at' => '2026-03-20',
-    ]);
+    $this->travelTo(CarbonImmutable::parse('2026-03-01', 'Asia/Jakarta'));
+    [$user, $category] = setupUserWithBudget();
 
     DB::table('transactions')->insert([
         'user_id' => $user->id,
         'category_id' => $category->id,
-        'category_type' => SystemCategory::class,
         'type' => 'UNKNOWN_TYPE',
         'name' => 'unknown transaction type',
         'amount' => '500.00',
@@ -212,7 +120,7 @@ it('ignores unknown transaction types when calculating balance', function () {
 
     $status = app(RecalculateBudgetSnapshotAction::class)->execute(
         $user->id,
-        CarbonImmutable::parse('2026-03-20', 'Asia/Jakarta')
+        now('Asia/Jakarta')->toImmutable()
     );
 
     expect((string) $status->current_balance)->toBe('1000.00');
@@ -223,16 +131,7 @@ it('ignores unknown transaction types when calculating balance', function () {
 });
 
 it('does not update daily_allowance_limit when recalculated on the same day', function () {
-    $user = User::factory()->create();
-
-    UserBudgetSetting::query()->create([
-        'user_id' => $user->id,
-        'cycle_type' => CycleType::MONTHLY->value,
-        'initial_balance' => '1000.00',
-        'flooring_limit' => '0.00',
-        'ceiling_limit' => '999999.00',
-        'timezone' => 'Asia/Jakarta',
-    ]);
+    [$user] = setupUserWithBudget(['initial_balance' => '1000.00']);
 
     $morningTime = CarbonImmutable::parse('2026-03-20 08:00:00', 'Asia/Jakarta');
 
@@ -251,22 +150,10 @@ it('does not update daily_allowance_limit when recalculated on the same day', fu
         'recalculated_at' => $morningTime,
     ]);
 
-    Transaction::query()->create([
-        'user_id' => $user->id,
-        'category_id' => SystemCategory::factory()->create()->id,
-        'category_type' => SystemCategory::class,
-        'type' => TransactionType::INCOME->value,
-        'source' => TransactionSource::INITIAL_BALANCE->value,
-        'amount' => '1000.00',
-        'name' => 'Initial Balance',
-        'transaction_at' => '2026-03-01',
-    ]);
-
     // transaction entry created
     Transaction::query()->create([
         'user_id' => $user->id,
-        'category_id' => SystemCategory::factory()->create()->id,
-        'category_type' => SystemCategory::class,
+        'category_id' => Category::factory()->create()->id,
         'type' => TransactionType::EXPENSE->value,
         'amount' => '400.00', // Sisa uang harusnya tinggal 600
         'name' => 'Jajan Siang',
@@ -284,29 +171,7 @@ it('does not update daily_allowance_limit when recalculated on the same day', fu
 });
 
 it('updates daily_allowance_limit when recalculated on a new day', function () {
-    $user = User::factory()->create();
-    $category = SystemCategory::factory()->create();
-
-    UserBudgetSetting::query()->create([
-        'user_id' => $user->id,
-        'cycle_type' => CycleType::MONTHLY->value,
-        'initial_balance' => '1000.00',
-        'flooring_limit' => '0.00',
-        'ceiling_limit' => '999999.00',
-        'timezone' => 'Asia/Jakarta',
-    ]);
-
-    Transaction::query()->create([
-        'user_id' => $user->id,
-        'category_id' => $category->id,
-        'category_type' => SystemCategory::class,
-        'fixed_cost_occurrence_id' => null,
-        'type' => TransactionType::INCOME->value,
-        'source' => TransactionSource::INITIAL_BALANCE->value,
-        'name' => 'initial balance',
-        'amount' => '1000.00',
-        'transaction_at' => '2026-03-20',
-    ]);
+    [$user] = setupUserWithBudget();
 
     // last snapshot time
     $yesterdayTime = CarbonImmutable::parse('2026-03-20 23:00:00', 'Asia/Jakarta');
@@ -329,8 +194,7 @@ it('updates daily_allowance_limit when recalculated on a new day', function () {
     // expense transaction yesterday that should be included in next day allowance calculation
     Transaction::query()->create([
         'user_id' => $user->id,
-        'category_id' => SystemCategory::factory()->create()->id,
-        'category_type' => SystemCategory::class,
+        'category_id' => Category::factory()->create()->id,
         'type' => TransactionType::EXPENSE->value,
         'amount' => '450.00',
         'name' => 'Belanja Bulanan',
@@ -347,29 +211,7 @@ it('updates daily_allowance_limit when recalculated on a new day', function () {
 });
 
 it('determines new day strictly based on user timezone, not UTC server time', function () {
-    $user = User::factory()->create();
-    $category = SystemCategory::factory()->create();
-
-    UserBudgetSetting::query()->create([
-        'user_id' => $user->id,
-        'cycle_type' => CycleType::MONTHLY->value,
-        'initial_balance' => '1000.00',
-        'flooring_limit' => '0.00',
-        'ceiling_limit' => '999999.00',
-        'timezone' => 'Asia/Jakarta', // GMT+7
-    ]);
-
-    Transaction::query()->create([
-        'user_id' => $user->id,
-        'category_id' => $category->id,
-        'category_type' => SystemCategory::class,
-        'fixed_cost_occurrence_id' => null,
-        'type' => TransactionType::INCOME->value,
-        'source' => TransactionSource::INITIAL_BALANCE->value,
-        'name' => 'initial balance',
-        'amount' => '1000.00',
-        'transaction_at' => '2026-03-20',
-    ]);
+    [$user] = setupUserWithBudget();
 
     $lateNightJakarta = CarbonImmutable::parse('2026-03-20 23:00:00', 'Asia/Jakarta');
 
@@ -389,8 +231,7 @@ it('determines new day strictly based on user timezone, not UTC server time', fu
 
     Transaction::query()->create([
         'user_id' => $user->id,
-        'category_id' => SystemCategory::factory()->create()->id,
-        'category_type' => SystemCategory::class,
+        'category_id' => Category::factory()->create()->id,
         'type' => TransactionType::EXPENSE->value,
         'amount' => '450.00',
         'name' => 'Midnight Snack',

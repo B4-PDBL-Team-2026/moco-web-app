@@ -2,14 +2,13 @@
 
 use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
 use App\Domains\FixedCosts\Actions\GenerateOccurencesForBudgetWindowAction;
-use App\Models\SystemCategory;
+use App\Models\Category;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
 use App\Models\UserBudgetSnapshot;
 use Laravel\Sanctum\Sanctum;
 
 beforeEach(function () {
-    // Prevent the full budget calculation stack from running in HTTP layer tests
     $mockRecalculate = Mockery::mock(RecalculateBudgetSnapshotAction::class);
     $mockRecalculate->shouldReceive('execute')->andReturn(new UserBudgetSnapshot);
     app()->instance(RecalculateBudgetSnapshotAction::class, $mockRecalculate);
@@ -40,7 +39,7 @@ function storeSetup(): array
         'remaining_days' => 10,
     ]);
 
-    $cat = SystemCategory::factory()->create();
+    $cat = Category::factory()->expense()->create();
 
     return [$user, $cat];
 }
@@ -57,7 +56,6 @@ test('returns 422 when name is missing', function () {
         'amount' => 150000,
         'cycleType' => 'monthly',
         'dueDay' => 15,
-        'categoryType' => SystemCategory::class,
         'categoryId' => $cat->id,
     ])->assertUnprocessable()->assertJsonValidationErrors(['name'], 'data');
 });
@@ -71,7 +69,6 @@ test('returns 422 when amount is zero', function () {
         'amount' => 0,
         'cycleType' => 'monthly',
         'dueDay' => 15,
-        'categoryType' => SystemCategory::class,
         'categoryId' => $cat->id,
     ])->assertUnprocessable()->assertJsonValidationErrors(['amount'], 'data');
 });
@@ -85,7 +82,6 @@ test('returns 422 when amount is negative', function () {
         'amount' => -100,
         'cycleType' => 'monthly',
         'dueDay' => 15,
-        'categoryType' => SystemCategory::class,
         'categoryId' => $cat->id,
     ])->assertUnprocessable()->assertJsonValidationErrors(['amount'], 'data');
 });
@@ -99,7 +95,6 @@ test('returns 422 when cycleType is invalid', function () {
         'amount' => 150000,
         'cycleType' => 'quarterly',
         'dueDay' => 15,
-        'categoryType' => SystemCategory::class,
         'categoryId' => $cat->id,
     ])->assertUnprocessable()->assertJsonValidationErrors(['cycleType'], 'data');
 });
@@ -113,26 +108,12 @@ test('returns 422 when dueDay exceeds 31', function () {
         'amount' => 150000,
         'cycleType' => 'monthly',
         'dueDay' => 32,
-        'categoryType' => SystemCategory::class,
         'categoryId' => $cat->id,
     ])->assertUnprocessable()->assertJsonValidationErrors(['dueDay'], 'data');
 });
 
-test('returns 422 when categoryType is missing', function () {
-    [$user, $cat] = storeSetup();
-    Sanctum::actingAs($user);
-
-    $this->postJson('/api/fixed-costs', [
-        'name' => 'Netflix',
-        'amount' => 150000,
-        'cycleType' => 'monthly',
-        'dueDay' => 15,
-        'categoryId' => $cat->id,
-    ])->assertUnprocessable()->assertJsonValidationErrors(['categoryType'], 'data');
-});
-
 test('returns 422 when categoryId is missing', function () {
-    [$user, $cat] = storeSetup();
+    [$user] = storeSetup();
     Sanctum::actingAs($user);
 
     $this->postJson('/api/fixed-costs', [
@@ -140,7 +121,6 @@ test('returns 422 when categoryId is missing', function () {
         'amount' => 150000,
         'cycleType' => 'monthly',
         'dueDay' => 15,
-        'categoryType' => SystemCategory::class,
     ])->assertUnprocessable()->assertJsonValidationErrors(['categoryId'], 'data');
 });
 
@@ -154,7 +134,6 @@ test('creates a template and returns 201', function () {
         'cycleType' => 'monthly',
         'dueDay' => 15,
         'isActive' => true,
-        'categoryType' => SystemCategory::class,
         'categoryId' => $cat->id,
     ])->assertCreated();
 
@@ -175,7 +154,6 @@ test('isActive defaults to true when not provided', function () {
         'amount' => 150000,
         'cycleType' => 'monthly',
         'dueDay' => 15,
-        'categoryType' => SystemCategory::class,
         'categoryId' => $cat->id,
     ])->assertCreated();
 
@@ -189,7 +167,7 @@ test('returns 422 or 500 when monthly fixed cost is added to weekly budget', fun
     $user = User::factory()->create(['has_onboarded' => true]);
     UserBudgetSetting::factory()->create([
         'user_id' => $user->id,
-        'cycle_type' => 'weekly', // weekly budget
+        'cycle_type' => 'weekly',
         'ceiling_limit' => '500000.00',
         'flooring_limit' => '10000.00',
         'timezone' => 'Asia/Jakarta',
@@ -201,25 +179,22 @@ test('returns 422 or 500 when monthly fixed cost is added to weekly budget', fun
         'cycle_end_date' => '2026-03-22',
         'remaining_days' => 3,
     ]);
-    $cat = SystemCategory::factory()->create();
+    $cat = Category::factory()->expense()->create();
     Sanctum::actingAs($user);
 
-    // Monthly fixed cost on weekly budget → InvalidArgumentException from action
     $response = $this->postJson('/api/fixed-costs', [
         'name' => 'Rent',
         'amount' => 1500000,
         'cycleType' => 'monthly',
         'dueDay' => 1,
-        'categoryType' => SystemCategory::class,
         'categoryId' => $cat->id,
     ]);
 
-    // Should fail (either validation or server error from action)
     $response->assertStatus(422);
     $this->assertDatabaseMissing('fixed_cost_templates', ['user_id' => $user->id]);
 });
 
-test('returns error when invalid system category id is provided', function () {
+test('returns error when invalid category id is provided', function () {
     [$user] = storeSetup();
     Sanctum::actingAs($user);
 
@@ -228,7 +203,6 @@ test('returns error when invalid system category id is provided', function () {
         'amount' => 150000,
         'cycleType' => 'monthly',
         'dueDay' => 15,
-        'categoryType' => SystemCategory::class,
         'categoryId' => 99999,
-    ])->assertStatus(422);
+    ])->assertStatus(404);
 });

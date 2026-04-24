@@ -3,9 +3,9 @@
 use App\Domains\Budgeting\Enums\CycleType;
 use App\Domains\FixedCosts\Actions\GenerateOccurencesForBudgetWindowAction;
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
+use App\Models\Category;
 use App\Models\FixedCostOccurrence;
 use App\Models\FixedCostTemplate;
-use App\Models\SystemCategory;
 use App\Models\User;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
@@ -15,7 +15,7 @@ it('marks occurrence as pending if due date is exactly today', function () {
         'created_at' => CarbonImmutable::parse('2026-03-01', 'Asia/Jakarta'),
     ]);
 
-    $category = SystemCategory::factory()->create();
+    $category = Category::factory()->expense()->create();
 
     FixedCostTemplate::query()->create([
         'user_id' => $user->id,
@@ -24,7 +24,7 @@ it('marks occurrence as pending if due date is exactly today', function () {
         'cycle_type' => CycleType::MONTHLY->value,
         'due_day' => 15,
         'is_active' => true,
-        'category_type' => SystemCategory::class,
+
         'category_id' => $category->id,
     ]);
 
@@ -45,7 +45,7 @@ it('generates one monthly occurrence inside a monthly budget window', function (
     $user = User::factory()->create([
         'created_at' => CarbonImmutable::parse('2026-03-01')->startOfDay(),
     ]);
-    $category = SystemCategory::factory()->create();
+    $category = Category::factory()->expense()->create();
 
     FixedCostTemplate::query()->create([
         'user_id' => $user->id,
@@ -54,7 +54,7 @@ it('generates one monthly occurrence inside a monthly budget window', function (
         'cycle_type' => CycleType::MONTHLY->value,
         'due_day' => 25,
         'is_active' => true,
-        'category_type' => SystemCategory::class,
+
         'category_id' => $category->id,
     ]);
 
@@ -79,7 +79,7 @@ it('generates all weekly occurrences inside a monthly budget window correctly', 
         'created_at' => CarbonImmutable::parse('2026-03-12', 'Asia/Jakarta'),
     ]);
 
-    $category = SystemCategory::factory()->create();
+    $category = Category::factory()->expense()->create();
 
     FixedCostTemplate::query()->create([
         'user_id' => $user->id,
@@ -88,7 +88,7 @@ it('generates all weekly occurrences inside a monthly budget window correctly', 
         'cycle_type' => CycleType::WEEKLY->value,
         'due_day' => 3,
         'is_active' => true,
-        'category_type' => SystemCategory::class,
+
         'category_id' => $category->id,
     ]);
 
@@ -116,7 +116,7 @@ it('generates occurrences for both monthly and weekly templates in a monthly bud
     $this->travelTo(CarbonImmutable::parse('2026-03-01', 'Asia/Jakarta'));
     $user = User::factory()->create();
 
-    $category = SystemCategory::factory()->create();
+    $category = Category::factory()->expense()->create();
 
     // monthly fixed cost template
     FixedCostTemplate::query()->create([
@@ -126,7 +126,7 @@ it('generates occurrences for both monthly and weekly templates in a monthly bud
         'cycle_type' => CycleType::MONTHLY->value,
         'due_day' => 20,
         'is_active' => true,
-        'category_type' => SystemCategory::class,
+
         'category_id' => $category->id,
     ]);
 
@@ -138,7 +138,7 @@ it('generates occurrences for both monthly and weekly templates in a monthly bud
         'cycle_type' => CycleType::WEEKLY->value,
         'due_day' => 3,
         'is_active' => true,
-        'category_type' => SystemCategory::class,
+
         'category_id' => $category->id,
     ]);
 
@@ -162,7 +162,7 @@ it('clamps monthly due day to end of month', function () {
     $user = User::factory()->create([
         'created_at' => CarbonImmutable::parse('2026-02-01', 'Asia/Jakarta'),
     ]);
-    $category = SystemCategory::factory()->create();
+    $category = Category::factory()->expense()->create();
 
     FixedCostTemplate::query()->create([
         'user_id' => $user->id,
@@ -171,7 +171,7 @@ it('clamps monthly due day to end of month', function () {
         'cycle_type' => CycleType::MONTHLY->value,
         'due_day' => 31,
         'is_active' => true,
-        'category_type' => SystemCategory::class,
+
         'category_id' => $category->id,
     ]);
 
@@ -189,7 +189,7 @@ it('clamps invalid weekly due day to valid bounds (1 to 7)', function () {
     $this->travelTo(CarbonImmutable::parse('2026-03-01', 'Asia/Jakarta'));
     $user = User::factory()->create();
 
-    $category = SystemCategory::factory()->create();
+    $category = Category::factory()->expense()->create();
 
     FixedCostTemplate::query()->create([
         'user_id' => $user->id,
@@ -198,7 +198,7 @@ it('clamps invalid weekly due day to valid bounds (1 to 7)', function () {
         'cycle_type' => CycleType::WEEKLY->value,
         'due_day' => 10,
         'is_active' => true,
-        'category_type' => SystemCategory::class,
+
         'category_id' => $category->id,
     ]);
 
@@ -219,7 +219,7 @@ it('marks occurrence overdue when due date has passed in a weekly budget window'
     $this->travelTo(CarbonImmutable::parse('2026-03-01', 'Asia/Jakarta'));
 
     $user = User::factory()->create();
-    $category = SystemCategory::factory()->create();
+    $category = Category::factory()->expense()->create();
 
     FixedCostTemplate::query()->create([
         'user_id' => $user->id,
@@ -228,7 +228,7 @@ it('marks occurrence overdue when due date has passed in a weekly budget window'
         'cycle_type' => CycleType::WEEKLY->value,
         'due_day' => 5,
         'is_active' => true,
-        'category_type' => SystemCategory::class,
+
         'category_id' => $category->id,
     ]);
 
@@ -251,7 +251,7 @@ it('does not create duplicate occurrence for same template and cycle', function 
         'created_at' => CarbonImmutable::parse('2026-03-01', 'Asia/Jakarta'),
     ]);
 
-    $category = SystemCategory::factory()->create();
+    $category = Category::factory()->expense()->create();
 
     FixedCostTemplate::query()->create([
         'user_id' => $user->id,
@@ -260,7 +260,7 @@ it('does not create duplicate occurrence for same template and cycle', function 
         'cycle_type' => CycleType::MONTHLY->value,
         'due_day' => 25,
         'is_active' => true,
-        'category_type' => SystemCategory::class,
+
         'category_id' => $category->id,
     ]);
 
@@ -285,7 +285,7 @@ it('does not create duplicate occurrence for same template and cycle', function 
 
 it('ignores inactive templates when generating occurrences for window', function () {
     $user = User::factory()->create();
-    $category = SystemCategory::factory()->create();
+    $category = Category::factory()->expense()->create();
 
     FixedCostTemplate::query()->create([
         'user_id' => $user->id,
@@ -294,7 +294,7 @@ it('ignores inactive templates when generating occurrences for window', function
         'cycle_type' => CycleType::MONTHLY->value,
         'due_day' => 25,
         'is_active' => false,
-        'category_type' => SystemCategory::class,
+
         'category_id' => $category->id,
     ]);
 

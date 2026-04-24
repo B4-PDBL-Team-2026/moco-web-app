@@ -3,8 +3,7 @@
 use App\Domains\Transactions\Actions\GetAllTransactionAction;
 use App\Domains\Transactions\DTOs\FilterTransactionData;
 use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\CustomCategory;
-use App\Models\SystemCategory;
+use App\Models\Category;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -17,7 +16,6 @@ if (! function_exists('txFilters')) {
             year: $overrides['year'] ?? null,
             search: $overrides['search'] ?? null,
             categoryId: $overrides['categoryId'] ?? null,
-            categoryType: $overrides['categoryType'] ?? null,
             perPage: $overrides['perPage'] ?? 10,
         );
     }
@@ -26,12 +24,11 @@ if (! function_exists('txFilters')) {
 if (! function_exists('makeTx')) {
     function makeTx(User $user, array $overrides = []): Transaction
     {
-        $cat = SystemCategory::factory()->create();
+        $cat = Category::factory()->expense()->create();
 
         return Transaction::factory()->create(array_merge([
             'user_id' => $user->id,
             'category_id' => $cat->id,
-            'category_type' => SystemCategory::class, // Nanti kalau morphMap udah jalan, ganti jadi 'system'
             'type' => TransactionType::EXPENSE->value,
             'transaction_at' => '2026-03-15',
         ], $overrides));
@@ -174,28 +171,26 @@ it('returns empty when search matches nothing', function () {
 });
 
 it('filters transactions by system category id and type', function () {
-    $catA = SystemCategory::factory()->create();
-    $catB = SystemCategory::factory()->create();
+    $catA = Category::factory()->expense()->create();
+    $catB = Category::factory()->expense()->create();
 
-    makeTx($this->user, ['category_id' => $catA->id, 'category_type' => SystemCategory::class]);
-    makeTx($this->user, ['category_id' => $catB->id, 'category_type' => SystemCategory::class]);
+    makeTx($this->user, ['category_id' => $catA->id]);
+    makeTx($this->user, ['category_id' => $catB->id]);
 
     $result = $this->action->execute($this->user->id, txFilters([
         'categoryId' => $catA->id,
-        'categoryType' => SystemCategory::class,
     ]));
 
     expect($result->total())->toBe(1)
-        ->and($result->items()[0]->category_id)->toBe($catA->id)
-        ->and($result->items()[0]->category_type)->toBe(SystemCategory::class);
+        ->and($result->items()[0]->category_id)->toBe($catA->id);
 });
 
 it('filters transactions by custom category id and type', function () {
-    $custom = CustomCategory::factory()->create(['user_id' => $this->user->id]);
-    $sys = SystemCategory::factory()->create();
+    $custom = Category::factory()->custom($this->user)->expense()->create();
+    $sys = Category::factory()->expense()->create();
 
-    makeTx($this->user, ['category_id' => $custom->id, 'category_type' => CustomCategory::class]);
-    makeTx($this->user, ['category_id' => $sys->id,    'category_type' => SystemCategory::class]);
+    makeTx($this->user, ['category_id' => $custom->id]);
+    makeTx($this->user, ['category_id' => $sys->id]);
 
     $result = $this->action->execute($this->user->id, txFilters([
         'categoryId' => $custom->id,
@@ -203,31 +198,28 @@ it('filters transactions by custom category id and type', function () {
     ]));
 
     expect($result->total())->toBe(1)
-        ->and($result->items()[0]->category_id)->toBe($custom->id)
-        ->and($result->items()[0]->category_type)->toBe(CustomCategory::class);
+        ->and($result->items()[0]->category_id)->toBe($custom->id);
 });
 
 it('scopes by categoryType so a system and custom category sharing the same id do not mix', function () {
     // Both tables are independent, so a system_category and a custom_category
     // could have the same numeric id. categoryType must scope the query correctly.
-    $sys = SystemCategory::factory()->create();
-    $custom = CustomCategory::factory()->create(['user_id' => $this->user->id]);
+    $custom = Category::factory()->custom($this->user)->expense()->create();
+    $sys = Category::factory()->expense()->create();
 
-    makeTx($this->user, ['category_id' => $sys->id,    'category_type' => SystemCategory::class]);
-    makeTx($this->user, ['category_id' => $custom->id, 'category_type' => CustomCategory::class]);
+    makeTx($this->user, ['category_id' => $sys->id]);
+    makeTx($this->user, ['category_id' => $custom->id]);
 
     $sysResult = $this->action->execute($this->user->id, txFilters([
         'categoryId' => $sys->id,
-        'categoryType' => SystemCategory::class,
     ]));
 
-    expect($sysResult->total())->toBe(1)
-        ->and($sysResult->items()[0]->category_type)->toBe(SystemCategory::class);
+    expect($sysResult->total())->toBe(1);
 });
 
 it('returns all transactions when categoryId is null', function () {
-    $catA = SystemCategory::factory()->create();
-    $catB = SystemCategory::factory()->create();
+    $catA = Category::factory()->expense()->create();
+    $catB = Category::factory()->expense()->create();
 
     makeTx($this->user, ['category_id' => $catA->id]);
     makeTx($this->user, ['category_id' => $catB->id]);

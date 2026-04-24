@@ -6,9 +6,8 @@ use App\Domains\Transactions\Actions\CreateIncomeTransactionAction;
 use App\Domains\Transactions\DTOs\CreateTransactionData;
 use App\Domains\Transactions\Enums\TransactionSource;
 use App\Domains\Transactions\Enums\TransactionType;
-use App\Domains\Transactions\Services\TransactionValidationService;
-use App\Models\CustomCategory;
-use App\Models\SystemCategory;
+use App\Domains\Transactions\Services\TransactionValidator;
+use App\Models\Category;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
@@ -20,24 +19,23 @@ beforeEach(function () {
     $this->mockRecalculate = Mockery::mock(RecalculateBudgetSnapshotAction::class);
     $this->mockRecalculate->shouldReceive('execute')->andReturn(new UserBudgetSnapshot);
 
-    $validationService = app(TransactionValidationService::class);
+    $validationService = app(TransactionValidator::class);
 
     $this->action = new CreateIncomeTransactionAction(
         $this->mockRecalculate,
-        $validationService
+        $validationService,
     );
 });
 
 it('successfully creates an income transaction and triggers recalculation', function () {
     $user = User::factory()->create();
-    $category = SystemCategory::factory()->createQuietly(['type' => TransactionType::INCOME->value]);
+    $category = Category::factory()->income()->create();
     $date = CarbonImmutable::parse('2026-03-30 10:00:00', 'UTC');
 
     UserBudgetSetting::factory()->create(['user_id' => $user->id]);
 
     $dto = new CreateTransactionData(
         categoryId: $category->id,
-        categoryType: SystemCategory::class,
         name: 'Gaji Bulanan',
         amount: '5000000.00',
         type: TransactionType::INCOME,
@@ -54,7 +52,6 @@ it('successfully creates an income transaction and triggers recalculation', func
         'id' => $transaction->id,
         'user_id' => $user->id,
         'category_id' => $category->id,
-        'category_type' => SystemCategory::class,
         'type' => TransactionType::INCOME->value,
         'source' => TransactionSource::MANUAL->value,
         'transaction_at' => '2026-03-30 10:00:00',
@@ -65,18 +62,14 @@ it('successfully creates an income transaction and triggers recalculation', func
 });
 
 it('successfully creates income transaction using a Custom Category', function () {
-    $user = User::factory()->create();
+    [$user] = setupUserWithBudget();
 
-    $customCategory = CustomCategory::factory()->createQuietly([
-        'user_id' => $user->id,
-        'type' => TransactionType::INCOME->value,
-    ]);
+    $customCategory = Category::factory()->custom($user)->income()->create();
 
     $date = CarbonImmutable::parse('2026-03-30 10:00:00', 'UTC');
 
     $dto = new CreateTransactionData(
         categoryId: $customCategory->id,
-        categoryType: CustomCategory::class,
         name: 'Project Freelance',
         amount: '1500000.00',
         type: TransactionType::INCOME,
@@ -86,13 +79,11 @@ it('successfully creates income transaction using a Custom Category', function (
 
     $transaction = $this->action->execute($user, $dto);
 
-    expect($transaction)->toBeInstanceOf(Transaction::class)
-        ->and($transaction->category_type)->toBe(CustomCategory::class);
+    expect($transaction)->toBeInstanceOf(Transaction::class);
 
     $this->assertDatabaseHas('transactions', [
         'user_id' => $user->id,
         'category_id' => $customCategory->id,
-        'category_type' => CustomCategory::class,
         'type' => TransactionType::INCOME->value,
         'transaction_at' => '2026-03-30 10:00:00',
     ]);
@@ -102,11 +93,10 @@ it('successfully creates income transaction using a Custom Category', function (
 
 it('throws an BusinessRuleException if income amount is zero or negative', function () {
     $user = User::factory()->create();
-    $category = SystemCategory::factory()->createQuietly(['type' => TransactionType::INCOME->value]);
+    $category = Category::factory()->expense()->create();
 
     $dto = new CreateTransactionData(
         categoryId: $category->id,
-        categoryType: SystemCategory::class,
         name: 'Hacker Attempt',
         amount: '-5000000.00',
         type: TransactionType::INCOME,
@@ -121,13 +111,12 @@ it('throws an BusinessRuleException if income amount is zero or negative', funct
 });
 
 it('throws exception when category type is mismatch with transaction type income', function () {
-    $user = User::factory()->create();
+    [$user] = setupUserWithBudget();
 
-    $category = SystemCategory::factory()->createQuietly(['type' => TransactionType::EXPENSE->value]);
+    $category = Category::factory()->expense()->create();
 
     $dto = new CreateTransactionData(
         categoryId: $category->id,
-        categoryType: SystemCategory::class,
         name: 'Nyoba Error',
         amount: '100000',
         type: TransactionType::INCOME,
@@ -142,11 +131,10 @@ it('throws exception when category type is mismatch with transaction type income
 });
 
 it('throws ModelNotFoundException when category does not exist', function () {
-    $user = User::factory()->create();
+    [$user] = setupUserWithBudget();
 
     $dto = new CreateTransactionData(
         categoryId: 99999,
-        categoryType: SystemCategory::class,
         name: 'Gaji Ghaib',
         amount: '5000000.00',
         type: TransactionType::INCOME,
@@ -161,12 +149,11 @@ it('throws ModelNotFoundException when category does not exist', function () {
 });
 
 it('normalizes the amount correctly before saving', function () {
-    $user = User::factory()->create();
-    $category = SystemCategory::factory()->createQuietly(['type' => TransactionType::INCOME->value]);
+    [$user] = setupUserWithBudget();
+    $category = Category::factory()->income()->create();
 
     $dto = new CreateTransactionData(
         categoryId: $category->id,
-        categoryType: SystemCategory::class,
         name: 'Bonus',
         amount: '5,000,000',
         type: TransactionType::INCOME,

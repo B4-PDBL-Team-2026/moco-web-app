@@ -3,8 +3,8 @@
 use App\Domains\Budgeting\Enums\CycleType;
 use App\Domains\FixedCosts\Actions\ListFixedCostTemplateAction;
 use App\Domains\FixedCosts\DTOs\FilterFixedCostTemplateData;
+use App\Models\Category;
 use App\Models\FixedCostTemplate;
-use App\Models\SystemCategory;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
@@ -17,7 +17,7 @@ function filters(array $overrides = []): FilterFixedCostTemplateData
 
 function setupTemplate(User $user, array $overrides = []): FixedCostTemplate
 {
-    $cat = SystemCategory::factory()->create();
+    $cat = Category::factory()->expense()->create();
 
     return FixedCostTemplate::factory()->create(array_merge([
         'user_id' => $user->id,
@@ -26,7 +26,7 @@ function setupTemplate(User $user, array $overrides = []): FixedCostTemplate
         'cycle_type' => CycleType::MONTHLY->value,
         'due_day' => 15,
         'is_active' => true,
-        'category_type' => SystemCategory::class,
+
         'category_id' => $cat->id,
     ], $overrides));
 }

@@ -1,9 +1,9 @@
 <?php
 
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
+use App\Models\Category;
 use App\Models\FixedCostOccurrence;
 use App\Models\FixedCostTemplate;
-use App\Models\SystemCategory;
 use App\Models\User;
 use App\Models\UserBudgetSnapshot;
 use Laravel\Sanctum\Sanctum;
@@ -11,7 +11,7 @@ use Laravel\Sanctum\Sanctum;
 function indexSetup(): array
 {
     $user = User::factory()->create();
-    $cat = SystemCategory::factory()->create();
+    $cat = Category::factory()->expense()->create();
 
     $snapshot = UserBudgetSnapshot::factory()->create([
         'user_id' => $user->id,
@@ -23,7 +23,6 @@ function indexSetup(): array
 
     $template = FixedCostTemplate::factory()->create([
         'user_id' => $user->id,
-        'category_type' => SystemCategory::class,
         'category_id' => $cat->id,
     ]);
 
@@ -55,7 +54,6 @@ test('returns monthly occurrences within the current budget window', function ()
         'status' => FixedCostOccurenceStatus::PENDING->value,
         'amount' => '150000.00',
         'name' => 'Netflix',
-        'category_type' => SystemCategory::class,
         'category_id' => $template->category_id,
     ]);
 
@@ -69,7 +67,6 @@ test('returns monthly occurrences within the current budget window', function ()
 test('returns weekly occurrences within a monthly budget window', function () {
     [$user, $template] = indexSetup();
 
-    // Two weekly occurrences falling inside March 2026
     foreach (['2026-03-09', '2026-03-16'] as $index => $date) {
         FixedCostOccurrence::factory()->create([
             'user_id' => $user->id,
@@ -80,7 +77,6 @@ test('returns weekly occurrences within a monthly budget window', function () {
             'status' => FixedCostOccurenceStatus::PENDING->value,
             'amount' => '50000.00',
             'name' => 'Weekly Sub',
-            'category_type' => SystemCategory::class,
             'category_id' => $template->category_id,
         ]);
     }
@@ -95,7 +91,6 @@ test('returns weekly occurrences within a monthly budget window', function () {
 test('excludes occurrences outside the current window', function () {
     [$user, $template] = indexSetup();
 
-    // Previous month occurrence — should NOT appear
     FixedCostOccurrence::factory()->create([
         'user_id' => $user->id,
         'fixed_cost_template_id' => $template->id,
@@ -105,7 +100,6 @@ test('excludes occurrences outside the current window', function () {
         'status' => FixedCostOccurenceStatus::PAID->value,
         'amount' => '150000.00',
         'name' => 'Netflix',
-        'category_type' => SystemCategory::class,
         'category_id' => $template->category_id,
     ]);
 
@@ -119,7 +113,6 @@ test('excludes occurrences outside the current window', function () {
 test('does not return occurrences belonging to another user', function () {
     [$user] = indexSetup();
 
-    // Another user's occurrence
     $other = User::factory()->create();
     $otherSnap = UserBudgetSnapshot::factory()->create([
         'user_id' => $other->id,
@@ -128,8 +121,8 @@ test('does not return occurrences belonging to another user', function () {
         'cycle_end_date' => '2026-03-31',
         'remaining_days' => 10,
     ]);
-    $otherCat = SystemCategory::factory()->create();
-    $otherTpl = FixedCostTemplate::factory()->create(['user_id' => $other->id, 'category_type' => SystemCategory::class, 'category_id' => $otherCat->id]);
+    $otherCat = Category::factory()->expense()->create();
+    $otherTpl = FixedCostTemplate::factory()->create(['user_id' => $other->id, 'category_id' => $otherCat->id]);
     FixedCostOccurrence::factory()->create([
         'user_id' => $other->id,
         'fixed_cost_template_id' => $otherTpl->id,
@@ -139,7 +132,6 @@ test('does not return occurrences belonging to another user', function () {
         'status' => FixedCostOccurenceStatus::PENDING->value,
         'amount' => '99999.00',
         'name' => 'Other',
-        'category_type' => SystemCategory::class,
         'category_id' => $otherCat->id,
     ]);
 

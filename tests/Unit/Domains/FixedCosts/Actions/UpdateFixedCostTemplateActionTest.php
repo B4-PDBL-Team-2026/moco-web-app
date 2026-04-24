@@ -4,10 +4,9 @@ use App\Commons\Exceptions\BusinessRuleException;
 use App\Domains\FixedCosts\Actions\UpdateFixedCostTemplateAction;
 use App\Domains\FixedCosts\DTOs\UpdateFixedCostTemplateData;
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
-use App\Models\CustomCategory;
+use App\Models\Category;
 use App\Models\FixedCostOccurrence;
 use App\Models\FixedCostTemplate;
-use App\Models\SystemCategory;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -24,7 +23,8 @@ function setupUserForUpdate(string $cycleType = 'monthly'): array
         'timezone' => 'Asia/Jakarta',
     ]);
 
-    $category = SystemCategory::factory()->create();
+    // Udah pake Category biasa (System Category)
+    $category = Category::factory()->expense()->create();
     $template = FixedCostTemplate::factory()->create([
         'user_id' => $user->id,
         'name' => 'Netflix',
@@ -32,7 +32,6 @@ function setupUserForUpdate(string $cycleType = 'monthly'): array
         'cycle_type' => 'monthly',
         'due_day' => 15,
         'is_active' => true,
-        'category_type' => SystemCategory::class,
         'category_id' => $category->id,
     ]);
 
@@ -56,7 +55,6 @@ function makeOccurrenceForUpdate(
         'status' => $status,
         'amount' => $amount,
         'name' => 'Netflix',
-        'category_type' => SystemCategory::class,
         'category_id' => $template->category_id,
     ]);
 }
@@ -83,10 +81,9 @@ it('updates is_active immediately', function () {
 
 it('updates category immediately', function () {
     [$user, $template] = setupUserForUpdate();
-    $newCat = SystemCategory::factory()->create();
+    $newCat = Category::factory()->expense()->create();
 
     $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray([
-        'categoryType' => SystemCategory::class,
         'categoryId' => $newCat->id,
     ]));
 
@@ -130,36 +127,22 @@ it('does not propagate amount to void occurrences (only pending/overdue)', funct
 
     $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray(['amount' => '200000']));
 
-    // Void occurrences are settled — amount should not change
     expect($voidOcc->fresh()->amount)->toBe('150000.00');
 });
 
 it('updates template amount but does NOT propagate to pending occurrences when a paid occurrence exists', function () {
     [$user, $template] = setupUserForUpdate();
     makeOccurrenceForUpdate(
-        $user,
-        $template,
-        FixedCostOccurenceStatus::PAID->value,
-        '150000.00',
-        '2026-02',
-        '2026-02-15'
+        $user, $template, FixedCostOccurenceStatus::PAID->value, '150000.00', '2026-02', '2026-02-15'
     );
 
-    // Bikin occurrence PENDING di siklus BULAN INI
     $pendingOcc = makeOccurrenceForUpdate(
-        $user,
-        $template,
-        FixedCostOccurenceStatus::PENDING->value,
-        '150000.00',
-        '2026-03',
-        '2026-03-15'
+        $user, $template, FixedCostOccurenceStatus::PENDING->value, '150000.00', '2026-03', '2026-03-15'
     );
 
     $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray(['amount' => '200000']));
 
-    // Template updated for next cycle generation
     expect($template->fresh()->amount)->toBe('200000.00')
-    // Current pending occurrence untouched (BR §18)
         ->and($pendingOcc->fresh()->amount)->toBe('150000.00');
 });
 
@@ -181,64 +164,50 @@ it('applies non-financial fields (name) even when paid occurrence exists', funct
     expect($template->fresh()->name)->toBe('Netflix 4K');
 });
 
-it('throws InvalidArgumentException when updated name is empty', function () {
+it('throws BusinessRuleException when updated name is empty', function () {
     [$user, $template] = setupUserForUpdate();
 
     expect(fn () => $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray(['name' => ''])))
-        ->toThrow(InvalidArgumentException::class, 'cannot be empty');
+        ->toThrow(BusinessRuleException::class, 'cannot be empty');
 });
 
-it('throws InvalidArgumentException when updated amount is zero', function () {
+it('throws BusinessRuleException when updated amount is zero', function () {
     [$user, $template] = setupUserForUpdate();
 
     expect(fn () => $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray(['amount' => '0'])))
-        ->toThrow(InvalidArgumentException::class, 'must be greater than zero');
+        ->toThrow(BusinessRuleException::class, 'must be greater than zero');
 });
 
-it('throws InvalidArgumentException when weekly due_day exceeds 7', function () {
+it('throws BusinessRuleException when weekly due_day exceeds 7', function () {
     [$user, $template] = setupUserForUpdate('weekly');
+    $template->update(['cycle_type' => 'weekly', 'due_day' => 1]); // Prepare weekly template
 
     expect(fn () => $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray([
         'cycleType' => 'weekly',
         'dueDay' => 8,
     ])))
-        ->toThrow(InvalidArgumentException::class, 'Weekly due day must be between 1 and 7.');
+        ->toThrow(BusinessRuleException::class, 'Weekly due day must be between 1 and 7.');
 });
 
-it('throws InvalidArgumentException when changing to monthly cycle on a weekly budget', function () {
+it('throws BusinessRuleException when changing to monthly cycle on a weekly budget', function () {
     [$user, $template] = setupUserForUpdate('weekly');
+    $template->update(['cycle_type' => 'weekly', 'due_day' => 1]);
 
     expect(fn () => $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray(['cycleType' => 'monthly'])))
-        ->toThrow(BusinessRuleException::class, 'not allowed when budget cycle is weekly');
+        ->toThrow(BusinessRuleException::class, 'Monthly fixed cost is not allowed when budget cycle is weekly.');
 });
 
-it('throws InvalidArgumentException when only categoryId is provided without categoryType', function () {
-    [$user, $template, $category] = setupUserForUpdate();
-
-    expect(fn () => $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray(['categoryId' => $category->id])))
-        ->toThrow(BusinessRuleException::class, 'Both categoryId and categoryType must be provided together.');
-});
-
-it('throws InvalidArgumentException for an invalid system category id', function () {
+it('throws BusinessRuleException when custom category belongs to another user', function () {
     [$user, $template] = setupUserForUpdate();
+    $otherUser = User::factory()->create();
+
+    // Bikin category yg punyanya user lain (custom category user lain)
+    $otherCategory = Category::factory()->custom($otherUser)->expense()->create();
 
     expect(fn () => $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray([
-        'categoryType' => SystemCategory::class,
-        'categoryId' => 99999,
+        'categoryId' => $otherCategory->id,
     ])))
-        ->toThrow(BusinessRuleException::class, 'Invalid system category.');
-});
-
-it('throws InvalidArgumentException when custom category belongs to another user', function () {
-    [$user, $template] = setupUserForUpdate();
-    $other = User::factory()->create();
-    $custom = CustomCategory::factory()->create(['user_id' => $other->id]);
-
-    expect(fn () => $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray([
-        'categoryType' => CustomCategory::class,
-        'categoryId' => $custom->id,
-    ])))
-        ->toThrow(BusinessRuleException::class, 'Invalid custom category.');
+        ->toThrow(BusinessRuleException::class, 'Invalid category ownership.');
 });
 
 it('throws ModelNotFoundException when template belongs to another user', function () {

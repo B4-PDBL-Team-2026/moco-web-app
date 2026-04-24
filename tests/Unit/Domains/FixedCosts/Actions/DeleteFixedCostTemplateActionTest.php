@@ -2,23 +2,22 @@
 
 use App\Domains\FixedCosts\Actions\DeleteFixedCostTemplateAction;
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
+use App\Models\Category;
 use App\Models\FixedCostOccurrence;
 use App\Models\FixedCostTemplate;
-use App\Models\SystemCategory;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 function setupForDelete(): array
 {
     $user = User::factory()->create();
-    $cat = SystemCategory::factory()->create();
+    $cat = Category::factory()->create();
     $template = FixedCostTemplate::factory()->create([
         'user_id' => $user->id,
         'name' => 'Electricity',
         'amount' => '300000.00',
         'cycle_type' => 'monthly',
         'due_day' => 10,
-        'category_type' => SystemCategory::class,
         'category_id' => $cat->id,
     ]);
 
@@ -41,7 +40,6 @@ function addOccurrence(
         'status' => $status,
         'amount' => '300000.00',
         'name' => 'Electricity',
-        'category_type' => SystemCategory::class,
         'category_id' => $template->category_id,
     ]);
 }

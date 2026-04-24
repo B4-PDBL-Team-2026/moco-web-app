@@ -7,9 +7,9 @@ use App\Domains\FixedCosts\DTOs\UpdateFixedCostOccurrenceAmountData;
 use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
 use App\Domains\Transactions\Enums\TransactionSource;
 use App\Domains\Transactions\Enums\TransactionType;
+use App\Models\Category;
 use App\Models\FixedCostOccurrence;
 use App\Models\FixedCostTemplate;
-use App\Models\SystemCategory;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
@@ -20,7 +20,7 @@ function setupUserWithBalance(string $balanceAmount): array
 {
     $user = User::factory()->create();
 
-    $category = SystemCategory::factory()->create();
+    $category = Category::factory()->expense()->create();
 
     UserBudgetSetting::query()->create([
         'user_id' => $user->id,
@@ -47,7 +47,7 @@ function setupUserWithBalance(string $balanceAmount): array
 
     $template = FixedCostTemplate::factory()->create([
         'user_id' => $user->id,
-        'category_type' => SystemCategory::class,
+
         'category_id' => $category->id,
     ]);
 
@@ -100,7 +100,7 @@ it('updates a PAID occurrence and intelligently syncs the linked transaction', f
 
     $transaction = Transaction::query()->create([
         'user_id' => $user->id,
-        'category_type' => SystemCategory::class,
+
         'category_id' => $category->id,
         'fixed_cost_occurrence_id' => $occurrence->id,
         'type' => TransactionType::EXPENSE->value,

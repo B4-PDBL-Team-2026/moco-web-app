@@ -4,23 +4,25 @@ use App\Commons\Exceptions\BusinessRuleException;
 use App\Domains\Transactions\Actions\CreateTransactionAction;
 use App\Domains\Transactions\DTOs\CreateTransactionData;
 use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\SystemCategory;
+use App\Models\Category;
 use App\Models\User;
 use App\Models\UserBudgetSetting;
 use App\Models\UserBudgetSnapshot;
 use Carbon\CarbonImmutable;
 
-it('throws validation exception when category type does not match transaction type', function () {
+it('throws BusinessRuleException when category type does not match transaction type', function () {
 
     $user = User::factory()->create();
 
-    $category = SystemCategory::factory()->create([
-        'type' => 'expense',
+    UserBudgetSetting::factory()->create([
+        'user_id' => $user->id,
+        'timezone' => 'Asia/Jakarta',
     ]);
+
+    $category = Category::factory()->expense()->create();
 
     $dto = new CreateTransactionData(
         categoryId: $category->id,
-        categoryType: 'system',
         name: 'Test Income',
         amount: '10000',
         type: TransactionType::INCOME,
@@ -46,13 +48,10 @@ it('creates income transaction successfully', function () {
         'timezone' => 'Asia/Jakarta',
     ]);
 
-    $category = SystemCategory::factory()->create([
-        'type' => 'income',
-    ]);
+    $category = Category::factory()->income()->create();
 
     $dto = new CreateTransactionData(
         categoryId: $category->id,
-        categoryType: 'system',
         name: 'Salary',
         amount: '100000',
         type: TransactionType::INCOME,
@@ -85,13 +84,10 @@ it('rejects expense when amount exceeds balance', function () {
         'current_balance' => '0',
     ]);
 
-    $category = SystemCategory::factory()->create([
-        'type' => 'expense',
-    ]);
+    $category = Category::factory()->expense()->create();
 
     $dto = new CreateTransactionData(
         categoryId: $category->id,
-        categoryType: 'system',
         name: 'Buy Laptop',
         amount: '999999999',
         type: TransactionType::EXPENSE,
