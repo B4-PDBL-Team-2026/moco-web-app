@@ -74,6 +74,7 @@ it('generates one monthly occurrence inside a monthly budget window', function (
 });
 
 it('generates all weekly occurrences inside a monthly budget window correctly', function () {
+    $this->travelTo(CarbonImmutable::parse('2026-03-12', 'Asia/Jakarta'));
     $user = User::factory()->create([
         'created_at' => CarbonImmutable::parse('2026-03-12', 'Asia/Jakarta'),
     ]);
@@ -112,9 +113,8 @@ it('generates all weekly occurrences inside a monthly budget window correctly', 
 });
 
 it('generates occurrences for both monthly and weekly templates in a monthly budget window correctly', function () {
-    $user = User::factory()->create([
-        'created_at' => CarbonImmutable::parse('2026-03-01', 'Asia/Jakarta'),
-    ]);
+    $this->travelTo(CarbonImmutable::parse('2026-03-01', 'Asia/Jakarta'));
+    $user = User::factory()->create();
 
     $category = SystemCategory::factory()->create();
 
@@ -186,9 +186,8 @@ it('clamps monthly due day to end of month', function () {
 });
 
 it('clamps invalid weekly due day to valid bounds (1 to 7)', function () {
-    $user = User::factory()->create([
-        'created_at' => CarbonImmutable::parse('2026-03-01', 'Asia/Jakarta'),
-    ]);
+    $this->travelTo(CarbonImmutable::parse('2026-03-01', 'Asia/Jakarta'));
+    $user = User::factory()->create();
 
     $category = SystemCategory::factory()->create();
 
@@ -217,10 +216,9 @@ it('clamps invalid weekly due day to valid bounds (1 to 7)', function () {
 });
 
 it('marks occurrence overdue when due date has passed in a weekly budget window', function () {
-    $user = User::factory()->create([
-        'created_at' => CarbonImmutable::parse('2026-03-01', 'Asia/Jakarta'),
-    ]);
+    $this->travelTo(CarbonImmutable::parse('2026-03-01', 'Asia/Jakarta'));
 
+    $user = User::factory()->create();
     $category = SystemCategory::factory()->create();
 
     FixedCostTemplate::query()->create([
@@ -233,6 +231,8 @@ it('marks occurrence overdue when due date has passed in a weekly budget window'
         'category_type' => SystemCategory::class,
         'category_id' => $category->id,
     ]);
+
+    $this->travelTo(CarbonImmutable::parse('2026-03-07', 'Asia/Jakarta'));
 
     app(GenerateOccurencesForBudgetWindowAction::class)->execute(
         userId: $user->id,

@@ -192,30 +192,32 @@ it('unpaid_fixed_costs only includes pending and overdue occurrences', function 
     UserBudgetSnapshot::factory()->create([
         'user_id' => $user->id,
         'current_cycle_key' => $cycleKey,
+        'cycle_start_date' => now()->startOfMonth()->toDateString(),
+        'cycle_end_date' => now()->endOfMonth()->toDateString(),
     ]);
 
-    // PENDING → masuk
     FixedCostOccurrence::factory()->create([
         'user_id' => $user->id,
         'cycle_key' => $cycleKey,
         'status' => FixedCostOccurenceStatus::PENDING->value,
         'amount' => '500000',
+        'due_date' => now()->startOfMonth()->addDays(5)->toDateString(),
     ]);
 
-    // OVERDUE → masuk
     FixedCostOccurrence::factory()->create([
         'user_id' => $user->id,
         'cycle_key' => $cycleKey,
         'status' => FixedCostOccurenceStatus::OVERDUE->value,
         'amount' => '300000',
+        'due_date' => now()->startOfMonth()->addDays(10)->toDateString(),
     ]);
 
-    // PAID → tidak masuk
     FixedCostOccurrence::factory()->create([
         'user_id' => $user->id,
         'cycle_key' => $cycleKey,
         'status' => FixedCostOccurenceStatus::PAID->value,
         'amount' => '200000',
+        'due_date' => now()->startOfMonth()->addDays(15)->toDateString(),
     ]);
 
     $result = app(GetDashboardSummaryAction::class)

@@ -175,6 +175,11 @@ class GenerateOccurencesForBudgetWindowAction
             ->setTimezone($timezone)
             ->startOfDay();
 
+        $templateStartDate = $template->created_at
+            ->toImmutable()
+            ->setTimezone($timezone)
+            ->startOfDay();
+
         while ($weekCursor->lessThanOrEqualTo($budgetEndDate)) {
             $cycle = $this->cycleResolverService->calculateFor(
                 CycleType::WEEKLY,
@@ -188,7 +193,9 @@ class GenerateOccurencesForBudgetWindowAction
                 cycleType: CycleType::WEEKLY,
             );
 
-            $effectiveWindowStart = $budgetStartDate->greaterThanOrEqualTo($userRegistrationDate) ? $budgetStartDate : $userRegistrationDate;
+            $effectiveWindowStart = $budgetStartDate
+                ->max($userRegistrationDate)
+                ->max($templateStartDate);
 
             if ($this->isInsideBudgetWindow($dueDate, $effectiveWindowStart, $budgetEndDate)) {
                 $this->createOccurrenceIfMissing(

@@ -59,6 +59,8 @@ class CreateFixedCostTemplateAction
                 'is_active' => $fixedCost->isActive,
                 'category_type' => $fixedCost->categoryType,
                 'category_id' => $fixedCost->categoryId,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             // Generate the occurrence for the current window immediately so the

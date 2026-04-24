@@ -13,8 +13,6 @@ class FixedCostTemplate extends Model
 {
     use HasFactory, SoftDeletes;
 
-    public $timestamps = false;
-
     protected $fillable = [
         'name',
         'amount',
