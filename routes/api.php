@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\Budgeting\BudgetingController;
 use App\Http\Controllers\Api\Category\CategoryController;
 use App\Http\Controllers\Api\Dashboard\DashboardController;
 use App\Http\Controllers\Api\FixedCost\FixedCostController;
+use App\Http\Controllers\Api\Notification\DeviceController;
 use App\Http\Controllers\Api\Notification\InAppNotificationController;
 use App\Http\Controllers\Api\Onboarding\OnboardingController;
 use App\Http\Controllers\Api\Profile\ProfileController;
@@ -74,10 +75,17 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Notification Routes
         Route::prefix('/notifications')->group(function () {
+            Route::prefix('/device')->controller(DeviceController::class)->group(function () {
+                Route::post('/', 'registerDevice');
+            });
+
             Route::get('/', [InAppNotificationController::class, 'index']);
             Route::get('/unread-count', [InAppNotificationController::class, 'unreadCount']);
             Route::post('/{id}/read', [InAppNotificationController::class, 'markAsRead']);
+
         });
+
+        // Device for push notifications
 
         // User Endpoints (profile + dashboard)
         Route::prefix('user')->group(function () {
