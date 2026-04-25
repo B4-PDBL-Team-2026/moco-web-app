@@ -3,7 +3,6 @@
 namespace App\Domains\Category\Actions;
 
 use App\Models\Category;
-use App\Models\SystemCategory;
 use Cache;
 use Illuminate\Support\Collection;
 
@@ -23,12 +22,13 @@ final readonly class GetSystemCategoriesAction
     /**
      * Execute the action to fetch system categories.
      *
-     * @return Collection<int, SystemCategory>
+     * @return Collection<int, Category>
      */
     public function execute(): Collection
     {
         return Cache::rememberForever(self::CACHE_KEY, function () {
             return Category::query()
+                ->where('is_system', '=', true)
                 ->orderBy('name')
                 ->get();
         });
