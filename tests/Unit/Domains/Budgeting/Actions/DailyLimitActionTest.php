@@ -65,7 +65,7 @@ describe('UpdateDailyLimitAction', function () {
         $user = User::factory()->create();
         UserBudgetSetting::factory()->create(['user_id' => $user->id]);
 
-        $action = new UpdateDailyLimitAction;
+        $action = app(UpdateDailyLimitAction::class);
 
         $dto = new UpdateDailyLimitData(flooringLimit: '50000', ceilingLimit: '10000');
 
