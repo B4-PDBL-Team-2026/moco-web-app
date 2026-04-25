@@ -19,6 +19,7 @@ class CategorySeeder extends Seeder
                 'name' => $name,
                 'type' => TransactionType::EXPENSE->value,
                 'icon' => $icon,
+                'is_system' => true,
             ]);
         }
 
@@ -29,6 +30,7 @@ class CategorySeeder extends Seeder
                 'name' => $name,
                 'type' => TransactionType::INCOME->value,
                 'icon' => $icon,
+                'is_system' => true,
             ]);
         }
     }
