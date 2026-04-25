@@ -31,14 +31,18 @@ class DeleteTransactionAction
      */
     public function execute(User $user, Transaction $transaction): void
     {
-        DB::transaction(function () use ($user, $transaction) {
-            if ($user->id !== $transaction->user_id) {
-                throw new UnauthorizedException('You are not authorized to perform this action.');
-            }
+        if ($user->id !== $transaction->user_id) {
+            throw new UnauthorizedException('You are not authorized to perform this action.');
+        }
 
+        DB::transaction(function () use ($user, $transaction) {
             // income deletion requires balance check
             if ($transaction->type === TransactionType::INCOME) {
-                $snapshot = UserBudgetSnapshot::where('user_id', $user->id)->firstOrFail();
+                $snapshot = UserBudgetSnapshot::query()
+                    ->where('user_id', $user->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
                 $currentBalance = (string) $snapshot->current_balance;
 
                 $balanceAfterDeletion = $this->transactionBalanceService->reverseTransaction(
