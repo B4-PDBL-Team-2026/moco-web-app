@@ -1,5 +1,6 @@
 <?php
 
+use App\Commons\Exceptions\BusinessRuleException;
 use App\Domains\Transactions\Actions\DeleteTransactionAction;
 use App\Domains\Transactions\Enums\TransactionType;
 use App\Models\Category;
@@ -56,6 +57,28 @@ it('deletes income transaction when balance remains non-negative', function () {
 
     $this->assertSoftDeleted('transactions', ['id' => $transaction->id]);
 });
+
+it('fails delete income transaction when balance become negative', function () {
+    [$user] = setupUserWithBudget();
+
+    UserBudgetSnapshot::factory()->create([
+        'user_id' => $user->id,
+        'current_balance' => '100.00',
+    ]);
+
+    $category = Category::factory()->income()->create();
+
+    $transaction = Transaction::factory()->create([
+        'user_id' => $user->id,
+        'category_id' => $category->id,
+        'type' => TransactionType::INCOME,
+        'amount' => '500.00',
+    ]);
+
+    app(DeleteTransactionAction::class)->execute($user, $transaction);
+
+    $this->assertSoftDeleted('transactions', ['id' => $transaction->id]);
+})->throws(BusinessRuleException::class);
 
 it('fails when user tries to delete other users transaction', function () {
     $user = User::factory()->create();
