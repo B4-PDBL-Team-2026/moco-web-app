@@ -12,6 +12,9 @@ class DeviceController extends Controller
 {
     use ApiResponse;
 
+    /**
+     * Register user device for push mobile notification
+     */
     public function registerDevice(
         RegisterDeviceRequest $request,
         RegisterUserDeviceAction $action
