@@ -55,14 +55,14 @@ class TransactionValidator
     public function ensureSufficientBalance(string $balance, string $amount): void
     {
         if (MoneyService::lt($balance, MoneyService::normalize($amount))) {
-            throw new BusinessRuleException('Insufficient balance to complete this transaction.');
+            throw new BusinessRuleException(__('errors.budget.balance_insufficient'));
         }
     }
 
     private function ensureAuthorized(User $user, Transaction $transaction): void
     {
         if ($user->id !== $transaction->user_id) {
-            throw new UnauthorizedException('You are not authorized to perform this action.');
+            throw new UnauthorizedException(__('errors.authorization.not_authorized'));
         }
     }
 
@@ -88,7 +88,7 @@ class TransactionValidator
         $transactionDate = $date->timezone($userTimezone)->startOfDay();
 
         if ($transactionDate->greaterThan($userToday)) {
-            throw new BusinessRuleException('Future transaction date is not allowed.');
+            throw new BusinessRuleException(__('errors.transactions.future_date'));
         }
     }
 
@@ -100,7 +100,7 @@ class TransactionValidator
         $category = Category::query()->findOrFail($categoryId);
 
         if (! $category->is_system && $category->user_id !== $user->id) {
-            throw new BusinessRuleException('Category is not allowed.');
+            throw new BusinessRuleException(__('errors.authorization.not_authorized'));
         }
 
         $categoryTypeValue = $category->type instanceof BackedEnum
@@ -108,7 +108,7 @@ class TransactionValidator
             : $category->type;
 
         if ($categoryTypeValue !== $transactionType) {
-            throw new BusinessRuleException('Category type does not match transaction type.');
+            throw new BusinessRuleException(__('errors.category.mismatch'));
         }
     }
 }
