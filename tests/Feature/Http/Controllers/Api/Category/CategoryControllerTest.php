@@ -31,7 +31,7 @@ test('authenticated user can fetch system categories with correct structure', fu
                     'icon',
                 ],
             ],
-        ])
+        ])->dump()
         ->assertJsonCount(17, 'data');
 });
 
