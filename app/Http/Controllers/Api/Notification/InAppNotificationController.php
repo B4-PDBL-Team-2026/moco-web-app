@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
-class NotificationController extends Controller
+class InAppNotificationController extends Controller
 {
     public function index()
     {
@@ -27,7 +27,6 @@ class NotificationController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        // Cari notifikasi spesifik milik user ini dan tandai sudah dibaca
         $notification = $user->notifications()->findOrFail($id);
         $notification->markAsRead();
 
