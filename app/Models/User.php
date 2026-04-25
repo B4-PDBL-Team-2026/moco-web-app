@@ -47,6 +47,8 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+
+    // relation methods
     public function profile(): HasOne
     {
         return $this->hasOne(UserProfile::class);
@@ -70,5 +72,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isRequireOnboarding(): bool
     {
         return ! $this->has_onboarded;
+    }
+
+    public function devices(): HasMany
+    {
+        return $this->hasMany(UserDevice::class, 'user_id', 'id');
+    }
+
+    public function routeNotificationForFcm(): array
+    {
+        return $this->devices()->pluck('fcm_token')->toArray();
     }
 }
