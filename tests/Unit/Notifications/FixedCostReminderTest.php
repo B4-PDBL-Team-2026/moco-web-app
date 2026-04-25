@@ -1,9 +1,9 @@
 <?php
 
+use App\Domains\FixedCosts\Notifications\FixedCostReminder;
 use App\Models\FixedCostOccurrence;
 use App\Models\FixedCostTemplate;
 use App\Models\User;
-use App\Notifications\FixedCostReminder;
 
 it('formats the notification message correctly based on occurrence data', function () {
     $user = User::factory()->make(['name' => 'Wina Rahmalia']);

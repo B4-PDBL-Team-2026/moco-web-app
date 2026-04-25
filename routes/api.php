@@ -5,7 +5,7 @@ use App\Http\Controllers\Api\Budgeting\BudgetingController;
 use App\Http\Controllers\Api\Category\CategoryController;
 use App\Http\Controllers\Api\Dashboard\DashboardController;
 use App\Http\Controllers\Api\FixedCost\FixedCostController;
-use App\Http\Controllers\Api\Notification\NotificationController;
+use App\Http\Controllers\Api\Notification\InAppNotificationController;
 use App\Http\Controllers\Api\Onboarding\OnboardingController;
 use App\Http\Controllers\Api\Profile\ProfileController;
 use App\Http\Controllers\Api\Transaction\TransactionController;
@@ -74,9 +74,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Notification Routes
         Route::prefix('/notifications')->group(function () {
-            Route::get('/', [NotificationController::class, 'index']);
-            Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
-            Route::post('/{id}/read', [NotificationController::class, 'markAsRead']);
+            Route::get('/', [InAppNotificationController::class, 'index']);
+            Route::get('/unread-count', [InAppNotificationController::class, 'unreadCount']);
+            Route::post('/{id}/read', [InAppNotificationController::class, 'markAsRead']);
         });
 
         // User Endpoints (profile + dashboard)

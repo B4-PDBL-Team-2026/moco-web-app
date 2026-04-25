@@ -1,8 +1,11 @@
 <?php
 
-namespace App\Notifications;
+namespace App\Domains\FixedCosts\Notifications;
 
+use App\Domains\Notification\DTOs\PushMessage;
+use App\Infrastructure\Firebase\Channels\FcmCustomChannel;
 use App\Models\FixedCostOccurrence;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -11,19 +14,19 @@ class FixedCostReminder extends Notification
 {
     use Queueable;
 
-    public $occurrence;
+    public FixedCostOccurrence $occurrence;
 
     public function __construct(FixedCostOccurrence $occurrence)
     {
         $this->occurrence = $occurrence;
     }
 
-    public function via($notifiable): array
+    public function via(): array
     {
-        return ['mail', 'database'];
+        return ['mail', 'database', FcmCustomChannel::class];
     }
 
-    public function toMail($notifiable): MailMessage
+    public function toMail(User $notifiable): MailMessage
     {
         $name = $this->occurrence->template->name;
         $amount = number_format($this->occurrence->amount, 0, ',', '.');
@@ -38,13 +41,16 @@ class FixedCostReminder extends Notification
             ->line('Terima kasih telah menggunakan Moco App!');
     }
 
-    public function toArray($notifiable): array
+    public function toFcm(): PushMessage
     {
-        return [
-            'occurrence_id' => $this->occurrence->id,
-            'name' => $this->occurrence->template->name,
-            'amount' => $this->occurrence->amount,
-            'due_date' => $this->occurrence->due_date,
-        ];
+        $name = $this->occurrence->name;
+        $amount = number_format($this->occurrence->amount, 0, ',', '.');
+
+        return new PushMessage(
+            deviceToken: '',
+            title: "Pengingat Pembayaran: {$name}",
+            body: "Tagihan sebesar {$amount} akan segera jatuh tempo.",
+            data: ['occurrence_id' => (string) $this->occurrence->id]
+        );
     }
 }
