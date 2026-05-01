@@ -6,7 +6,7 @@ class RegisterDeviceData
 {
     public function __construct(
         public string $deviceId,
-        public ?string $deviceType = null,
+        public ?string $deviceType,
         public string $fcmToken,
     ) {}
 }
