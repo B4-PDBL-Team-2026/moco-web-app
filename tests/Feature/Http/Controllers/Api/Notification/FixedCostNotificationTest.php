@@ -6,10 +6,7 @@ use App\Models\FixedCostOccurrence;
 use App\Models\FixedCostTemplate;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
-
-uses(RefreshDatabase::class);
 
 test('notification is sent on due date', function () {
     Notification::fake();
@@ -38,7 +35,7 @@ test('notification is sent on due date', function () {
         'category_id' => $category->id,
     ]);
 
-    $this->artisan('fixed-cost:remind');
+    $this->artisan('fixed-cost:remind')->assertSuccessful();
 
     Notification::assertSentTo($user, FixedCostReminder::class);
 });
