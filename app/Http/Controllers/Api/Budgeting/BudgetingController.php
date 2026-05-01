@@ -8,36 +8,50 @@ use App\Domains\Budgeting\Actions\UpdateDailyLimitAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Budgeting\UpdateDailyLimitRequest;
 use App\Http\Resources\Budgeting\DailyLimitResource;
-use App\Traits\ApiResponse;
-use Illuminate\Http\JsonResponse;
+use App\Http\Responses\ApiResponse;
+use Throwable;
 
 class BudgetingController extends Controller
 {
-    use ApiResponse;
-
     /**
+     * Get user daily limit
+     *
+     * @response array{
+     *     success: bool,
+     *     message: string,
+     *     data: DailyLimitResource
+     * }
+     *
      * @throws BusinessRuleException
      */
-    public function getUserDailyLimit(GetDailyLimitAction $action): JsonResponse
+    public function getUserDailyLimit(GetDailyLimitAction $action): ApiResponse
     {
         $result = $action->execute(auth()->user());
 
-        return $this->success(
-            $result->toResource(DailyLimitResource::class),
-            'successfully retrieve user budget limit'
+        return $this->successResponse(
+            data: $result->toResource(DailyLimitResource::class),
+            message: 'successfully retrieve user budget limit'
         );
     }
 
     /**
-     * @throws BusinessRuleException
+     * Update user daily limit
+     *
+     * @response array{
+     *     success: bool,
+     *     message: string,
+     *     data: DailyLimitResource
+     * }
+     *
+     * @throws BusinessRuleException|Throwable
      */
-    public function updateUserDailyLimit(UpdateDailyLimitRequest $request, UpdateDailyLimitAction $action): JsonResponse
+    public function updateUserDailyLimit(UpdateDailyLimitRequest $request, UpdateDailyLimitAction $action): ApiResponse
     {
         $result = $action->execute(auth()->user(), $request->toDTO());
 
-        return $this->success(
-            $result->toResource(DailyLimitResource::class),
-            'successfully update user budget limit'
+        return $this->successResponse(
+            data: $result->toResource(DailyLimitResource::class),
+            message: 'successfully update user budget limit'
         );
     }
 }

@@ -23,7 +23,7 @@ class UpdateDailyLimitAction
     public function execute(User $user, UpdateDailyLimitData $data): UserBudgetSetting
     {
         if (MoneyService::lt($data->ceilingLimit, $data->flooringLimit)) {
-            throw new BusinessRuleException(__('errors.budget.ceiling_too_low'));
+            throw new BusinessRuleException('errors.budget.ceiling_too_low');
         }
 
         $setting = $user->budgetSetting;
