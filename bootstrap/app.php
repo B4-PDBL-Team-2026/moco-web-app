@@ -5,6 +5,7 @@ use App\Console\Commands\SendFixedCostReminders;
 use App\Http\Middleware\CheckDailyBudgetRecalculation;
 use App\Http\Middleware\EnsureOnboardingIsCompleted;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Responses\ApiResponse;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -35,70 +36,43 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         Integration::handles($exceptions);
+
         $exceptions->shouldRenderJsonWhen(function (Request $request): bool {
             return $request->is('api/*') || $request->expectsJson();
         });
 
-        $exceptions->render(function (AuthenticationException $e, Request $request) {
-            if ($request->is('api/*') || $request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'data' => null,
-                    'message' => 'Unauthenticated.',
-                ], 401);
+        $exceptions->render(function (Throwable $throwable, Request $request) {
+            if (! $request->is('api/*') && ! $request->expectsJson()) {
+                return null;
             }
-        });
 
-        $exceptions->render(function (BusinessRuleException $e, Request $request) {
-            if ($request->is('api/*') || $request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'data' => [
-                        'businessRule' => [$e->getMessage()],
-                    ],
-                    'message' => $e->getMessage(),
-                ], 422);
-            }
-        });
-
-        $exceptions->render(function (ValidationException $e, Request $request) {
-            if ($request->is('api/*') || $request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'data' => $e->errors(),
-                    'message' => $e->getMessage(),
-                ], 422);
-            }
-        });
-
-        $exceptions->render(function (NotFoundHttpException $e, Request $request) {
-            if ($request->is('api/*') || $request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'data' => null,
-                    'message' => 'Resource not found',
-                ], 404);
-            }
-        });
-
-        $exceptions->render(function (HttpException $e, Request $request) {
-            if ($request->is('api/*') || $request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'data' => null,
-                    'message' => $e->getMessage() ?: 'Something went wrong. Please try again.',
-                ], $e->getStatusCode());
-            }
-        });
-
-        $exceptions->render(function (Throwable $e, Request $request) {
-            if ($request->is('api/*') || $request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'data' => null,
-                    'message' => app()->hasDebugModeEnabled() ? $e->getMessage() : 'Something went wrong. Please try again.',
-                ], 500);
-            }
+            return match (true) {
+                $throwable instanceof AuthenticationException => ApiResponse::error(
+                    message: 'Unauthenticated',
+                    status: 401,
+                ),
+                $throwable instanceof ValidationException => ApiResponse::error(
+                    errors: $throwable->errors(),
+                    message: 'Validation failed.',
+                    status: 422,
+                ),
+                $throwable instanceof BusinessRuleException => ApiResponse::error(
+                    errors: ['businessRule' => [__($throwable->getTranslationKey(), $throwable->getTranslationParams())]],
+                    message: 'Business rule violation.',
+                    status: $throwable->getHttpStatus()
+                ),
+                $throwable instanceof NotFoundHttpException => ApiResponse::error(
+                    message: 'Resource not found.',
+                    status: 404
+                ),
+                $throwable instanceof HttpException => ApiResponse::error(
+                    message: $throwable->getMessage() ?: 'HTTP error.',
+                    status: $throwable->getStatusCode()
+                ),
+                default => ApiResponse::error(
+                    message: app()->hasDebugModeEnabled() ? $throwable->getMessage() : 'Something went wrong.',
+                ),
+            };
         });
     })
     ->withCommands([
