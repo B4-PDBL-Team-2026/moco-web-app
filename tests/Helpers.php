@@ -88,3 +88,15 @@ function amountSetup(string $status = 'void', string $balance = '500000.00'): ar
 
     return [$user, $occurrence, $category];
 }
+
+function catchException(callable $fn, string $exceptionClass): object
+{
+    try {
+        $fn();
+        throw new Exception("Expected {$exceptionClass} but nothing was thrown.");
+    } catch (Throwable $e) {
+        expect($e)->toBeInstanceOf($exceptionClass);
+
+        return $e;
+    }
+}
