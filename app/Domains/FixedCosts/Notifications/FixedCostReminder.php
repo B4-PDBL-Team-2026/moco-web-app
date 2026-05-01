@@ -3,14 +3,15 @@
 namespace App\Domains\FixedCosts\Notifications;
 
 use App\Domains\Notification\DTOs\PushMessage;
+use App\Domains\Notification\NotificationCode;
 use App\Infrastructure\Firebase\Channels\FcmCustomChannel;
 use App\Models\FixedCostOccurrence;
-use App\Models\User;
 use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
+use Number;
 
-class FixedCostReminder extends Notification
+class FixedCostReminder extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -23,22 +24,19 @@ class FixedCostReminder extends Notification
 
     public function via(): array
     {
-        return ['mail', 'database', FcmCustomChannel::class];
+        return ['database', FcmCustomChannel::class];
     }
 
-    public function toMail(User $notifiable): MailMessage
+    public function toArray(): array
     {
-        $name = $this->occurrence->template->name;
-        $amount = number_format($this->occurrence->amount, 0, ',', '.');
+        $formattedAmount = Number::currency($this->occurrence->amount, 'IDR', 'id');
 
-        return (new MailMessage)
-            ->subject("Pengingat Pembayaran: {$name}")
-
-            ->line("Halo {$notifiable->name}")
-            ->line("Pembayaran {$name} sebesar {$amount} akan segera jatuh tempo.")
-            ->line('Pastikan saldo kamu cukup untuk menghindari keterlambatan.')
-            ->action('Lihat Tagihan', url('/dashboard'))
-            ->line('Terima kasih telah menggunakan Moco App!');
+        return [
+            'id' => $this->occurrence->id,
+            'title' => 'Pengingat Pembayaran: '.$this->occurrence->name,
+            'message' => 'Tagihan sebesar '.$formattedAmount.' akan segera jatuh tempo.',
+            'code' => NotificationCode::FIXED_COST_REMINDER->value,
+        ];
     }
 
     public function toFcm(): PushMessage
