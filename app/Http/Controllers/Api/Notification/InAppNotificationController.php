@@ -3,44 +3,35 @@
 namespace App\Http\Controllers\Api\Notification;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use Illuminate\Support\Facades\Auth;
+use App\Traits\ApiResponse;
 
 class InAppNotificationController extends Controller
 {
+    use ApiResponse;
+
     public function index()
     {
-        /** @var User $user */
-        $user = Auth::user();
+        $user = auth()->user();
 
         $notifications = $user->notifications()->paginate(20);
 
-        return response()->json([
-            'success' => true,
-            'data' => $notifications,
-            'message' => 'Notifications retrieved successfully.',
-        ]);
+        return $this->success($notifications, 'Notification list retrieved successfully.');
     }
 
     public function markAsRead($id)
     {
-        /** @var User $user */
-        $user = Auth::user();
+        $user = auth()->user();
 
         $notification = $user->notifications()->findOrFail($id);
         $notification->markAsRead();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Notification marked as read.',
-        ]);
+        return $this->success(message: 'Notification marked as read.');
     }
 
-    public function unreadCount()
+    public function getUnreadTotal()
     {
-        return response()->json([
-            'success' => true,
-            'count' => Auth::user()->unreadNotifications->count(),
+        return $this->success([
+            'total' => auth()->user()->unreadNotifications->count(),
         ]);
     }
 }
