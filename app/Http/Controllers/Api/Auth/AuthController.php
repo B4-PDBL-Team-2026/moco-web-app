@@ -9,103 +9,95 @@ use App\Domains\Auth\Actions\LogoutUserAction;
 use App\Domains\Auth\Actions\RegisterUserAction;
 use App\Domains\Auth\Actions\ResetPasswordAction;
 use App\Domains\Auth\Actions\SendEmailVerificationAction;
-use App\Domains\Auth\DTOs\LoginUserDTO;
-use App\Domains\Auth\DTOs\RegisterUserDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ConfirmDeleteUserRequest;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
-use App\Traits\ApiResponse;
-use Illuminate\Http\JsonResponse;
+use App\Http\Resources\Auth\AuthResource;
+use App\Http\Responses\ApiResponse;
 use Illuminate\Http\Request;
 use Throwable;
 
 class AuthController extends Controller
 {
-    use ApiResponse;
-
     /**
      * Register a new user in the system.
      */
-    public function register(RegisterRequest $request, RegisterUserAction $action): JsonResponse
+    public function register(RegisterRequest $request, RegisterUserAction $action): ApiResponse
     {
-        $dto = RegisterUserDTO::fromRequest($request);
-        $result = $action->execute($dto);
+        $result = $action->execute($request->toDTO());
 
-        return $this->success([
-            'user' => $result['user'],
-            'token' => $result['token'],
-            'requires_onboarding' => $result['requires_onboarding'],
-        ], 'Registered successfully.', 201);
+        return $this->successResponse(
+            data: AuthResource::make($result),
+            message: 'Registered successfully.',
+            status: 201,
+        );
     }
 
     /**
      * Authenticate a user and return an access token.
      */
-    public function login(LoginRequest $request, LoginUserAction $action): JsonResponse
+    public function login(LoginRequest $request, LoginUserAction $action): ApiResponse
     {
-        $dto = LoginUserDTO::fromRequest($request);
-        $result = $action->execute($dto);
+        $result = $action->execute($request->toDTO());
 
-        return $this->success([
-            'user' => $result['user'],
-            'token' => $result['token'],
-            'requires_onboarding' => $result['requires_onboarding'],
-        ], 'Logged in successfully.');
+        return $this->successResponse(
+            data: AuthResource::make($result),
+            message: 'Logged in successfully.',
+        );
     }
 
     /**
      * Handle an incoming password reset link request.
      */
-    public function forgotPassword(ForgotPasswordRequest $request, ForgotPasswordAction $action): JsonResponse
+    public function forgotPassword(ForgotPasswordRequest $request, ForgotPasswordAction $action): ApiResponse
     {
         $result = $action->execute($request->validated('email'));
 
         if ($result['status'] === 'error') {
-            return $this->error($result['message'], 422);
+            return $this->errorResponse(message: $result['message'], status: 422);
         }
 
-        return $this->success(null, $result['message']);
+        return $this->successResponse(null, $result['message']);
     }
 
     /**
      * Handle an incoming new password reset request.
      */
-    public function resetPassword(ResetPasswordRequest $request, ResetPasswordAction $action): JsonResponse
+    public function resetPassword(ResetPasswordRequest $request, ResetPasswordAction $action): ApiResponse
     {
-        $result = $action->execute(
-            email: $request->validated('email'),
-            password: $request->validated('password'),
-            token: $request->validated('token'),
-        );
+        $result = $action->execute($request->toDTO());
 
         if ($result['status'] === 'error') {
-            return $this->error($result['message'], 422);
+            return $this->errorResponse(
+                message: $result['message'],
+                status: 422,
+            );
         }
 
-        return $this->success(null, $result['message']);
+        return $this->successResponse(null, $result['message']);
     }
 
     /**
      * Send a new email verification notification.
      */
-    public function sendVerificationEmail(SendEmailVerificationAction $action): JsonResponse
+    public function sendVerificationEmail(SendEmailVerificationAction $action): ApiResponse
     {
         $result = $action->execute(auth()->user());
 
-        return $this->success($result, $result['message']);
+        return $this->successResponse(message: $result['message']);
     }
 
     /**
      * Log the user out of the application and revoke their current token.
      */
-    public function logout(Request $request, LogoutUserAction $action): JsonResponse
+    public function logout(Request $request, LogoutUserAction $action): ApiResponse
     {
         $action->execute($request->user());
 
-        return $this->success(message: 'Successfully logged out.');
+        return $this->successResponse(message: 'Successfully logged out.');
     }
 
     /**
@@ -122,9 +114,9 @@ class AuthController extends Controller
     public function destroy(
         ConfirmDeleteUserRequest $request,
         DeleteUserAction $action,
-    ): JsonResponse {
+    ): ApiResponse {
         $action->execute($request->user());
 
-        return $this->success(message: 'Account deleted successfully.');
+        return $this->successResponse(message: 'Account deleted successfully.');
     }
 }
