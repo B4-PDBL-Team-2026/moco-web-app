@@ -1,9 +1,11 @@
 <?php
 
 use App\Domains\User\Models\User;
+use Illuminate\Support\Facades\Mail;
 
 test('it should send forgot forget password link', function () {
-    $user = User::factory()->create(['email' => 'test@moco.com']);
+    Mail::fake();
+    User::factory()->create(['email' => 'test@moco.com']);
 
     $response = $this->postJson('/api/auth/password/email', [
         'email' => 'test@moco.com',
