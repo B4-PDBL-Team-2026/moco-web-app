@@ -17,5 +17,4 @@ final readonly class SendNotificationAction
 
         $this->pushNotification->send($message);
     }
-
 }

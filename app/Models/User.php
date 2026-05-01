@@ -47,7 +47,6 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
-
     // relation methods
     public function profile(): HasOne
     {
