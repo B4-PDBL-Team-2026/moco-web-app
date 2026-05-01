@@ -40,7 +40,7 @@ test('it validates registration request', function () {
 
     // Assert
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['name', 'email', 'password'], 'data');
+        ->assertJsonValidationErrors(['name', 'email', 'password']);
 });
 
 test('it cannot register with existing email', function () {
@@ -59,7 +59,7 @@ test('it cannot register with existing email', function () {
 
     // Assert
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['email'], 'data');
+        ->assertJsonValidationErrors(['email']);
 });
 
 test('it requires password confirmation', function () {
@@ -73,5 +73,5 @@ test('it requires password confirmation', function () {
 
     // Assert
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['password'], 'data');
+        ->assertJsonValidationErrors(['password']);
 });

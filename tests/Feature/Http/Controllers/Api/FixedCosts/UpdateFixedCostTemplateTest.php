@@ -36,40 +36,40 @@ test('unauthenticated request returns 401', function () {
     $this->patchJson('/api/fixed-costs/1', [])->assertUnauthorized();
 });
 
-test('returns 422 when name is empty string', function () {
+test(' when name is empty string', function () {
     [$user, $template] = updateSetup();
     Sanctum::actingAs($user);
 
     $this->patchJson("/api/fixed-costs/{$template->id}", ['name' => ''])
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['name'], 'data');
+        ->assertJsonValidationErrors(['name']);
 });
 
-test('returns 422 when amount is zero', function () {
+test(' when amount is zero', function () {
     [$user, $template] = updateSetup();
     Sanctum::actingAs($user);
 
     $this->patchJson("/api/fixed-costs/$template->id", ['amount' => 0])
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['amount'], 'data');
+        ->assertJsonValidationErrors(['amount']);
 });
 
-test('returns 422 when cycleType is invalid value', function () {
+test(' when cycleType is invalid value', function () {
     [$user, $template] = updateSetup();
     Sanctum::actingAs($user);
 
     $this->patchJson("/api/fixed-costs/{$template->id}", ['cycleType' => 'biweekly'])
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['cycleType'], 'data');
+        ->assertJsonValidationErrors(['cycleType']);
 });
 
-test('returns 422 when dueDay is 0', function () {
+test(' when dueDay is 0', function () {
     [$user, $template] = updateSetup();
     Sanctum::actingAs($user);
 
     $this->patchJson("/api/fixed-costs/{$template->id}", ['dueDay' => 0])
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['dueDay'], 'data');
+        ->assertJsonValidationErrors(['dueDay']);
 });
 
 test('updates template name and returns 200', function () {

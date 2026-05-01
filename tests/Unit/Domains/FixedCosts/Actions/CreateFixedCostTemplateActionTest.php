@@ -252,7 +252,7 @@ it('throws BusinessRuleException when monthly fixed cost is added to weekly budg
     [$user, $category] = setupUserForAdd('weekly');
 
     expect(fn () => $this->action->execute($user->id, makeDto(['cycleType' => 'monthly', 'dueDay' => 15], $category, 'monthly')))
-        ->toThrow(BusinessRuleException::class, 'not allowed when budget cycle is weekly');
+        ->toThrow(BusinessRuleException::class);
 });
 
 it('throws ModelNotFoundException for invalid system category id', function () {

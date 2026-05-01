@@ -47,8 +47,9 @@ test('user can get their notification list', function () {
         ->assertStatus(200)
         ->assertJsonStructure([
             'success',
-            'data' => ['data', 'current_page'],
+            'data',
             'message',
+            'meta',
         ]);
 });
 

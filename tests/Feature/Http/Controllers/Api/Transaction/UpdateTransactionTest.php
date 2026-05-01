@@ -137,7 +137,7 @@ test('validation fails if user tries to use another users custom category', func
     $this->putJson("/api/transaction/{$transaction->id}", [
         'categoryId' => $hackedCategory->id,
     ])->assertStatus(422)
-        ->assertJsonValidationErrors(['businessRule'], 'data');
+        ->assertJsonValidationErrors(['businessRule']);
 });
 
 test('validation fails if category type does not match transaction type', function () {
@@ -155,7 +155,7 @@ test('validation fails if category type does not match transaction type', functi
     $this->putJson("/api/transaction/{$transaction->id}", [
         'categoryId' => $incomeCategory->id,
     ])->assertStatus(422)
-        ->assertJsonValidationErrors(['businessRule'], 'data');
+        ->assertJsonValidationErrors(['businessRule']);
 });
 
 test('successfully updates transaction date', function () {
@@ -186,7 +186,7 @@ test('fails to update transaction to a future date due to validation', function 
     $this->putJson("/api/transaction/{$transaction->id}", [
         'transactionAt' => '2026-04-04T15:00:00Z',
     ])->assertStatus(422)
-        ->assertJsonValidationErrors(['transactionAt'], 'data');
+        ->assertJsonValidationErrors(['transactionAt']);
 });
 
 test('feature: verifies UTC conversion when updating date via API', function () {

@@ -17,7 +17,7 @@ test('returns 422 when amount is missing', function () {
 
     $this->patchJson("/api/fixed-costs/occurrences/{$occurrence->id}/amount", [])
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['amount'], 'data');
+        ->assertJsonValidationErrors(['amount']);
 });
 
 test('returns 422 when amount is zero', function () {
@@ -26,7 +26,7 @@ test('returns 422 when amount is zero', function () {
 
     $this->patchJson("/api/fixed-costs/occurrences/{$occurrence->id}/amount", ['amount' => 0])
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['amount'], 'data');
+        ->assertJsonValidationErrors(['amount']);
 });
 
 test('returns 422 when amount is negative', function () {
@@ -35,7 +35,7 @@ test('returns 422 when amount is negative', function () {
 
     $this->patchJson("/api/fixed-costs/occurrences/{$occurrence->id}/amount", ['amount' => -100])
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['amount'], 'data');
+        ->assertJsonValidationErrors(['amount']);
 });
 
 test('updates amount of PENDING occurrence and returns 200', function () {

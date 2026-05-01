@@ -295,7 +295,7 @@ test('returns 422 when cycleType is an invalid value', function () {
 
     $this->getJson('/api/fixed-costs?cycleType=quarterly')
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['cycleType'], 'data');
+        ->assertJsonValidationErrors(['cycleType']);
 });
 
 test('returns 422 when dueDay is 0', function () {
@@ -304,7 +304,7 @@ test('returns 422 when dueDay is 0', function () {
 
     $this->getJson('/api/fixed-costs?dueDay=0')
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['dueDay'], 'data');
+        ->assertJsonValidationErrors(['dueDay']);
 });
 
 test('returns 422 when dueDay exceeds 31', function () {
@@ -313,7 +313,7 @@ test('returns 422 when dueDay exceeds 31', function () {
 
     $this->getJson('/api/fixed-costs?dueDay=32')
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['dueDay'], 'data');
+        ->assertJsonValidationErrors(['dueDay']);
 });
 
 test('returns 422 when perPage exceeds max', function () {
@@ -322,7 +322,7 @@ test('returns 422 when perPage exceeds max', function () {
 
     $this->getJson('/api/fixed-costs?perPage='.(FilterFixedCostTemplateData::MAX_PER_PAGE + 1))
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['perPage'], 'data');
+        ->assertJsonValidationErrors(['perPage']);
 });
 
 test('returns 422 when page is 0', function () {
@@ -331,7 +331,7 @@ test('returns 422 when page is 0', function () {
 
     $this->getJson('/api/fixed-costs?page=0')
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['page'], 'data');
+        ->assertJsonValidationErrors(['page']);
 });
 
 test('accepts null values for nullable filter params', function () {

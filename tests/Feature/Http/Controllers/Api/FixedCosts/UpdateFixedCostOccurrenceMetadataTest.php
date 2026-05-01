@@ -11,31 +11,31 @@ test('unauthenticated request returns 401', function () {
     $this->patchJson('/api/fixed-costs/occurrences/1/amount', [])->assertUnauthorized();
 });
 
-test('returns 422 when amount is missing', function () {
+test(' when amount is missing', function () {
     [$user, $occurrence] = amountSetup();
     Sanctum::actingAs($user);
 
     $this->patchJson("/api/fixed-costs/occurrences/{$occurrence->id}/amount", [])
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['amount'], 'data');
+        ->assertJsonValidationErrors(['amount']);
 });
 
-test('returns 422 when amount is zero', function () {
+test(' when amount is zero', function () {
     [$user, $occurrence] = amountSetup();
     Sanctum::actingAs($user);
 
     $this->patchJson("/api/fixed-costs/occurrences/{$occurrence->id}/amount", ['amount' => 0])
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['amount'], 'data');
+        ->assertJsonValidationErrors(['amount']);
 });
 
-test('returns 422 when amount is negative', function () {
+test(' when amount is negative', function () {
     [$user, $occurrence] = amountSetup();
     Sanctum::actingAs($user);
 
     $this->patchJson("/api/fixed-costs/occurrences/{$occurrence->id}/amount", ['amount' => -100])
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['amount'], 'data');
+        ->assertJsonValidationErrors(['amount']);
 });
 
 test('updates amount of PENDING occurrence and returns 200', function () {

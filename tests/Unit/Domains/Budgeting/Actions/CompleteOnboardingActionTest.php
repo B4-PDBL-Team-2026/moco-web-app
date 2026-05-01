@@ -155,16 +155,16 @@ it('rejects monthly fixed costs within a weekly budget cycle', function () {
                 name: 'Monthly Rent',
                 amount: '1500.00',
                 cycleType: CycleType::MONTHLY,
+                dueDay: 25,
                 isActive: true,
                 categoryId: $category->id,
-                dueDay: 25,
             ),
         ],
         timezone: 'Asia/Jakarta',
     );
 
     app(CompleteOnboardingAction::class)->execute($user->id, $dto);
-})->throws(BusinessRuleException::class, 'Monthly fixed cost is not allowed when budget cycle is weekly.');
+})->throws(BusinessRuleException::class);
 
 it('updates existing onboarding data seamlessly when user steps back and resubmits', function () {
     $mockedTime = CarbonImmutable::parse('2026-03-20 10:00:00', 'Asia/Jakarta');

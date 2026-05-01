@@ -32,7 +32,7 @@ test('returns 422 when password is missing', function () {
 
     $this->deleteJson('/api/auth/user')
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['password'], 'data');
+        ->assertJsonValidationErrors(['password']);
 });
 
 test('returns 422 when password is incorrect', function () {
@@ -40,7 +40,7 @@ test('returns 422 when password is incorrect', function () {
 
     $this->deleteJson('/api/auth/user', ['password' => 'wrongpassword'])
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['password'], 'data');
+        ->assertJsonValidationErrors(['password']);
 });
 
 test('returns 422 with the correct error message when password is wrong', function () {
@@ -48,7 +48,7 @@ test('returns 422 with the correct error message when password is wrong', functi
 
     $this->deleteJson('/api/auth/user', ['password' => 'wrongpassword'])
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['password'], 'data')
+        ->assertJsonValidationErrors(['password'])
         ->assertJsonFragment(['The provided password is incorrect.']);
 });
 

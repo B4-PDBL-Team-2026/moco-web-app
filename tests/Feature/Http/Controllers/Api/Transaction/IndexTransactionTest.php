@@ -13,5 +13,5 @@ test('index endpoint validates month', function () {
 
     $this->getJson('/api/transaction?month=13')
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['month'], 'data');
+        ->assertJsonValidationErrors(['month']);
 });

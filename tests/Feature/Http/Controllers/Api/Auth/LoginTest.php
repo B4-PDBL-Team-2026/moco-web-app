@@ -44,7 +44,7 @@ test('it rejects login with wrong password', function () {
 
     // Assert
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['email'], 'data');
+        ->assertJsonValidationErrors(['email']);
 });
 
 test('it rejects login with unregistered email', function () {
@@ -56,7 +56,7 @@ test('it rejects login with unregistered email', function () {
 
     // Assert
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['email'], 'data');
+        ->assertJsonValidationErrors(['email']);
 });
 
 test('it validates empty login request', function () {
@@ -65,7 +65,7 @@ test('it validates empty login request', function () {
 
     // Assert
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['email', 'password'], 'data');
+        ->assertJsonValidationErrors(['email', 'password']);
 });
 
 test('it validates email format on login', function () {
@@ -77,5 +77,5 @@ test('it validates email format on login', function () {
 
     // Assert
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['email'], 'data');
+        ->assertJsonValidationErrors(['email']);
 });

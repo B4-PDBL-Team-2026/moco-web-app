@@ -23,11 +23,18 @@ describe('GetDailyLimitAction', function () {
 
     it('throws BusinessRuleException when budget setting is not found', function () {
         $user = User::factory()->create();
-
         $action = new GetDailyLimitAction;
 
-        expect(fn () => $action->execute($user))
-            ->toThrow(BusinessRuleException::class, __('errors.budget.budget_setting_not_found'));
+        $exception = catchException(
+            fn () => $action->execute($user),
+            BusinessRuleException::class
+        );
+
+        /** @var BusinessRuleException $exception */
+        expect($exception)
+            ->getTranslationKey()->toBe('errors.budget.budget_setting_not_found')
+            ->getTranslationParams()->toBe([])
+            ->getHttpStatus()->toBe(422);
     });
 });
 
@@ -69,7 +76,15 @@ describe('UpdateDailyLimitAction', function () {
 
         $dto = new UpdateDailyLimitData(flooringLimit: '50000', ceilingLimit: '10000');
 
-        expect(fn () => $action->execute($user, $dto))
-            ->toThrow(BusinessRuleException::class, __('errors.budget.ceiling_too_low'));
+        $exception = catchException(
+            fn () => $action->execute($user, $dto),
+            BusinessRuleException::class
+        );
+
+        /** @var BusinessRuleException $exception */
+        expect($exception)
+            ->getTranslationKey()->toBe('errors.budget.ceiling_too_low')
+            ->getTranslationParams()->toBe([])
+            ->getHttpStatus()->toBe(422);
     });
 });

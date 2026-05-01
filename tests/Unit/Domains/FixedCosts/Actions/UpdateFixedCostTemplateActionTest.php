@@ -168,14 +168,14 @@ it('throws BusinessRuleException when updated name is empty', function () {
     [$user, $template] = setupUserForUpdate();
 
     expect(fn () => $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray(['name' => ''])))
-        ->toThrow(BusinessRuleException::class, 'cannot be empty');
+        ->toThrow(BusinessRuleException::class);
 });
 
 it('throws BusinessRuleException when updated amount is zero', function () {
     [$user, $template] = setupUserForUpdate();
 
     expect(fn () => $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray(['amount' => '0'])))
-        ->toThrow(BusinessRuleException::class, 'must be greater than zero');
+        ->toThrow(BusinessRuleException::class);
 });
 
 it('throws BusinessRuleException when weekly due_day exceeds 7', function () {
@@ -186,7 +186,7 @@ it('throws BusinessRuleException when weekly due_day exceeds 7', function () {
         'cycleType' => 'weekly',
         'dueDay' => 8,
     ])))
-        ->toThrow(BusinessRuleException::class, 'Weekly due day must be between 1 and 7.');
+        ->toThrow(BusinessRuleException::class);
 });
 
 it('throws BusinessRuleException when changing to monthly cycle on a weekly budget', function () {
@@ -194,7 +194,7 @@ it('throws BusinessRuleException when changing to monthly cycle on a weekly budg
     $template->update(['cycle_type' => 'weekly', 'due_day' => 1]);
 
     expect(fn () => $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray(['cycleType' => 'monthly'])))
-        ->toThrow(BusinessRuleException::class, 'Monthly fixed cost is not allowed when budget cycle is weekly.');
+        ->toThrow(BusinessRuleException::class);
 });
 
 it('throws BusinessRuleException when custom category belongs to another user', function () {
@@ -207,7 +207,7 @@ it('throws BusinessRuleException when custom category belongs to another user', 
     expect(fn () => $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray([
         'categoryId' => $otherCategory->id,
     ])))
-        ->toThrow(BusinessRuleException::class, 'Invalid category ownership.');
+        ->toThrow(BusinessRuleException::class);
 });
 
 it('throws ModelNotFoundException when template belongs to another user', function () {

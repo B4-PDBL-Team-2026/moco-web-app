@@ -29,7 +29,7 @@ test('user onboarding fails when required payload is missing', function () {
     $this->actingAs($user, 'sanctum')
         ->postJson('/api/onboarding', [])
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['budgetCycle', 'initialBalance', 'fixedCosts', 'ceilingLimit', 'flooringLimit'], 'data');
+        ->assertJsonValidationErrors(['budgetCycle', 'initialBalance', 'fixedCosts', 'ceilingLimit', 'flooringLimit']);
 });
 
 test('user onboarding fails when budget cycle enum is invalid', function () {
@@ -46,7 +46,7 @@ test('user onboarding fails when budget cycle enum is invalid', function () {
     $this->actingAs($user, 'sanctum')
         ->postJson('/api/onboarding', $payload)
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['budgetCycle'], 'data');
+        ->assertJsonValidationErrors(['budgetCycle']);
 });
 
 test('user should be able to complete onboarding with fixed costs', function () {
@@ -114,7 +114,7 @@ test('user onboarding fails when budget cycle and fixed cost cycle are incompati
         ->postJson('/api/onboarding', $payload);
 
     $response->assertStatus(422)
-        ->assertJsonPath('message', 'Monthly fixed cost is not allowed when budget cycle is weekly.');
+        ->assertJsonValidationErrorFor('fixedCosts.0.cycleType');
 });
 
 test('user should be able to stores onboarding and get final onboarding result', function () {

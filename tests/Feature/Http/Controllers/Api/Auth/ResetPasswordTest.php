@@ -45,7 +45,7 @@ test('it can not reset password if confirmation field not match', function () {
     ]);
 
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['password'], 'data');
+        ->assertJsonValidationErrors(['password']);
 });
 
 test('it can not reset password if password does not meet criteria', function () {
@@ -64,5 +64,5 @@ test('it can not reset password if password does not meet criteria', function ()
     ]);
 
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['password'], 'data');
+        ->assertJsonValidationErrors(['password']);
 });

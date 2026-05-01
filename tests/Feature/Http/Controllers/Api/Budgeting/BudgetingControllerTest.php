@@ -35,7 +35,7 @@ describe('GET /api/settings/dailyLimit', function () {
         $this->getJson('/api/settings/dailyLimit')
             ->assertStatus(422)
             ->assertJsonPath('success', false)
-            ->assertJsonPath('message', __('errors.budget.budget_setting_not_found'));
+            ->assertJsonPath('errors.businessRule.0', __('errors.budget.budget_setting_not_found'));
     });
 });
 
@@ -51,7 +51,7 @@ describe('PATCH /api/settings/dailyLimit', function () {
 
         $this->patchJson('/api/settings/dailyLimit', [])
             ->assertStatus(422)
-            ->assertJsonValidationErrors(['flooringLimit', 'ceilingLimit'], 'data');
+            ->assertJsonValidationErrors(['flooringLimit', 'ceilingLimit']);
     });
 
     it('validates that flooringLimit must be numeric and min 1', function () {
@@ -63,7 +63,7 @@ describe('PATCH /api/settings/dailyLimit', function () {
             'ceilingLimit' => 50000,
         ])
             ->assertStatus(422)
-            ->assertJsonValidationErrors(['flooringLimit'], 'data');
+            ->assertJsonValidationErrors(['flooringLimit']);
     });
 
     it('validates that ceilingLimit must be greater than or equal to flooringLimit', function () {
@@ -75,7 +75,7 @@ describe('PATCH /api/settings/dailyLimit', function () {
             'ceilingLimit' => 10000,
         ])
             ->assertStatus(422)
-            ->assertJsonValidationErrors(['ceilingLimit'], 'data');
+            ->assertJsonValidationErrors(['ceilingLimit']);
     });
 
     it('successfully updates user daily limit via API', function () {

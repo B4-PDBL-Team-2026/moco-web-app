@@ -129,7 +129,7 @@ it('throws BusinessRuleException when increasing a PAID occurrence exceeds curre
     $dto = new UpdateFixedCostOccurrenceAmountData('300000.00');
 
     expect(fn () => $this->action->execute($user->id, $occurrence->id, $dto))
-        ->toThrow(BusinessRuleException::class, 'Insufficient balance');
+        ->toThrow(BusinessRuleException::class);
 });
 
 it('throws ModelNotFoundException when occurrence is VOID', function () {

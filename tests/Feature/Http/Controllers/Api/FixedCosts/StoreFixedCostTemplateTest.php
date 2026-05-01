@@ -57,7 +57,7 @@ test('returns 422 when name is missing', function () {
         'cycleType' => 'monthly',
         'dueDay' => 15,
         'categoryId' => $cat->id,
-    ])->assertUnprocessable()->assertJsonValidationErrors(['name'], 'data');
+    ])->assertUnprocessable()->assertJsonValidationErrors(['name']);
 });
 
 test('returns 422 when amount is zero', function () {
@@ -70,7 +70,7 @@ test('returns 422 when amount is zero', function () {
         'cycleType' => 'monthly',
         'dueDay' => 15,
         'categoryId' => $cat->id,
-    ])->assertUnprocessable()->assertJsonValidationErrors(['amount'], 'data');
+    ])->assertUnprocessable()->assertJsonValidationErrors(['amount']);
 });
 
 test('returns 422 when amount is negative', function () {
@@ -83,7 +83,7 @@ test('returns 422 when amount is negative', function () {
         'cycleType' => 'monthly',
         'dueDay' => 15,
         'categoryId' => $cat->id,
-    ])->assertUnprocessable()->assertJsonValidationErrors(['amount'], 'data');
+    ])->assertUnprocessable()->assertJsonValidationErrors(['amount']);
 });
 
 test('returns 422 when cycleType is invalid', function () {
@@ -96,7 +96,7 @@ test('returns 422 when cycleType is invalid', function () {
         'cycleType' => 'quarterly',
         'dueDay' => 15,
         'categoryId' => $cat->id,
-    ])->assertUnprocessable()->assertJsonValidationErrors(['cycleType'], 'data');
+    ])->assertUnprocessable()->assertJsonValidationErrors(['cycleType']);
 });
 
 test('returns 422 when dueDay exceeds 31', function () {
@@ -109,7 +109,7 @@ test('returns 422 when dueDay exceeds 31', function () {
         'cycleType' => 'monthly',
         'dueDay' => 32,
         'categoryId' => $cat->id,
-    ])->assertUnprocessable()->assertJsonValidationErrors(['dueDay'], 'data');
+    ])->assertUnprocessable()->assertJsonValidationErrors(['dueDay']);
 });
 
 test('returns 422 when categoryId is missing', function () {
@@ -121,7 +121,7 @@ test('returns 422 when categoryId is missing', function () {
         'amount' => 150000,
         'cycleType' => 'monthly',
         'dueDay' => 15,
-    ])->assertUnprocessable()->assertJsonValidationErrors(['categoryId'], 'data');
+    ])->assertUnprocessable()->assertJsonValidationErrors(['categoryId']);
 });
 
 test('creates a template and returns 201', function () {
