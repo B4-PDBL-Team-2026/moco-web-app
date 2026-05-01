@@ -18,7 +18,7 @@ class FcmV1HttpClient implements PushNotification
 
     public function __construct()
     {
-        $this->projectId = config('services.firebase.project_id');
+        $this->projectId = config('services.firebase.project_id', '');
         $this->credentialsPath = storage_path('app/private/firebase_key.json');
     }
 
