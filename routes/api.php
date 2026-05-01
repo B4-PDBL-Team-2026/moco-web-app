@@ -80,7 +80,7 @@ Route::middleware('auth:sanctum')->group(function () {
             });
 
             Route::get('/', [InAppNotificationController::class, 'index']);
-            Route::get('/unread-count', [InAppNotificationController::class, 'unreadCount']);
+            Route::get('/unread-count', [InAppNotificationController::class, 'getUnreadTotal']);
             Route::post('/{id}/read', [InAppNotificationController::class, 'markAsRead']);
 
         });
