@@ -2,6 +2,7 @@
 
 namespace App\Domains\Auth\Actions;
 
+use App\Domains\Auth\DTOs\ResetPasswordData;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
@@ -14,14 +15,14 @@ class ResetPasswordAction
      *
      * @return array{status: string, message: string}
      */
-    public function execute(string $email, string $password, string $token): array
+    public function execute(ResetPasswordData $data): array
     {
         $status = Password::reset(
             [
-                'email' => $email,
-                'password' => $password,
-                'password_confirmation' => $password,
-                'token' => $token,
+                'email' => $data->email,
+                'password' => $data->password,
+                'password_confirmation' => $data->password,
+                'token' => $data->token,
             ],
             function ($user, string $password): void {
                 $user->forceFill([
