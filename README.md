@@ -1,9 +1,37 @@
 # A Monorepo of MOCO (RESTful API + Web App)
 
+## Getting Started
+Cara install dan run app:
+1. Clone repo-nya
+2. Install dependencies
+    ```sh
+    composer install
+    ```
+3. Konfigurasi .env file
+   ```sh
+    cp .env.example .env
+    ```
+5. Generate app key
+   ```sh
+    php artisan key:generate
+    ```
+7. Jalanin migration ke db
+    ```sh
+    php artisan migrate:fresh
+    ```
+9. Install package npm
+    ```sh
+    npm install
+    ```
+11. Jalanin app-nya
+    ```sh
+    composer run dev
+    ```
+
 ## Documentation
 **OpenAPI Spec**
 
-API documentation is accessible from path '/api/docs'. You have to run the server first to access it.
+API documentation is accessible from path '/api/docs'. You have to run the app first to access it.
 
 ## Developer Notes
 Standar Koding & Arsitektur
