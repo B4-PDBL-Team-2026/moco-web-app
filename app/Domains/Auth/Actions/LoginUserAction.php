@@ -2,7 +2,7 @@
 
 namespace App\Domains\Auth\Actions;
 
-use App\Domains\Auth\DTOs\LoginUserDTO;
+use App\Domains\Auth\DTOs\LoginUserData;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -16,11 +16,11 @@ class LoginUserAction
      *
      * @throws ValidationException
      */
-    public function execute(LoginUserDTO $dto): array
+    public function execute(LoginUserData $data): array
     {
-        $user = User::query()->where('email', $dto->email)->first();
+        $user = User::query()->where('email', $data->email)->first();
 
-        if (! $user || ! Hash::check($dto->password, $user->password)) {
+        if (! $user || ! Hash::check($data->password, $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['Email or password is wrong.'],
             ]);
@@ -31,7 +31,7 @@ class LoginUserAction
         return [
             'user' => $user,
             'token' => $token,
-            'requires_onboarding' => $user->isRequireOnboarding(),
+            'requiresOnboarding' => $user->isRequireOnboarding(),
         ];
     }
 }

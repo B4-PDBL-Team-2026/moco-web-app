@@ -2,7 +2,7 @@
 
 namespace App\Domains\Auth\Actions;
 
-use App\Domains\Auth\DTOs\RegisterUserDTO;
+use App\Domains\Auth\DTOs\RegisterUserData;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
@@ -16,12 +16,12 @@ class RegisterUserAction
      *
      * @return array{user: User, token: string, is_new_user: bool, requires_onboarding: bool}
      */
-    public function execute(RegisterUserDTO $dto): array
+    public function execute(RegisterUserData $data): array
     {
         $user = User::query()->create([
-            'name' => $dto->name,
-            'email' => $dto->email,
-            'password' => Hash::make($dto->password),
+            'name' => $data->name,
+            'email' => $data->email,
+            'password' => Hash::make($data->password),
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -29,7 +29,7 @@ class RegisterUserAction
         return [
             'user' => $user,
             'token' => $token,
-            'requires_onboarding' => true,
+            'requiresOnboarding' => true,
         ];
     }
 }
