@@ -11,7 +11,7 @@ test('it should send forgot forget password link', function () {
 
     $response->assertStatus(200)
         ->assertJsonPath('success', true)
-        ->assertJsonStructure(['success', 'data', 'message']);
+        ->assertJsonStructure(['success', 'message']);
 });
 
 test('it cannot send forget password link if email not found', function () {

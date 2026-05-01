@@ -1,7 +1,7 @@
 <?php
 
 use App\Domains\Auth\Actions\LoginUserAction;
-use App\Domains\Auth\DTOs\LoginUserDTO;
+use App\Domains\Auth\DTOs\LoginUserData;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -14,7 +14,7 @@ test('it logs in a user successfully with correct credentials', function () {
     ]);
 
     $action = new LoginUserAction;
-    $dto = new LoginUserDTO(
+    $dto = new LoginUserData(
         email: 'testlogin@example.com',
         password: 'CorrectPassword123!'
     );
@@ -27,7 +27,7 @@ test('it logs in a user successfully with correct credentials', function () {
         ->toHaveKey('user')
         ->toHaveKey('token')
         ->and($result['user']->id)->toBe($user->getAttribute('id'))
-        ->and($result['requires_onboarding'])->toBeTrue()
+        ->and($result['requiresOnboarding'])->toBeTrue()
         ->and($result['token'])->toBeString();
 });
 
@@ -39,7 +39,7 @@ test('it throws validation exception when password is wrong', function () {
     ]);
 
     $action = new LoginUserAction;
-    $dto = new LoginUserDTO(
+    $dto = new LoginUserData(
         email: 'testlogin@example.com',
         password: 'WrongPassword!!!'
     );
@@ -52,7 +52,7 @@ test('it throws validation exception when password is wrong', function () {
 test('it throws validation exception when email is not found', function () {
     // Arrange
     $action = new LoginUserAction;
-    $dto = new LoginUserDTO(
+    $dto = new LoginUserData(
         email: 'notfound@example.com',
         password: 'SomePassword123!'
     );

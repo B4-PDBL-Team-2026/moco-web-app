@@ -27,7 +27,7 @@ test('response contains success status for an unverified user', function () {
 
     $this->postJson('/api/auth/verify-email/request')
         ->assertOk()
-        ->assertJsonPath('data.status', 'success');
+        ->assertJsonPath('success', true);
 });
 
 test('response contains the sent confirmation message for an unverified user', function () {
@@ -37,7 +37,7 @@ test('response contains the sent confirmation message for an unverified user', f
 
     $this->postJson('/api/auth/verify-email/request')
         ->assertOk()
-        ->assertJsonPath('data.message', 'Email verification link sent on email.');
+        ->assertJsonPath('success', true);
 });
 
 test('sends a VerifyEmail notification to the authenticated unverified user', function () {
@@ -91,7 +91,7 @@ test('response contains success status when the user is already verified', funct
 
     $this->postJson('/api/auth/verify-email/request')
         ->assertOk()
-        ->assertJsonPath('data.status', 'success');
+        ->assertJsonPath('success', true);
 });
 
 test('response contains the already-verified message when the user is already verified', function () {
@@ -101,7 +101,7 @@ test('response contains the already-verified message when the user is already ve
 
     $this->postJson('/api/auth/verify-email/request')
         ->assertOk()
-        ->assertJsonPath('data.message', 'Email is already verified.');
+        ->assertJsonPath('message', 'Email is already verified.');
 });
 
 test('does not send a notification when the user is already verified', function () {

@@ -1,7 +1,7 @@
 <?php
 
 use App\Domains\Auth\Actions\RegisterUserAction;
-use App\Domains\Auth\DTOs\RegisterUserDTO;
+use App\Domains\Auth\DTOs\RegisterUserData;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Event;
@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Hash;
 beforeEach(function () {
     $this->action = app(RegisterUserAction::class);
 
-    $this->dto = new RegisterUserDTO(
+    $this->dto = new RegisterUserData(
         name: 'John Doe',
         email: 'john@example.com',
         password: 'secret1234',
@@ -20,13 +20,13 @@ beforeEach(function () {
 it('returns a user, token, and requires_onboarding flag', function () {
     $result = $this->action->execute($this->dto);
 
-    expect($result)->toHaveKeys(['user', 'token', 'requires_onboarding']);
+    expect($result)->toHaveKeys(['user', 'token', 'requiresOnboarding']);
 });
 
 it('requires_onboarding is always true for a new registration', function () {
     $result = $this->action->execute($this->dto);
 
-    expect($result['requires_onboarding'])->toBeTrue();
+    expect($result['requiresOnboarding'])->toBeTrue();
 });
 
 it('returns a non-empty plain-text token', function () {

@@ -23,10 +23,10 @@ test('it can register a user via api', function () {
                     'email',
                 ],
                 'token',
-                'requires_onboarding',
+                'requiresOnboarding',
             ],
         ])
-        ->assertJsonPath('data.requires_onboarding', true);
+        ->assertJsonPath('data.requiresOnboarding', true);
 
     $this->assertDatabaseHas('users', [
         'email' => 'john@example.com',
