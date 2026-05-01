@@ -2,9 +2,9 @@
 
 namespace App\Domains\Budgeting\Services;
 
-use App\Commons\Services\MoneyService;
-use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
-use App\Models\FixedCostOccurrence;
+use App\Commons\ValueObjects\Money;
+use App\Domains\FixedCost\Enums\FixedCostOccurenceStatus;
+use App\Domains\FixedCost\Models\FixedCostOccurrence;
 use Carbon\CarbonImmutable;
 
 /**
@@ -34,7 +34,7 @@ final class ReservedCostCalculator
             ->get(['amount']);
 
         foreach ($occurrences as $occurrence) {
-            $sum = MoneyService::add($sum, (string) $occurrence->amount);
+            $sum = Money::add($sum, (string) $occurrence->amount);
         }
 
         return $sum;

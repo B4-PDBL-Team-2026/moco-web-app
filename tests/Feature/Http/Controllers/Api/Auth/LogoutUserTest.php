@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\User;
+use App\Domains\User\Models\User;
 
 test('authenticated user can logout from current device', function () {
     $user = User::factory()->create();

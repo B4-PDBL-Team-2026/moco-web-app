@@ -1,14 +1,14 @@
 <?php
 
 use App\Commons\Exceptions\BusinessRuleException;
-use App\Domains\Transactions\Actions\UpdateTransactionAction;
-use App\Domains\Transactions\DTOs\UpdateTransactionData;
-use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\Category;
-use App\Models\Transaction;
-use App\Models\User;
-use App\Models\UserBudgetSetting;
-use App\Models\UserBudgetSnapshot;
+use App\Domains\Budgeting\Models\UserBudgetSetting;
+use App\Domains\Budgeting\Models\UserBudgetSnapshot;
+use App\Domains\Category\Models\Category;
+use App\Domains\Transaction\Actions\UpdateTransactionAction;
+use App\Domains\Transaction\DTOs\UpdateTransactionData;
+use App\Domains\Transaction\Enums\TransactionType;
+use App\Domains\Transaction\Models\Transaction;
+use App\Domains\User\Models\User;
 use Illuminate\Validation\UnauthorizedException;
 
 it('successfully updates transaction name and note only', function () {

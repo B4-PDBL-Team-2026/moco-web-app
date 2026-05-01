@@ -3,7 +3,7 @@
 namespace App\Domains\Budgeting\DTOs;
 
 use App\Domains\Budgeting\Enums\CycleType;
-use App\Domains\FixedCosts\DTOs\CreateFixedCostTemplateData;
+use App\Domains\FixedCost\DTOs\CreateFixedCostTemplateData;
 
 final readonly class CompleteOnboardingData
 {

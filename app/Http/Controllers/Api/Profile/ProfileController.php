@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Api\Profile;
 
-use App\Domains\Profile\Actions\GetProfileAction;
-use App\Domains\Profile\Actions\UpdateProfileAction;
-use App\Domains\Profile\DTOs\UpdateProfileData;
+use App\Domains\User\Actions\Profile\GetProfileAction;
+use App\Domains\User\Actions\Profile\UpdateProfileAction;
+use App\Domains\User\DTOs\Profile\UpdateProfileData;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Profile\UpdateProfileRequest;
+use App\Http\Requests\User\Profile\UpdateProfileRequest;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 

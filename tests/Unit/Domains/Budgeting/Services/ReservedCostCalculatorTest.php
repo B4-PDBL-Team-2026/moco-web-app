@@ -1,9 +1,9 @@
 <?php
 
 use App\Domains\Budgeting\Services\ReservedCostCalculator;
-use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
-use App\Models\FixedCostOccurrence;
-use App\Models\User;
+use App\Domains\FixedCost\Enums\FixedCostOccurenceStatus;
+use App\Domains\FixedCost\Models\FixedCostOccurrence;
+use App\Domains\User\Models\User;
 use Carbon\CarbonImmutable;
 
 it('returns 0.00 when user has no occurrences in the window', function () {

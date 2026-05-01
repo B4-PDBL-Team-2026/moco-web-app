@@ -1,13 +1,13 @@
 <?php
 
 use App\Commons\Exceptions\BusinessRuleException;
-use App\Domains\Transactions\Actions\DeleteTransactionAction;
-use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\Category;
-use App\Models\Transaction;
-use App\Models\User;
-use App\Models\UserBudgetSetting;
-use App\Models\UserBudgetSnapshot;
+use App\Domains\Budgeting\Models\UserBudgetSetting;
+use App\Domains\Budgeting\Models\UserBudgetSnapshot;
+use App\Domains\Category\Models\Category;
+use App\Domains\Transaction\Actions\DeleteTransactionAction;
+use App\Domains\Transaction\Enums\TransactionType;
+use App\Domains\Transaction\Models\Transaction;
+use App\Domains\User\Models\User;
 use Illuminate\Validation\UnauthorizedException;
 
 it('deletes expense transaction', function () {

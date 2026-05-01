@@ -1,10 +1,10 @@
 <?php
 
 use App\Domains\Budgeting\Enums\CycleType;
-use App\Domains\FixedCosts\DTOs\FilterFixedCostTemplateData;
-use App\Models\Category;
-use App\Models\FixedCostTemplate;
-use App\Models\User;
+use App\Domains\Category\Models\Category;
+use App\Domains\FixedCost\DTOs\FilterFixedCostTemplateData;
+use App\Domains\FixedCost\Models\FixedCostTemplate;
+use App\Domains\User\Models\User;
 use Laravel\Sanctum\Sanctum;
 
 function indexTemplateSetup(): array

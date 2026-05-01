@@ -1,7 +1,7 @@
 <?php
 
-use App\Domains\Auth\Actions\VerifyEmailAction;
-use App\Models\User;
+use App\Domains\User\Actions\Auth\VerifyEmailAction;
+use App\Domains\User\Models\User;
 
 it('should mark new registered user email as unverified', function () {
     $userMock = Mockery::mock(User::class)->makePartial();

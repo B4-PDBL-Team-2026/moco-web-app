@@ -3,7 +3,7 @@
 namespace App\Http\Requests\FixedCost;
 
 use App\Domains\Budgeting\Enums\CycleType;
-use App\Domains\FixedCosts\DTOs\FilterFixedCostTemplateData;
+use App\Domains\FixedCost\DTOs\FilterFixedCostTemplateData;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 

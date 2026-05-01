@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\Category;
-use App\Models\User;
+use App\Domains\Category\Models\Category;
+use App\Domains\User\Models\User;
 use Database\Seeders\DatabaseSeeder;
 
 use function Pest\Laravel\assertDatabaseHas;

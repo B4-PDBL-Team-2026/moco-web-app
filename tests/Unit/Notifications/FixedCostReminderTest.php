@@ -1,10 +1,10 @@
 <?php
 
-use App\Domains\FixedCosts\Notifications\FixedCostReminder;
+use App\Domains\FixedCost\Models\FixedCostOccurrence;
+use App\Domains\FixedCost\Notifications\FixedCostReminder;
 use App\Domains\Notification\DTOs\PushMessage;
-use App\Domains\Notification\NotificationCode;
+use App\Domains\Notification\Enums\NotificationCode;
 use App\Infrastructure\Firebase\Channels\FcmCustomChannel;
-use App\Models\FixedCostOccurrence;
 
 it('defines correct delivery channels', function () {
     $occurrence = FixedCostOccurrence::factory()->make();

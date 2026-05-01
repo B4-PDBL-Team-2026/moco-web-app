@@ -1,10 +1,10 @@
 <?php
 
-use App\Domains\FixedCosts\Notifications\FixedCostReminder;
-use App\Models\Category;
-use App\Models\FixedCostOccurrence;
-use App\Models\FixedCostTemplate;
-use App\Models\User;
+use App\Domains\Category\Models\Category;
+use App\Domains\FixedCost\Models\FixedCostOccurrence;
+use App\Domains\FixedCost\Models\FixedCostTemplate;
+use App\Domains\FixedCost\Notifications\FixedCostReminder;
+use App\Domains\User\Models\User;
 use Laravel\Sanctum\Sanctum;
 
 function createDummyOccurrence(User $user): FixedCostOccurrence

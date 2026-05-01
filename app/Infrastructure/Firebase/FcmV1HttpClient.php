@@ -4,7 +4,7 @@ namespace App\Infrastructure\Firebase;
 
 use App\Domains\Notification\Contracts\PushNotification;
 use App\Domains\Notification\DTOs\PushMessage;
-use App\Models\UserDevice;
+use App\Domains\User\Models\UserDevice;
 use Google\Auth\Credentials\ServiceAccountCredentials;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;

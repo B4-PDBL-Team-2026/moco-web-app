@@ -3,8 +3,8 @@
 namespace App\Domains\Budgeting\Actions;
 
 use App\Commons\Exceptions\BusinessRuleException;
-use App\Models\User;
-use App\Models\UserBudgetSetting;
+use App\Domains\Budgeting\Models\UserBudgetSetting;
+use App\Domains\User\Models\User;
 
 class GetDailyLimitAction
 {

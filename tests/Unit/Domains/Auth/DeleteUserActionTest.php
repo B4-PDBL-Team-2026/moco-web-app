@@ -1,13 +1,13 @@
 <?php
 
-use App\Domains\Auth\Actions\DeleteUserAction;
-use App\Models\Category;
-use App\Models\FixedCostOccurrence;
-use App\Models\FixedCostTemplate;
-use App\Models\Transaction;
-use App\Models\User;
-use App\Models\UserBudgetSetting;
-use App\Models\UserBudgetSnapshot;
+use App\Domains\Budgeting\Models\UserBudgetSetting;
+use App\Domains\Budgeting\Models\UserBudgetSnapshot;
+use App\Domains\Category\Models\Category;
+use App\Domains\FixedCost\Models\FixedCostOccurrence;
+use App\Domains\FixedCost\Models\FixedCostTemplate;
+use App\Domains\Transaction\Models\Transaction;
+use App\Domains\User\Actions\Auth\DeleteUserAction;
+use App\Domains\User\Models\User;
 use Illuminate\Support\Facades\DB;
 
 beforeEach(function () {

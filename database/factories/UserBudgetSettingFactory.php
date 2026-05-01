@@ -3,8 +3,8 @@
 namespace Database\Factories;
 
 use App\Domains\Budgeting\Enums\CycleType;
-use App\Models\User;
-use App\Models\UserBudgetSetting;
+use App\Domains\Budgeting\Models\UserBudgetSetting;
+use App\Domains\User\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
 

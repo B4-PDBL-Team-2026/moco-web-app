@@ -1,12 +1,12 @@
  <?php
 
-use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
-use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
-use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\Category;
-use App\Models\FixedCostOccurrence;
-use App\Models\Transaction;
-use App\Models\UserBudgetSnapshot;
+ use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
+use App\Domains\Budgeting\Models\UserBudgetSnapshot;
+use App\Domains\Category\Models\Category;
+use App\Domains\FixedCost\Enums\FixedCostOccurenceStatus;
+use App\Domains\FixedCost\Models\FixedCostOccurrence;
+use App\Domains\Transaction\Enums\TransactionType;
+use App\Domains\Transaction\Models\Transaction;
 use Carbon\CarbonImmutable;
 
 use function Pest\Laravel\assertDatabaseHas;

@@ -3,10 +3,10 @@
 namespace App\Domains\Budgeting\Actions;
 
 use App\Commons\Exceptions\BusinessRuleException;
-use App\Commons\Services\MoneyService;
+use App\Commons\ValueObjects\Money;
 use App\Domains\Budgeting\DTOs\UpdateDailyLimitData;
-use App\Models\User;
-use App\Models\UserBudgetSetting;
+use App\Domains\Budgeting\Models\UserBudgetSetting;
+use App\Domains\User\Models\User;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
@@ -22,7 +22,7 @@ class UpdateDailyLimitAction
      */
     public function execute(User $user, UpdateDailyLimitData $data): UserBudgetSetting
     {
-        if (MoneyService::lt($data->ceilingLimit, $data->flooringLimit)) {
+        if (Money::lt($data->ceilingLimit, $data->flooringLimit)) {
             throw new BusinessRuleException('errors.budget.ceiling_too_low');
         }
 

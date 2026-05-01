@@ -1,11 +1,11 @@
 <?php
 
-namespace Tests\Unit\Domains\Profile\Actions;
+namespace Tests\Unit\Domains\Profile;
 
-use App\Domains\Profile\Actions\UpdateProfileAction;
-use App\Domains\Profile\DTOs\UpdateProfileData;
-use App\Models\User;
-use App\Models\UserProfile;
+use App\Domains\User\Actions\Profile\UpdateProfileAction;
+use App\Domains\User\DTOs\Profile\UpdateProfileData;
+use App\Domains\User\Models\User;
+use App\Domains\User\Models\UserProfile;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

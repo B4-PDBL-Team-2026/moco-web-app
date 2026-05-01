@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\User;
+use App\Domains\User\Models\User;
 
 test('it should send forgot forget password link', function () {
     $user = User::factory()->create(['email' => 'test@moco.com']);

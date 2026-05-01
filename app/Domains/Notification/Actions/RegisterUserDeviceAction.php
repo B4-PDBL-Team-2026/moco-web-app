@@ -3,7 +3,7 @@
 namespace App\Domains\Notification\Actions;
 
 use App\Domains\Notification\DTOs\RegisterDeviceData;
-use App\Models\User;
+use App\Domains\User\Models\User;
 
 class RegisterUserDeviceAction
 {

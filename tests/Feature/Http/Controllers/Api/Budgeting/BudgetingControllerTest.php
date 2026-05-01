@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\User;
-use App\Models\UserBudgetSetting;
+use App\Domains\Budgeting\Models\UserBudgetSetting;
+use App\Domains\User\Models\User;
 use Laravel\Sanctum\Sanctum;
 
 describe('GET /api/settings/dailyLimit', function () {

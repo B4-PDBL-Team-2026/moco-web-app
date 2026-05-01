@@ -5,8 +5,8 @@ use App\Domains\Budgeting\Actions\GetDailyLimitAction;
 use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
 use App\Domains\Budgeting\Actions\UpdateDailyLimitAction;
 use App\Domains\Budgeting\DTOs\UpdateDailyLimitData;
-use App\Models\User;
-use App\Models\UserBudgetSetting;
+use App\Domains\Budgeting\Models\UserBudgetSetting;
+use App\Domains\User\Models\User;
 use Mockery\MockInterface;
 
 describe('GetDailyLimitAction', function () {

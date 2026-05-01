@@ -3,8 +3,8 @@
 namespace App\Http\Middleware;
 
 use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
-use App\Models\UserBudgetSetting;
-use App\Models\UserBudgetSnapshot;
+use App\Domains\Budgeting\Models\UserBudgetSetting;
+use App\Domains\Budgeting\Models\UserBudgetSnapshot;
 use Carbon\CarbonImmutable;
 use Closure;
 use Illuminate\Http\Request;
@@ -27,7 +27,7 @@ class CheckDailyBudgetRecalculation
             return $next($request);
         }
 
-        $settings = UserBudgetSetting::where('user_id', $user->id)->first();
+        $settings = UserBudgetSetting::query()->where('user_id', $user->id)->first();
 
         if (! $settings) {
             return $next($request);

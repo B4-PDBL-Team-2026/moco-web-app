@@ -2,7 +2,7 @@
 
 use App\Commons\Exceptions\BusinessRuleException;
 use App\Domains\Budgeting\Enums\CycleType;
-use App\Domains\FixedCosts\Services\FixedCostValidator;
+use App\Domains\FixedCost\Services\FixedCostValidator;
 
 it('allows monthly fixed cost on a monthly budget cycle', function () {
     $validator = new FixedCostValidator;

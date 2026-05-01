@@ -1,9 +1,9 @@
 <?php
 
-use App\Models\Category;
-use App\Models\User;
-use App\Models\UserBudgetSetting;
-use App\Models\UserBudgetSnapshot;
+use App\Domains\Budgeting\Models\UserBudgetSetting;
+use App\Domains\Budgeting\Models\UserBudgetSnapshot;
+use App\Domains\Category\Models\Category;
+use App\Domains\User\Models\User;
 use Carbon\CarbonImmutable;
 use Laravel\Sanctum\Sanctum;
 

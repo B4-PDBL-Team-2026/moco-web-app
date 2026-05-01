@@ -1,8 +1,8 @@
 <?php
 
-use App\Models\Category;
-use App\Models\Transaction;
-use App\Models\User;
+use App\Domains\Category\Models\Category;
+use App\Domains\Transaction\Models\Transaction;
+use App\Domains\User\Models\User;
 use Laravel\Sanctum\Sanctum;
 
 test('guest cannot show transaction', function () {

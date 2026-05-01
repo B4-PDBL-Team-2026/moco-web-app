@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers\Api\FixedCost;
 
-use App\Domains\FixedCosts\Actions\CancelFixedCostPaymentAction;
-use App\Domains\FixedCosts\Actions\ConfirmFixedCostPaymentAction;
-use App\Domains\FixedCosts\Actions\CreateFixedCostTemplateAction;
-use App\Domains\FixedCosts\Actions\DeleteFixedCostTemplateAction;
-use App\Domains\FixedCosts\Actions\ListCurrentCycleOccurrencesAction;
-use App\Domains\FixedCosts\Actions\ListFixedCostTemplateAction;
-use App\Domains\FixedCosts\Actions\UpdateFixedCostOccurrenceAmountAction;
-use App\Domains\FixedCosts\Actions\UpdateFixedCostOccurrenceMetadataAction;
-use App\Domains\FixedCosts\Actions\UpdateFixedCostTemplateAction;
-use App\Domains\FixedCosts\DTOs\CreateFixedCostTemplateData;
-use App\Domains\FixedCosts\DTOs\UpdateFixedCostOccurrenceAmountData;
-use App\Domains\FixedCosts\DTOs\UpdateFixedCostTemplateData;
+use App\Domains\FixedCost\Actions\CancelFixedCostPaymentAction;
+use App\Domains\FixedCost\Actions\ConfirmFixedCostPaymentAction;
+use App\Domains\FixedCost\Actions\CreateFixedCostTemplateAction;
+use App\Domains\FixedCost\Actions\DeleteFixedCostTemplateAction;
+use App\Domains\FixedCost\Actions\ListCurrentCycleOccurrencesAction;
+use App\Domains\FixedCost\Actions\ListFixedCostTemplateAction;
+use App\Domains\FixedCost\Actions\UpdateFixedCostOccurrenceAmountAction;
+use App\Domains\FixedCost\Actions\UpdateFixedCostOccurrenceMetadataAction;
+use App\Domains\FixedCost\Actions\UpdateFixedCostTemplateAction;
+use App\Domains\FixedCost\DTOs\CreateFixedCostTemplateData;
+use App\Domains\FixedCost\DTOs\UpdateFixedCostOccurrenceAmountData;
+use App\Domains\FixedCost\DTOs\UpdateFixedCostTemplateData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\FixedCost\IndexFixedCostTemplateRequest;
 use App\Http\Requests\FixedCost\StoreFixedCostTemplateRequest;

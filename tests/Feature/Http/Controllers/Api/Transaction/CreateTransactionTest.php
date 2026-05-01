@@ -1,13 +1,13 @@
 <?php
 
 use App\Commons\Exceptions\BusinessRuleException;
-use App\Domains\Transactions\Actions\CreateTransactionAction;
-use App\Domains\Transactions\DTOs\CreateTransactionData;
-use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\Category;
-use App\Models\User;
-use App\Models\UserBudgetSetting;
-use App\Models\UserBudgetSnapshot;
+use App\Domains\Budgeting\Models\UserBudgetSetting;
+use App\Domains\Budgeting\Models\UserBudgetSnapshot;
+use App\Domains\Category\Models\Category;
+use App\Domains\Transaction\Actions\CreateTransactionAction;
+use App\Domains\Transaction\DTOs\CreateTransactionData;
+use App\Domains\Transaction\Enums\TransactionType;
+use App\Domains\User\Models\User;
 use Carbon\CarbonImmutable;
 
 it('throws BusinessRuleException when category type does not match transaction type', function () {

@@ -1,11 +1,11 @@
 <?php
 
-use App\Domains\Transactions\Actions\GetAllTransactionAction;
-use App\Domains\Transactions\DTOs\FilterTransactionData;
-use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\Category;
-use App\Models\Transaction;
-use App\Models\User;
+use App\Domains\Category\Models\Category;
+use App\Domains\Transaction\Actions\GetAllTransactionAction;
+use App\Domains\Transaction\DTOs\FilterTransactionData;
+use App\Domains\Transaction\Enums\TransactionType;
+use App\Domains\Transaction\Models\Transaction;
+use App\Domains\User\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 if (! function_exists('txFilters')) {

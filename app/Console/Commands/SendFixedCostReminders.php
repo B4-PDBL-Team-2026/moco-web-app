@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Domains\FixedCosts\Notifications\FixedCostReminder;
-use App\Models\FixedCostOccurrence;
+use App\Domains\FixedCost\Models\FixedCostOccurrence;
+use App\Domains\FixedCost\Notifications\FixedCostReminder;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 

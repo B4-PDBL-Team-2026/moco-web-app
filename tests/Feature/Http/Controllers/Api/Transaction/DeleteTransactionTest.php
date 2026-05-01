@@ -1,10 +1,10 @@
 <?php
 
-use App\Models\Category;
-use App\Models\Transaction;
-use App\Models\User;
-use App\Models\UserBudgetSetting;
-use App\Models\UserBudgetSnapshot;
+use App\Domains\Budgeting\Models\UserBudgetSetting;
+use App\Domains\Budgeting\Models\UserBudgetSnapshot;
+use App\Domains\Category\Models\Category;
+use App\Domains\Transaction\Models\Transaction;
+use App\Domains\User\Models\User;
 use Laravel\Sanctum\Sanctum;
 
 test('guest cannot delete transaction', function () {

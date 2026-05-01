@@ -1,15 +1,15 @@
 <?php
 
 use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
-use App\Domains\FixedCosts\Actions\ConfirmFixedCostPaymentAction;
-use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
-use App\Domains\Transactions\Enums\TransactionSource;
-use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\Category;
-use App\Models\FixedCostOccurrence;
-use App\Models\FixedCostTemplate;
-use App\Models\User;
-use App\Models\UserBudgetSnapshot;
+use App\Domains\Budgeting\Models\UserBudgetSnapshot;
+use App\Domains\Category\Models\Category;
+use App\Domains\FixedCost\Actions\ConfirmFixedCostPaymentAction;
+use App\Domains\FixedCost\Enums\FixedCostOccurenceStatus;
+use App\Domains\FixedCost\Models\FixedCostOccurrence;
+use App\Domains\FixedCost\Models\FixedCostTemplate;
+use App\Domains\Transaction\Enums\TransactionSource;
+use App\Domains\Transaction\Enums\TransactionType;
+use App\Domains\User\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 function setupForConfirm(string $balance = '500000.00'): array

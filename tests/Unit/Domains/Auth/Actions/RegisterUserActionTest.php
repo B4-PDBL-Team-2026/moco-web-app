@@ -1,8 +1,8 @@
 <?php
 
-use App\Domains\Auth\Actions\RegisterUserAction;
-use App\Domains\Auth\DTOs\RegisterUserData;
-use App\Models\User;
+use App\Domains\User\Actions\Auth\RegisterUserAction;
+use App\Domains\User\DTOs\Auth\RegisterUserData;
+use App\Domains\User\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;

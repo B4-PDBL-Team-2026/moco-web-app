@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\User;
+use App\Domains\User\Models\User;
 use Illuminate\Support\Facades\Hash;
 
 test('it can login a user and return token via api', function () {

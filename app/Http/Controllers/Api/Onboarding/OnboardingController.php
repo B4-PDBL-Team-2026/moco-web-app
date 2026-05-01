@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api\Onboarding;
 use App\Domains\Budgeting\Actions\CompleteOnboardingAction;
 use App\Domains\Budgeting\DTOs\CompleteOnboardingData;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Onboarding\StoreOnboardingRequest;
+use App\Http\Requests\Budgeting\StoreOnboardingRequest;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Throwable;

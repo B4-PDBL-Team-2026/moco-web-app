@@ -2,13 +2,13 @@
 
 namespace App\Domains\Budgeting\Actions;
 
+use App\Domains\Budgeting\Models\UserBudgetSetting;
+use App\Domains\Budgeting\Models\UserBudgetSnapshot;
 use App\Domains\Budgeting\Services\BudgetCycleWindowCalculator;
 use App\Domains\Budgeting\Services\DailyAllowanceCalculator;
 use App\Domains\Budgeting\Services\ReservedCostCalculator;
-use App\Domains\FixedCosts\Actions\GenerateOccurencesForBudgetWindowAction;
-use App\Domains\Transactions\Services\UserBalanceCalculator;
-use App\Models\UserBudgetSetting;
-use App\Models\UserBudgetSnapshot;
+use App\Domains\FixedCost\Actions\GenerateOccurencesForBudgetWindowAction;
+use App\Domains\Transaction\Services\UserBalanceCalculator;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Throwable;

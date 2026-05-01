@@ -1,7 +1,7 @@
 <?php
 
-use App\Domains\Auth\Actions\SendEmailVerificationAction;
-use App\Models\User;
+use App\Domains\User\Actions\Auth\SendEmailVerificationAction;
+use App\Domains\User\Models\User;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Notification;
 

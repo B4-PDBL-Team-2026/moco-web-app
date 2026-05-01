@@ -1,11 +1,11 @@
 <?php
 
-use App\Domains\FixedCosts\Actions\DeleteFixedCostTemplateAction;
-use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
-use App\Models\Category;
-use App\Models\FixedCostOccurrence;
-use App\Models\FixedCostTemplate;
-use App\Models\User;
+use App\Domains\Category\Models\Category;
+use App\Domains\FixedCost\Actions\DeleteFixedCostTemplateAction;
+use App\Domains\FixedCost\Enums\FixedCostOccurenceStatus;
+use App\Domains\FixedCost\Models\FixedCostOccurrence;
+use App\Domains\FixedCost\Models\FixedCostTemplate;
+use App\Domains\User\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 function setupForDelete(): array

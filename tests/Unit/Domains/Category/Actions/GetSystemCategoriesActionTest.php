@@ -1,7 +1,7 @@
 <?php
 
 use App\Domains\Category\Actions\GetSystemCategoriesAction;
-use App\Models\Category;
+use App\Domains\Category\Models\Category;
 use Database\Seeders\CategorySeeder;
 
 beforeEach(function () {

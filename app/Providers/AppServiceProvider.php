@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
-use App\Domains\Transactions\Policies\TransactionPolicy;
-use App\Models\Transaction;
+use App\Domains\Transaction\Models\Transaction;
+use App\Domains\Transaction\Policies\TransactionPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;

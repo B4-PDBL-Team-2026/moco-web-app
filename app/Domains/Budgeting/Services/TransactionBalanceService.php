@@ -2,8 +2,8 @@
 
 namespace App\Domains\Budgeting\Services;
 
-use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\Transaction;
+use App\Domains\Transaction\Enums\TransactionType;
+use App\Domains\Transaction\Models\Transaction;
 
 class TransactionBalanceService
 {

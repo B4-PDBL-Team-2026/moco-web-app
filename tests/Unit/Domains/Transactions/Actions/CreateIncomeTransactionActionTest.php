@@ -2,16 +2,16 @@
 
 use App\Commons\Exceptions\BusinessRuleException;
 use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
-use App\Domains\Transactions\Actions\CreateIncomeTransactionAction;
-use App\Domains\Transactions\DTOs\CreateTransactionData;
-use App\Domains\Transactions\Enums\TransactionSource;
-use App\Domains\Transactions\Enums\TransactionType;
-use App\Domains\Transactions\Services\TransactionValidator;
-use App\Models\Category;
-use App\Models\Transaction;
-use App\Models\User;
-use App\Models\UserBudgetSetting;
-use App\Models\UserBudgetSnapshot;
+use App\Domains\Budgeting\Models\UserBudgetSetting;
+use App\Domains\Budgeting\Models\UserBudgetSnapshot;
+use App\Domains\Category\Models\Category;
+use App\Domains\Transaction\Actions\CreateIncomeTransactionAction;
+use App\Domains\Transaction\DTOs\CreateTransactionData;
+use App\Domains\Transaction\Enums\TransactionSource;
+use App\Domains\Transaction\Enums\TransactionType;
+use App\Domains\Transaction\Models\Transaction;
+use App\Domains\Transaction\Services\TransactionValidator;
+use App\Domains\User\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 

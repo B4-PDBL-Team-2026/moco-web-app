@@ -2,7 +2,7 @@
 
 namespace App\Domains\Budgeting\Services;
 
-use App\Commons\Services\MoneyService;
+use App\Commons\ValueObjects\Money;
 use App\Domains\Budgeting\DTOs\DailyAllowanceData;
 use InvalidArgumentException;
 
@@ -20,12 +20,12 @@ class DailyAllowanceCalculator
             throw new InvalidArgumentException('Remaining days must be greater than 0.');
         }
 
-        $available = MoneyService::sub($balance, $reservedCost);
-        $rawAmount = MoneyService::div($available, (string) $remainingDays);
-        $cappedAmount = MoneyService::min($rawAmount, $ceilingLimit);
+        $available = Money::sub($balance, $reservedCost);
+        $rawAmount = Money::div($available, (string) $remainingDays);
+        $cappedAmount = Money::min($rawAmount, $ceilingLimit);
 
-        if (MoneyService::gt($balance, $reservedCost)) {
-            if (MoneyService::gte($rawAmount, $flooringLimit)) {
+        if (Money::gt($balance, $reservedCost)) {
+            if (Money::gte($rawAmount, $flooringLimit)) {
                 return new DailyAllowanceData(
                     amount: $cappedAmount,
                     rawAmount: $rawAmount,
@@ -36,7 +36,7 @@ class DailyAllowanceCalculator
                     rawAmount: $rawAmount,
                 );
             }
-        } elseif (MoneyService::eq($balance, $reservedCost)) {
+        } elseif (Money::eq($balance, $reservedCost)) {
             return new DailyAllowanceData(
                 amount: $flooringLimit,
                 rawAmount: '0.00',

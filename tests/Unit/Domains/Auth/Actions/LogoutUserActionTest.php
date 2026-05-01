@@ -1,7 +1,7 @@
 <?php
 
-use App\Domains\Auth\Actions\LogoutUserAction;
-use App\Models\User;
+use App\Domains\User\Actions\Auth\LogoutUserAction;
+use App\Domains\User\Models\User;
 use Laravel\Sanctum\PersonalAccessToken;
 
 it('deletes the current access token', function () {

@@ -1,9 +1,9 @@
 <?php
 
-use App\Domains\Transactions\Actions\GetTransactionDetailAction;
-use App\Models\Category;
-use App\Models\Transaction;
-use App\Models\User;
+use App\Domains\Category\Models\Category;
+use App\Domains\Transaction\Actions\GetTransactionDetailAction;
+use App\Domains\Transaction\Models\Transaction;
+use App\Domains\User\Models\User;
 use Illuminate\Validation\UnauthorizedException;
 
 it('returns transaction by id for owner', function () {

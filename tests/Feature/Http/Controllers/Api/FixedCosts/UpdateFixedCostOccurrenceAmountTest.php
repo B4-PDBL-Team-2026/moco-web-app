@@ -1,10 +1,10 @@
 <?php
 
-use App\Domains\FixedCosts\Enums\FixedCostOccurenceStatus;
-use App\Domains\Transactions\Enums\TransactionSource;
-use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\Transaction;
-use App\Models\User;
+use App\Domains\FixedCost\Enums\FixedCostOccurenceStatus;
+use App\Domains\Transaction\Enums\TransactionSource;
+use App\Domains\Transaction\Enums\TransactionType;
+use App\Domains\Transaction\Models\Transaction;
+use App\Domains\User\Models\User;
 use Laravel\Sanctum\Sanctum;
 
 test('unauthenticated request returns 401', function () {

@@ -2,15 +2,15 @@
 
 use App\Commons\Exceptions\BusinessRuleException;
 use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
-use App\Domains\FixedCosts\Actions\CreateFixedCostTemplateAction;
-use App\Domains\FixedCosts\Actions\GenerateOccurencesForBudgetWindowAction;
-use App\Domains\FixedCosts\DTOs\CreateFixedCostTemplateData;
-use App\Models\Category;
+use App\Domains\Budgeting\Models\UserBudgetSetting;
+use App\Domains\Budgeting\Models\UserBudgetSnapshot;
+use App\Domains\Category\Models\Category;
+use App\Domains\FixedCost\Actions\CreateFixedCostTemplateAction;
+use App\Domains\FixedCost\Actions\GenerateOccurencesForBudgetWindowAction;
+use App\Domains\FixedCost\DTOs\CreateFixedCostTemplateData;
+use App\Domains\FixedCost\Models\FixedCostTemplate;
+use App\Domains\User\Models\User;
 use App\Models\CustomCategory;
-use App\Models\FixedCostTemplate;
-use App\Models\User;
-use App\Models\UserBudgetSetting;
-use App\Models\UserBudgetSnapshot;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 

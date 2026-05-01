@@ -4,7 +4,7 @@ namespace App\Infrastructure\Firebase\Channels;
 
 use App\Domains\Notification\Contracts\PushNotification;
 use App\Domains\Notification\DTOs\PushMessage;
-use App\Models\User;
+use App\Domains\User\Models\User;
 use Illuminate\Notifications\Notification;
 
 readonly class FcmCustomChannel

@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers\Api\Transaction;
 
-use App\Domains\Transactions\Actions\CreateTransactionAction;
-use App\Domains\Transactions\Actions\DeleteTransactionAction;
-use App\Domains\Transactions\Actions\GetAllTransactionAction;
-use App\Domains\Transactions\Actions\GetTransactionDetailAction;
-use App\Domains\Transactions\Actions\UpdateTransactionAction;
-use App\Domains\Transactions\DTOs\CreateTransactionData;
-use App\Domains\Transactions\DTOs\FilterTransactionData;
-use App\Domains\Transactions\DTOs\UpdateTransactionData;
+use App\Domains\Transaction\Actions\CreateTransactionAction;
+use App\Domains\Transaction\Actions\DeleteTransactionAction;
+use App\Domains\Transaction\Actions\GetAllTransactionAction;
+use App\Domains\Transaction\Actions\GetTransactionDetailAction;
+use App\Domains\Transaction\Actions\UpdateTransactionAction;
+use App\Domains\Transaction\DTOs\CreateTransactionData;
+use App\Domains\Transaction\DTOs\FilterTransactionData;
+use App\Domains\Transaction\DTOs\UpdateTransactionData;
+use App\Domains\Transaction\Models\Transaction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Transaction\IndexTransactionRequest;
 use App\Http\Requests\Transaction\StoreTransactionRequest;
 use App\Http\Requests\Transaction\UpdateTransactionRequest;
-use App\Models\Transaction;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;

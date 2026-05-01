@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\Category;
+use App\Domains\Category\Models\Category;
+use App\Domains\Transaction\Enums\TransactionType;
 use Illuminate\Database\Seeder;
 
 class CategorySeeder extends Seeder

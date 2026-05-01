@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\User;
+use App\Domains\User\Models\User;
 use Laravel\Sanctum\Sanctum;
 
 test('guest cannot access index', function () {

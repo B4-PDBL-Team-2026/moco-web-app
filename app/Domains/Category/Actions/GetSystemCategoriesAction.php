@@ -2,7 +2,7 @@
 
 namespace App\Domains\Category\Actions;
 
-use App\Models\Category;
+use App\Domains\Category\Models\Category;
 use Cache;
 use Illuminate\Support\Collection;
 

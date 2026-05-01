@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers\Api\Auth;
 
-use App\Domains\Auth\Actions\DeleteUserAction;
-use App\Domains\Auth\Actions\ForgotPasswordAction;
-use App\Domains\Auth\Actions\LoginUserAction;
-use App\Domains\Auth\Actions\LogoutUserAction;
-use App\Domains\Auth\Actions\RegisterUserAction;
-use App\Domains\Auth\Actions\ResetPasswordAction;
-use App\Domains\Auth\Actions\SendEmailVerificationAction;
+use App\Domains\User\Actions\Auth\DeleteUserAction;
+use App\Domains\User\Actions\Auth\ForgotPasswordAction;
+use App\Domains\User\Actions\Auth\LoginUserAction;
+use App\Domains\User\Actions\Auth\LogoutUserAction;
+use App\Domains\User\Actions\Auth\RegisterUserAction;
+use App\Domains\User\Actions\Auth\ResetPasswordAction;
+use App\Domains\User\Actions\Auth\SendEmailVerificationAction;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Auth\ConfirmDeleteUserRequest;
-use App\Http\Requests\Auth\ForgotPasswordRequest;
-use App\Http\Requests\Auth\LoginRequest;
-use App\Http\Requests\Auth\RegisterRequest;
-use App\Http\Requests\Auth\ResetPasswordRequest;
+use App\Http\Requests\User\Auth\ConfirmDeleteUserRequest;
+use App\Http\Requests\User\Auth\ForgotPasswordRequest;
+use App\Http\Requests\User\Auth\LoginRequest;
+use App\Http\Requests\User\Auth\RegisterRequest;
+use App\Http\Requests\User\Auth\ResetPasswordRequest;
 use App\Http\Resources\Auth\AuthResource;
 use App\Http\Responses\ApiResponse;
 use Illuminate\Http\Request;

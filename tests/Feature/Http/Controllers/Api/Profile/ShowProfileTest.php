@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Http\Controllers\Api\Profile;
 
-use App\Models\User;
-use App\Models\UserProfile;
+use App\Domains\User\Models\User;
+use App\Domains\User\Models\UserProfile;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

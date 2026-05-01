@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Transaction;
 
-use App\Domains\Transactions\Enums\TransactionType;
+use App\Domains\Transaction\Enums\TransactionType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 

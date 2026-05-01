@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\User;
+use App\Domains\User\Models\User;
 
 test('it can reset password successfully', function () {
     $user = User::factory()->create([

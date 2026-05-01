@@ -2,12 +2,15 @@
 
 namespace Database\Factories;
 
-use App\Models\Category;
-use App\Models\User;
+use App\Domains\Category\Models\Category;
+use App\Domains\Transaction\Models\Transaction;
+use App\Domains\User\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class TransactionFactory extends Factory
 {
+    protected $model = Transaction::class;
+
     public function definition(): array
     {
         return [

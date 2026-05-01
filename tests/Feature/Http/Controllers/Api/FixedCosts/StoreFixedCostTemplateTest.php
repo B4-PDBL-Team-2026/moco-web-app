@@ -1,11 +1,11 @@
 <?php
 
 use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
-use App\Domains\FixedCosts\Actions\GenerateOccurencesForBudgetWindowAction;
-use App\Models\Category;
-use App\Models\User;
-use App\Models\UserBudgetSetting;
-use App\Models\UserBudgetSnapshot;
+use App\Domains\Budgeting\Models\UserBudgetSetting;
+use App\Domains\Budgeting\Models\UserBudgetSnapshot;
+use App\Domains\Category\Models\Category;
+use App\Domains\FixedCost\Actions\GenerateOccurencesForBudgetWindowAction;
+use App\Domains\User\Models\User;
 use Laravel\Sanctum\Sanctum;
 
 beforeEach(function () {

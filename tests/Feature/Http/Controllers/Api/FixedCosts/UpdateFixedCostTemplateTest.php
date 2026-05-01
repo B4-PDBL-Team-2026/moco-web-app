@@ -1,9 +1,9 @@
 <?php
 
-use App\Models\Category;
-use App\Models\FixedCostTemplate;
-use App\Models\User;
-use App\Models\UserBudgetSetting;
+use App\Domains\Budgeting\Models\UserBudgetSetting;
+use App\Domains\Category\Models\Category;
+use App\Domains\FixedCost\Models\FixedCostTemplate;
+use App\Domains\User\Models\User;
 use Laravel\Sanctum\Sanctum;
 
 function updateSetup(): array

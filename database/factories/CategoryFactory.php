@@ -2,11 +2,14 @@
 
 namespace Database\Factories;
 
-use App\Models\User;
+use App\Domains\Category\Models\Category;
+use App\Domains\User\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class CategoryFactory extends Factory
 {
+    protected $model = Category::class;
+
     public function definition(): array
     {
         return [

@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
-use App\Domains\Transactions\Enums\TransactionType;
+use App\Domains\Transaction\Enums\TransactionType;
+use App\Domains\User\Models\User;
 use App\Models\CustomCategory;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class CustomCategoryFactory extends Factory

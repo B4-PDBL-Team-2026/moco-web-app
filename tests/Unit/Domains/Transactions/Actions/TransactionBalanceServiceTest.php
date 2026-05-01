@@ -1,8 +1,8 @@
 <?php
 
 use App\Domains\Budgeting\Services\TransactionBalanceService;
-use App\Domains\Transactions\Enums\TransactionType;
-use App\Models\Transaction;
+use App\Domains\Transaction\Enums\TransactionType;
+use App\Domains\Transaction\Models\Transaction;
 
 it('adds amount to balance for income transaction', function () {
     $service = app(TransactionBalanceService::class);

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Web\Auth;
 
-use App\Domains\Auth\Actions\VerifyEmailAction;
+use App\Domains\User\Actions\Auth\VerifyEmailAction;
+use App\Domains\User\Models\User;
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;

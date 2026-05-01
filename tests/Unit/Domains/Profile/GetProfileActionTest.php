@@ -1,10 +1,10 @@
 <?php
 
-namespace Tests\Unit\Domains\Profile\Actions;
+namespace Tests\Unit\Domains\Profile;
 
-use App\Domains\Profile\Actions\GetProfileAction;
-use App\Models\User;
-use App\Models\UserProfile;
+use App\Domains\User\Actions\Profile\GetProfileAction;
+use App\Domains\User\Models\User;
+use App\Domains\User\Models\UserProfile;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
