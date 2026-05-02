@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Budgeting;
 
+use App\Domains\Budgeting\DTOs\CompleteOnboardingData;
 use App\Domains\Budgeting\Enums\CycleType;
+use App\Domains\FixedCost\DTOs\CreateFixedCostTemplateData;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -77,5 +79,20 @@ class StoreOnboardingRequest extends FormRequest
                 },
             ],
         ];
+    }
+
+    public function toDTO(): CompleteOnboardingData
+    {
+        return new CompleteOnboardingData(
+            cycleType: CycleType::from($this->validated('budgetCycle')),
+            initialBalance: $this->validated('initialBalance'),
+            flooringLimit: $this->validated('flooringLimit'),
+            ceilingLimit: $this->validated('ceilingLimit'),
+            fixedCosts: array_map(
+                fn (array $fixedCost) => CreateFixedCostTemplateData::fromArray($fixedCost),
+                $this->validated('fixedCosts') ?? []
+            ),
+            timezone: $this->validated('timezone'),
+        );
     }
 }

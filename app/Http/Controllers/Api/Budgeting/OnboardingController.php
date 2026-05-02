@@ -3,31 +3,34 @@
 namespace App\Http\Controllers\Api\Budgeting;
 
 use App\Domains\Budgeting\Actions\CompleteOnboardingAction;
-use App\Domains\Budgeting\DTOs\CompleteOnboardingData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Budgeting\StoreOnboardingRequest;
-use App\Traits\ApiResponse;
-use Illuminate\Http\JsonResponse;
+use App\Http\Resources\Budgeting\OnboardingResultResource;
+use App\Http\Responses\ApiResponse;
 use Throwable;
 
 class OnboardingController extends Controller
 {
-    use ApiResponse;
-
     /**
+     * Complete user onboarding
+     *
+     * @response array{
+     *     success: bool,
+     *     message: string,
+     *     data: OnboardingResultResource
+     * }
+     *
      * @throws Throwable
      */
-    public function store(StoreOnboardingRequest $request, CompleteOnboardingAction $action): JsonResponse
+    public function store(StoreOnboardingRequest $request, CompleteOnboardingAction $action): ApiResponse
     {
-        $dto = CompleteOnboardingData::fromData($request->validated());
-
         $result = $action->execute(
             userId: auth()->id(),
-            data: $dto
+            data: $request->toDTO(),
         );
 
-        return $this->success(
-            data: $result,
+        return $this->successResponse(
+            data: OnboardingResultResource::make($result),
             message: 'Onboarding completed successfully.'
         );
     }

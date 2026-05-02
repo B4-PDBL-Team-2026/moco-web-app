@@ -19,21 +19,6 @@ final readonly class CompleteOnboardingData
         public string $timezone = 'Asia/Jakarta',
     ) {}
 
-    public static function fromData(array $data): self
-    {
-        return new self(
-            cycleType: CycleType::from($data['budgetCycle']),
-            initialBalance: (string) $data['initialBalance'],
-            flooringLimit: (string) $data['flooringLimit'],
-            ceilingLimit: (string) $data['ceilingLimit'],
-            fixedCosts: array_map(
-                fn (array $fixedCost) => CreateFixedCostTemplateData::fromArray($fixedCost),
-                $data['fixedCosts'] ?? []
-            ),
-            timezone: $data['timezone'],
-        );
-    }
-
     public function hasFixedCosts(): bool
     {
         return $this->fixedCosts != [];
