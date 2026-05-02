@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Budgeting;
 
 use App\Domains\Budgeting\Actions\GetDashboardSummaryAction;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Budgeting\DashboardDataResource;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,6 +14,6 @@ class DashboardController extends Controller
     {
         $result = $action->execute(Auth::user(), CarbonImmutable::now());
 
-        return $this->successResponse($result, 'Data retrieved successfully.');
+        return $this->successResponse(DashboardDataResource::make($result), 'Data retrieved successfully.');
     }
 }
