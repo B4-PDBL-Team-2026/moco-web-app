@@ -10,6 +10,15 @@ use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
+    /**
+     * Get user dashboard summary.
+     *
+     * @response array{
+     *     success: bool,
+     *     message: string,
+     *     data: DashboardDataResource
+     * }
+     */
     public function index(GetDashboardSummaryAction $action)
     {
         $result = $action->execute(Auth::user(), CarbonImmutable::now());
