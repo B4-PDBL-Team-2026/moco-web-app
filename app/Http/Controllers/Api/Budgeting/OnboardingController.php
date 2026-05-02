@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Onboarding;
+namespace App\Http\Controllers\Api\Budgeting;
 
 use App\Domains\Budgeting\Actions\CompleteOnboardingAction;
 use App\Domains\Budgeting\DTOs\CompleteOnboardingData;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Auth;
+namespace App\Http\Controllers\Api\User;
 
 use App\Domains\User\Actions\Auth\DeleteUserAction;
 use App\Domains\User\Actions\Auth\ForgotPasswordAction;

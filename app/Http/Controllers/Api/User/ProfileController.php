@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Profile;
+namespace App\Http\Controllers\Api\User;
 
 use App\Domains\User\Actions\Profile\GetProfileAction;
 use App\Domains\User\Actions\Profile\UpdateProfileAction;

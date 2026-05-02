@@ -1,15 +1,15 @@
 <?php
 
-use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Budgeting\BudgetingController;
+use App\Http\Controllers\Api\Budgeting\DashboardController;
+use App\Http\Controllers\Api\Budgeting\OnboardingController;
 use App\Http\Controllers\Api\Category\CategoryController;
-use App\Http\Controllers\Api\Dashboard\DashboardController;
 use App\Http\Controllers\Api\FixedCost\FixedCostController;
 use App\Http\Controllers\Api\Notification\DeviceController;
 use App\Http\Controllers\Api\Notification\InAppNotificationController;
-use App\Http\Controllers\Api\Onboarding\OnboardingController;
-use App\Http\Controllers\Api\Profile\ProfileController;
 use App\Http\Controllers\Api\Transaction\TransactionController;
+use App\Http\Controllers\Api\User\AuthController;
+use App\Http\Controllers\Api\User\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/send-test-email', function () {

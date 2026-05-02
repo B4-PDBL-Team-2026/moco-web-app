@@ -1,22 +1,18 @@
 <?php
 
-namespace App\Http\Controllers\Api\Dashboard;
+namespace App\Http\Controllers\Api\Budgeting;
 
 use App\Domains\Budgeting\Actions\GetDashboardSummaryAction;
 use App\Http\Controllers\Controller;
-use App\Traits\ApiResponse;
 use Carbon\CarbonImmutable;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
-    use ApiResponse;
-
-    public function index(GetDashboardSummaryAction $action): JsonResponse
+    public function index(GetDashboardSummaryAction $action)
     {
         $result = $action->execute(Auth::user(), CarbonImmutable::now());
 
-        return $this->success($result, 'Dashboard retrieved successfully.');
+        return $this->successResponse($result, 'Data retrieved successfully.');
     }
 }
