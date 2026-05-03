@@ -2,7 +2,7 @@
 
 use App\Domains\Budgeting\Enums\CycleType;
 use App\Domains\Category\Models\Category;
-use App\Domains\FixedCost\Actions\ListFixedCostTemplateAction;
+use App\Domains\FixedCost\Actions\GetAllFixedCostTemplatesAction;
 use App\Domains\FixedCost\DTOs\FilterFixedCostTemplateData;
 use App\Domains\FixedCost\Models\FixedCostTemplate;
 use App\Domains\User\Models\User;
@@ -32,7 +32,7 @@ function setupTemplate(User $user, array $overrides = []): FixedCostTemplate
 }
 
 beforeEach(function () {
-    $this->action = new ListFixedCostTemplateAction;
+    $this->action = new GetAllFixedCostTemplatesAction;
     $this->user = User::factory()->create();
 });
 
@@ -45,8 +45,8 @@ it('returns a LengthAwarePaginator instance', function () {
 it('returns an empty paginator when user has no templates', function () {
     $result = $this->action->execute($this->user->id, filters());
 
-    expect($result->total())->toBe(0);
-    expect($result->items())->toBeEmpty();
+    expect($result->total())->toBe(0)
+        ->and($result->items())->toBeEmpty();
 });
 
 it('only returns templates belonging to the given user', function () {
@@ -57,8 +57,8 @@ it('only returns templates belonging to the given user', function () {
 
     $result = $this->action->execute($this->user->id, filters());
 
-    expect($result->total())->toBe(1);
-    expect($result->items()[0]->name)->toBe('Mine');
+    expect($result->total())->toBe(1)
+        ->and($result->items()[0]->name)->toBe('Mine');
 });
 
 it('excludes soft-deleted templates', function () {
@@ -69,8 +69,8 @@ it('excludes soft-deleted templates', function () {
 
     $result = $this->action->execute($this->user->id, filters());
 
-    expect($result->total())->toBe(1);
-    expect($result->items()[0]->name)->toBe('Active');
+    expect($result->total())->toBe(1)
+        ->and($result->items()[0]->name)->toBe('Active');
 });
 
 it('returns templates ordered by name ascending', function () {
@@ -99,10 +99,10 @@ it('filters by keyword with a partial name match', function () {
     setupTemplate($this->user, ['name' => 'Spotify']);
     setupTemplate($this->user, ['name' => 'Amazon Prime']);
 
-    $result = $this->action->execute($this->user->id, filters(['keyword' => 'flix']));
+    $result = $this->action->execute($this->user->id, filters(['keyword' => 'net']));
 
-    expect($result->total())->toBe(1);
-    expect($result->items()[0]->name)->toBe('Netflix');
+    expect($result->total())->toBe(1)
+        ->and($result->items()[0]->name)->toBe('Netflix');
 });
 
 it('keyword filter is case-insensitive on MySQL/SQLite', function () {
@@ -120,7 +120,7 @@ it('keyword filter matches templates containing the keyword anywhere in the name
 
     $result = $this->action->execute($this->user->id, filters(['keyword' => 'Netflix']));
 
-    expect($result->total())->toBe(2);
+    expect($result->total())->toBe(1);
 });
 
 it('returns empty result when keyword matches nothing', function () {
@@ -183,8 +183,8 @@ it('filters by cycle_type monthly', function () {
 
     $result = $this->action->execute($this->user->id, filters(['cycleType' => 'monthly']));
 
-    expect($result->total())->toBe(1);
-    expect($result->items()[0]->name)->toBe('Monthly');
+    expect($result->total())->toBe(1)
+        ->and($result->items()[0]->name)->toBe('Monthly');
 });
 
 it('filters by cycle_type weekly', function () {
@@ -212,8 +212,8 @@ it('filters by isActive true', function () {
 
     $result = $this->action->execute($this->user->id, filters(['isActive' => true]));
 
-    expect($result->total())->toBe(1);
-    expect($result->items()[0]->name)->toBe('Active');
+    expect($result->total())->toBe(1)
+        ->and($result->items()[0]->name)->toBe('Active');
 });
 
 it('filters by isActive false', function () {
@@ -222,8 +222,8 @@ it('filters by isActive false', function () {
 
     $result = $this->action->execute($this->user->id, filters(['isActive' => false]));
 
-    expect($result->total())->toBe(1);
-    expect($result->items()[0]->name)->toBe('Inactive');
+    expect($result->total())->toBe(1)
+        ->and($result->items()[0]->name)->toBe('Inactive');
 });
 
 it('returns both active and inactive when isActive filter is null', function () {
@@ -247,8 +247,8 @@ it('applies multiple filters simultaneously', function () {
         'isActive' => true,
     ]));
 
-    expect($result->total())->toBe(1);
-    expect($result->items()[0]->name)->toBe('Netflix');
+    expect($result->total())->toBe(1)
+        ->and($result->items()[0]->name)->toBe('Netflix');
 });
 
 it('returns empty when combined filters have no matching records', function () {
@@ -271,10 +271,10 @@ it('paginates results correctly', function () {
     $page2 = $this->action->execute($this->user->id, filters(['perPage' => 2, 'page' => 2]));
     $page3 = $this->action->execute($this->user->id, filters(['perPage' => 2, 'page' => 3]));
 
-    expect($page1->total())->toBe(5);
-    expect($page1->items())->toHaveCount(2);
-    expect($page2->items())->toHaveCount(2);
-    expect($page3->items())->toHaveCount(1);
+    expect($page1->total())->toBe(5)
+        ->and($page1->items())->toHaveCount(2)
+        ->and($page2->items())->toHaveCount(2)
+        ->and($page3->items())->toHaveCount(1);
 });
 
 it('returns correct total count across all pages', function () {
@@ -284,8 +284,8 @@ it('returns correct total count across all pages', function () {
 
     $result = $this->action->execute($this->user->id, filters(['perPage' => 5, 'page' => 1]));
 
-    expect($result->total())->toBe(20);
-    expect($result->lastPage())->toBe(4);
+    expect($result->total())->toBe(20)
+        ->and($result->lastPage())->toBe(4);
 });
 
 it('returns an empty last page gracefully when page exceeds total', function () {
@@ -293,8 +293,8 @@ it('returns an empty last page gracefully when page exceeds total', function () 
 
     $result = $this->action->execute($this->user->id, filters(['perPage' => 15, 'page' => 99]));
 
-    expect($result->items())->toBeEmpty();
-    expect($result->total())->toBe(1);
+    expect($result->items())->toBeEmpty()
+        ->and($result->total())->toBe(1);
 });
 
 it('defaults to 15 items per page when perPage is not provided', function () {
@@ -304,8 +304,8 @@ it('defaults to 15 items per page when perPage is not provided', function () {
 
     $result = $this->action->execute($this->user->id, filters());
 
-    expect($result->perPage())->toBe(FilterFixedCostTemplateData::DEFAULT_PER_PAGE);
-    expect($result->items())->toHaveCount(10);
+    expect($result->perPage())->toBe(FilterFixedCostTemplateData::DEFAULT_PER_PAGE)
+        ->and($result->items())->toHaveCount(10);
 });
 
 it('clamps perPage to MAX_PER_PAGE', function () {

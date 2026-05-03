@@ -1,8 +1,10 @@
 <?php
 
+use App\Commons\Exceptions\BusinessRuleException;
 use App\Domains\Budgeting\Models\UserBudgetSnapshot;
 use App\Domains\Category\Models\Category;
 use App\Domains\FixedCost\Actions\UpdateFixedCostOccurrenceMetadataAction;
+use App\Domains\FixedCost\DTOs\UpdateFixedCostOccurrenceMetadataData;
 use App\Domains\FixedCost\Enums\FixedCostOccurenceStatus;
 use App\Domains\FixedCost\Models\FixedCostOccurrence;
 use App\Domains\FixedCost\Models\FixedCostTemplate;
@@ -15,7 +17,6 @@ function setupForMetadata(): array
     $cat = Category::factory()->expense()->create();
     $template = FixedCostTemplate::factory()->create([
         'user_id' => $user->id,
-
         'category_id' => $cat->id,
     ]);
 
@@ -39,11 +40,21 @@ function setupForMetadata(): array
         'status' => FixedCostOccurenceStatus::PAID->value,
         'amount' => '150000.00',
         'name' => 'Old Name',
-
         'category_id' => $cat->id,
     ]);
 
     return [$user, $occurrence, $snapshot];
+}
+
+function makeMetadataDto(array $overrides = []): UpdateFixedCostOccurrenceMetadataData
+{
+    $name = array_key_exists('name', $overrides) ? $overrides['name'] : null;
+    $note = array_key_exists('note', $overrides) ? $overrides['note'] : null;
+
+    return new UpdateFixedCostOccurrenceMetadataData(
+        name: $name,
+        note: $note,
+    );
 }
 
 beforeEach(function () {
@@ -53,7 +64,7 @@ beforeEach(function () {
 it('updates the occurrence name', function () {
     [$user, $occurrence] = setupForMetadata();
 
-    $this->action->execute($user->id, $occurrence->id, ['name' => 'New Name']);
+    $this->action->execute($user->id, $occurrence->id, makeMetadataDto(['name' => 'New Name']));
 
     expect($occurrence->fresh()->name)->toBe('New Name');
 });
@@ -61,7 +72,7 @@ it('updates the occurrence name', function () {
 it('updates the occurrence note', function () {
     [$user, $occurrence] = setupForMetadata();
 
-    $this->action->execute($user->id, $occurrence->id, ['note' => 'Paid via transfer']);
+    $this->action->execute($user->id, $occurrence->id, makeMetadataDto(['note' => 'Paid via transfer']));
 
     expect($occurrence->fresh()->note)->toBe('Paid via transfer');
 });
@@ -69,28 +80,28 @@ it('updates the occurrence note', function () {
 it('updates both name and note at once', function () {
     [$user, $occurrence] = setupForMetadata();
 
-    $this->action->execute($user->id, $occurrence->id, ['name' => 'Updated', 'note' => 'Some note']);
+    $this->action->execute($user->id, $occurrence->id, makeMetadataDto([
+        'name' => 'Updated',
+        'note' => 'Some note',
+    ]));
 
     expect($occurrence->fresh()->name)->toBe('Updated')
         ->and($occurrence->fresh()->note)->toBe('Some note');
 });
 
-it('accepts a null note to clear it', function () {
+it('accepts a null note to clear it or ignore it', function () {
     [$user, $occurrence] = setupForMetadata();
     $occurrence->update(['note' => 'Existing note']);
 
-    $this->action->execute($user->id, $occurrence->id, ['note' => null]);
+    $this->action->execute($user->id, $occurrence->id, makeMetadataDto(['note' => null]));
 
-    // null note is filtered out by toMetadata(), so original value stays
-    // (this is intentional — to clear a note, an explicit null should be passed
-    // but only if toMetadata() includes it; test documents current behaviour)
-    expect(true)->toBeTrue(); // no exception thrown
+    expect($occurrence->fresh()->note)->toBe('Existing note');
 });
 
 it('does not change amount, status, or financial fields (BR §15)', function () {
     [$user, $occurrence, $snapshot] = setupForMetadata();
 
-    $this->action->execute($user->id, $occurrence->id, ['name' => 'Changed Name']);
+    $this->action->execute($user->id, $occurrence->id, makeMetadataDto(['name' => 'Changed Name']));
 
     // Financial fields must remain identical
     expect((string) $occurrence->fresh()->amount)->toBe('150000.00')
@@ -98,9 +109,9 @@ it('does not change amount, status, or financial fields (BR §15)', function () 
 
     // Snapshot must be untouched
     $freshSnap = $snapshot->fresh();
-    expect((string) $freshSnap->current_balance)->toBe('500000.00');
-    expect((string) $freshSnap->reserved_cost)->toBe('150000.00');
-    expect((string) $freshSnap->remaining_daily_allowance)->toBe('30000.00');
+    expect((string) $freshSnap->current_balance)->toBe('500000.00')
+        ->and((string) $freshSnap->reserved_cost)->toBe('150000.00')
+        ->and((string) $freshSnap->remaining_daily_allowance)->toBe('30000.00');
 });
 
 it('works on occurrences of any status (no status restriction)', function () {
@@ -108,44 +119,30 @@ it('works on occurrences of any status (no status restriction)', function () {
         [$user, $occurrence] = setupForMetadata();
         $occurrence->update(['status' => $status->value]);
 
-        $this->action->execute($user->id, $occurrence->id, ['name' => 'Updated for '.$status->value]);
+        $this->action->execute($user->id, $occurrence->id, makeMetadataDto(['name' => 'Updated for '.$status->value]));
 
         expect($occurrence->fresh()->name)->toBe('Updated for '.$status->value);
     }
 });
 
-it('throws InvalidArgumentException when a disallowed field is provided', function () {
+it('throws BusinessRuleException when name is set to an empty string', function () {
     [$user, $occurrence] = setupForMetadata();
 
-    expect(fn () => $this->action->execute($user->id, $occurrence->id, ['amount' => '999999']))
-        ->toThrow(InvalidArgumentException::class, 'cannot be updated via metadata action');
-});
-
-it('throws InvalidArgumentException when name is set to an empty string', function () {
-    [$user, $occurrence] = setupForMetadata();
-
-    expect(fn () => $this->action->execute($user->id, $occurrence->id, ['name' => '   ']))
-        ->toThrow(InvalidArgumentException::class, 'cannot be empty');
-});
-
-it('throws InvalidArgumentException when status field is included', function () {
-    [$user, $occurrence] = setupForMetadata();
-
-    expect(fn () => $this->action->execute($user->id, $occurrence->id, ['status' => 'paid']))
-        ->toThrow(InvalidArgumentException::class, 'cannot be updated via metadata action');
+    expect(fn () => $this->action->execute($user->id, $occurrence->id, makeMetadataDto(['name' => '   '])))
+        ->toThrow(BusinessRuleException::class, 'error.validation.empty');
 });
 
 it('throws ModelNotFoundException when occurrence belongs to another user', function () {
     [$_, $occurrence] = setupForMetadata();
     $otherUser = User::factory()->create();
 
-    expect(fn () => $this->action->execute($otherUser->id, $occurrence->id, ['name' => 'X']))
+    expect(fn () => $this->action->execute($otherUser->id, $occurrence->id, makeMetadataDto(['name' => 'X'])))
         ->toThrow(ModelNotFoundException::class);
 });
 
 it('throws ModelNotFoundException for a non-existent occurrence id', function () {
     $user = User::factory()->create();
 
-    expect(fn () => $this->action->execute($user->id, 99999, ['name' => 'X']))
+    expect(fn () => $this->action->execute($user->id, 99999, makeMetadataDto(['name' => 'X'])))
         ->toThrow(ModelNotFoundException::class);
 });

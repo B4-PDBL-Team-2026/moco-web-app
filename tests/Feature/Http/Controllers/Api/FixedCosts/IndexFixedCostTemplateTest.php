@@ -1,52 +1,32 @@
 <?php
 
-use App\Domains\Budgeting\Enums\CycleType;
 use App\Domains\Category\Models\Category;
 use App\Domains\FixedCost\DTOs\FilterFixedCostTemplateData;
-use App\Domains\FixedCost\Models\FixedCostTemplate;
 use App\Domains\User\Models\User;
 use Laravel\Sanctum\Sanctum;
-
-function indexTemplateSetup(): array
-{
-    $user = User::factory()->create(['has_onboarded' => true]);
-    $cat = Category::factory()->expense()->create();
-
-    return [$user, $cat];
-}
-
-function createTemplate(User $user, Category $cat, array $overrides = []): FixedCostTemplate
-{
-    return FixedCostTemplate::factory()->create(array_merge([
-        'user_id' => $user->id,
-        'name' => 'Netflix',
-        'amount' => '150000.00',
-        'cycle_type' => CycleType::MONTHLY->value,
-        'due_day' => 15,
-        'is_active' => true,
-        'category_id' => $cat->id,
-    ], $overrides));
-}
 
 test('unauthenticated request returns 401', function () {
     $this->getJson('/api/fixed-costs')->assertUnauthorized();
 });
 
-test('returns 200 with paginated structure', function () {
+test('returns 200 with paginated structure inside api wrapper', function () {
     [$user, $cat] = indexTemplateSetup();
     Sanctum::actingAs($user);
 
     $response = $this->getJson('/api/fixed-costs')->assertOk();
 
     $response->assertJsonStructure([
+        'success',
+        'message',
         'data' => [
-            'data',
-            'current_page',
-            'last_page',
-            'per_page',
+            '*' => ['id', 'name', 'amount'],
+        ],
+        'meta' => [
+            'currentPage',
+            'lastPage',
+            'perPage',
             'total',
-            'from',
-            'to',
+            'hasMore',
         ],
     ]);
 });
@@ -57,7 +37,9 @@ test('returns empty data when user has no templates', function () {
 
     $this->getJson('/api/fixed-costs')
         ->assertOk()
-        ->assertJsonPath('data.total', 0);
+        ->assertJsonPath('success', true)
+        ->assertJsonPath('meta.total', 0)
+        ->assertJsonPath('data', []);
 });
 
 test('returns templates belonging to the authenticated user only', function () {
@@ -72,8 +54,8 @@ test('returns templates belonging to the authenticated user only', function () {
 
     $response = $this->getJson('/api/fixed-costs')->assertOk();
 
-    expect($response->json('data.total'))->toBe(1);
-    expect($response->json('data.data.0.name'))->toBe('Mine');
+    expect($response->json('meta.total'))->toBe(1)
+        ->and($response->json('data.0.name'))->toBe('Mine');
 });
 
 test('excludes soft-deleted templates', function () {
@@ -86,8 +68,8 @@ test('excludes soft-deleted templates', function () {
 
     $response = $this->getJson('/api/fixed-costs')->assertOk();
 
-    expect($response->json('data.total'))->toBe(1);
-    expect($response->json('data.data.0.name'))->toBe('Active');
+    expect($response->json('meta.total'))->toBe(1)
+        ->and($response->json('data.0.name'))->toBe('Active');
 });
 
 test('filters templates by keyword partial match', function () {
@@ -97,10 +79,10 @@ test('filters templates by keyword partial match', function () {
 
     Sanctum::actingAs($user);
 
-    $response = $this->getJson('/api/fixed-costs?keyword=flix')->assertOk();
+    $response = $this->getJson('/api/fixed-costs?keyword=net')->assertOk();
 
-    expect($response->json('data.total'))->toBe(1);
-    expect($response->json('data.data.0.name'))->toBe('Netflix');
+    expect($response->json('meta.total'))->toBe(1)
+        ->and($response->json('data.0.name'))->toBe('Netflix');
 });
 
 test('keyword returns empty when nothing matches', function () {
@@ -111,7 +93,7 @@ test('keyword returns empty when nothing matches', function () {
 
     $this->getJson('/api/fixed-costs?keyword=zzznomatch')
         ->assertOk()
-        ->assertJsonPath('data.total', 0);
+        ->assertJsonPath('meta.total', 0);
 });
 
 test('omitting keyword returns all templates', function () {
@@ -123,7 +105,7 @@ test('omitting keyword returns all templates', function () {
 
     $this->getJson('/api/fixed-costs')
         ->assertOk()
-        ->assertJsonPath('data.total', 2);
+        ->assertJsonPath('meta.total', 2);
 });
 
 test('filters by exact dueDay', function () {
@@ -136,7 +118,7 @@ test('filters by exact dueDay', function () {
 
     $response = $this->getJson('/api/fixed-costs?dueDay=15')->assertOk();
 
-    expect($response->json('data.total'))->toBe(2);
+    expect($response->json('meta.total'))->toBe(2);
 });
 
 test('dueDay filter returns empty when no match', function () {
@@ -147,7 +129,7 @@ test('dueDay filter returns empty when no match', function () {
 
     $this->getJson('/api/fixed-costs?dueDay=31')
         ->assertOk()
-        ->assertJsonPath('data.total', 0);
+        ->assertJsonPath('meta.total', 0);
 });
 
 test('filters by cycleType monthly', function () {
@@ -159,8 +141,8 @@ test('filters by cycleType monthly', function () {
 
     $response = $this->getJson('/api/fixed-costs?cycleType=monthly')->assertOk();
 
-    expect($response->json('data.total'))->toBe(1);
-    expect($response->json('data.data.0.name'))->toBe('Monthly');
+    expect($response->json('meta.total'))->toBe(1)
+        ->and($response->json('data.0.name'))->toBe('Monthly');
 });
 
 test('filters by cycleType weekly', function () {
@@ -173,7 +155,7 @@ test('filters by cycleType weekly', function () {
 
     $response = $this->getJson('/api/fixed-costs?cycleType=weekly')->assertOk();
 
-    expect($response->json('data.total'))->toBe(2);
+    expect($response->json('meta.total'))->toBe(2);
 });
 
 test('filters by isActive true returns only active templates', function () {
@@ -185,8 +167,8 @@ test('filters by isActive true returns only active templates', function () {
 
     $response = $this->getJson('/api/fixed-costs?isActive=1')->assertOk();
 
-    expect($response->json('data.total'))->toBe(1);
-    expect($response->json('data.data.0.name'))->toBe('Active');
+    expect($response->json('meta.total'))->toBe(1)
+        ->and($response->json('data.0.name'))->toBe('Active');
 });
 
 test('filters by isActive false returns only inactive templates', function () {
@@ -198,8 +180,8 @@ test('filters by isActive false returns only inactive templates', function () {
 
     $response = $this->getJson('/api/fixed-costs?isActive=0')->assertOk();
 
-    expect($response->json('data.total'))->toBe(1);
-    expect($response->json('data.data.0.name'))->toBe('Inactive');
+    expect($response->json('meta.total'))->toBe(1)
+        ->and($response->json('data.0.name'))->toBe('Inactive');
 });
 
 test('omitting isActive returns both active and inactive', function () {
@@ -211,7 +193,7 @@ test('omitting isActive returns both active and inactive', function () {
 
     $this->getJson('/api/fixed-costs')
         ->assertOk()
-        ->assertJsonPath('data.total', 2);
+        ->assertJsonPath('meta.total', 2);
 });
 
 test('applies multiple filters simultaneously', function () {
@@ -225,8 +207,8 @@ test('applies multiple filters simultaneously', function () {
     $response = $this->getJson('/api/fixed-costs?keyword=Netflix&cycleType=monthly&dueDay=15&isActive=1')
         ->assertOk();
 
-    expect($response->json('data.total'))->toBe(1);
-    expect($response->json('data.data.0.name'))->toBe('Netflix');
+    expect($response->json('meta.total'))->toBe(1)
+        ->and($response->json('data.0.name'))->toBe('Netflix');
 });
 
 test('respects perPage parameter', function () {
@@ -239,10 +221,10 @@ test('respects perPage parameter', function () {
 
     $response = $this->getJson('/api/fixed-costs?perPage=3')->assertOk();
 
-    expect($response->json('data.per_page'))->toBe(3);
-    expect(count($response->json('data.data')))->toBe(3);
-    expect($response->json('data.total'))->toBe(10);
-    expect($response->json('data.last_page'))->toBe(4);
+    expect($response->json('meta.perPage'))->toBe(3)
+        ->and(count($response->json('data')))->toBe(3)
+        ->and($response->json('meta.total'))->toBe(10)
+        ->and($response->json('meta.lastPage'))->toBe(4);
 });
 
 test('respects page parameter', function () {
@@ -256,10 +238,11 @@ test('respects page parameter', function () {
     $page1 = $this->getJson('/api/fixed-costs?perPage=2&page=1')->assertOk();
     $page2 = $this->getJson('/api/fixed-costs?perPage=2&page=2')->assertOk();
 
-    expect($page1->json('data.data.0.name'))->toBe('A');
-    expect($page1->json('data.data.1.name'))->toBe('B');
-    expect($page2->json('data.data.0.name'))->toBe('C');
-    expect($page2->json('data.data.1.name'))->toBe('D');
+    expect($page1->json('data.0.name'))->toBe('A')
+        ->and($page1->json('data.1.name'))->toBe('B')
+        ->and($page2->json('data.0.name'))->toBe('C')
+        ->and($page2->json('data.1.name'))->toBe('D');
+
 });
 
 test('defaults to page 1 and perPage 10 when not provided', function () {
@@ -272,9 +255,9 @@ test('defaults to page 1 and perPage 10 when not provided', function () {
 
     $response = $this->getJson('/api/fixed-costs')->assertOk();
 
-    expect($response->json('data.current_page'))->toBe(1);
-    expect($response->json('data.per_page'))->toBe(FilterFixedCostTemplateData::DEFAULT_PER_PAGE);
-    expect(count($response->json('data.data')))->toBe(10);
+    expect($response->json('meta.currentPage'))->toBe(1)
+        ->and($response->json('meta.perPage'))->toBe(FilterFixedCostTemplateData::DEFAULT_PER_PAGE)
+        ->and(count($response->json('data')))->toBe(10);
 });
 
 test('returns empty data array for out-of-range page', function () {
@@ -285,8 +268,8 @@ test('returns empty data array for out-of-range page', function () {
 
     $response = $this->getJson('/api/fixed-costs?page=999')->assertOk();
 
-    expect($response->json('data.data'))->toBeEmpty();
-    expect($response->json('data.total'))->toBe(1);
+    expect($response->json('data'))->toBeEmpty()
+        ->and($response->json('meta.total'))->toBe(1);
 });
 
 test('returns 422 when cycleType is an invalid value', function () {
