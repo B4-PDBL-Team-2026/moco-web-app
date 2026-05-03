@@ -3,7 +3,6 @@
 namespace App\Domains\FixedCost\Actions;
 
 use App\Commons\ValueObjects\Money;
-use App\Domains\Budgeting\Models\UserBudgetSetting;
 use App\Domains\FixedCost\DTOs\UpdateFixedCostTemplateData;
 use App\Domains\FixedCost\Enums\FixedCostOccurenceStatus;
 use App\Domains\FixedCost\Models\FixedCostOccurrence;
@@ -42,21 +41,16 @@ final readonly class UpdateFixedCostTemplateAction
      * @throws InvalidArgumentException If validation rules are violated.
      * @throws Throwable If the DB transaction fails.
      */
-    public function execute(int $userId, int $templateId, UpdateFixedCostTemplateData $data): void
+    public function execute(int $userId, int $templateId, UpdateFixedCostTemplateData $data): FixedCostTemplate
     {
         $template = FixedCostTemplate::query()
             ->where('user_id', $userId)
             ->whereNull('deleted_at')
             ->findOrFail($templateId);
 
-        $budgetCycle = UserBudgetSetting::query()
-            ->where('user_id', $userId)
-            ->firstOrFail(['cycle_type'])
-            ->cycle_type;
-
         $this->fixedCostValidator->validateUpdate($userId, $template, $data);
 
-        DB::transaction(function () use ($template, $data): void {
+        return DB::transaction(function () use ($template, $data) {
             $hasPaidOccurrenceThisCycleOrEarlier = $this->hasPaidOccurrence($template->id);
 
             // fields that are ALWAYS applied to the template
@@ -128,6 +122,8 @@ final readonly class UpdateFixedCostTemplateAction
             if (! empty($templateUpdates)) {
                 $template->update($templateUpdates);
             }
+
+            return $template->refresh();
         });
     }
 

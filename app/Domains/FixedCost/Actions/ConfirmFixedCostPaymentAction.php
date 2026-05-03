@@ -41,7 +41,7 @@ final readonly class ConfirmFixedCostPaymentAction
      * @throws InvalidArgumentException If the balance is insufficient (BR §13).
      * @throws Throwable If the DB transaction fails.
      */
-    public function execute(int $userId, int $occurrenceId): void
+    public function execute(int $userId, int $occurrenceId): FixedCostOccurrence
     {
         $occurrence = FixedCostOccurrence::query()
             ->where('user_id', $userId)
@@ -62,7 +62,7 @@ final readonly class ConfirmFixedCostPaymentAction
             );
         }
 
-        DB::transaction(function () use ($userId, $occurrence): void {
+        return DB::transaction(function () use ($userId, $occurrence): FixedCostOccurrence {
             $occurrence->update([
                 'status' => FixedCostOccurenceStatus::PAID->value,
                 'paid_at' => now(),
@@ -71,7 +71,6 @@ final readonly class ConfirmFixedCostPaymentAction
             // Create a linked expense transaction for the audit trail.
             Transaction::query()->create([
                 'user_id' => $userId,
-                'category_type' => $occurrence->category_type,
                 'category_id' => $occurrence->category_id,
                 'fixed_cost_occurrence_id' => $occurrence->id,
                 'type' => TransactionType::EXPENSE->value,
@@ -84,6 +83,8 @@ final readonly class ConfirmFixedCostPaymentAction
 
             // Delegate all balance/reserved cost/daily allowance recalculation.
             $this->recalculateBudgetSnapshot->execute($userId);
+
+            return $occurrence->refresh();
         });
     }
 }

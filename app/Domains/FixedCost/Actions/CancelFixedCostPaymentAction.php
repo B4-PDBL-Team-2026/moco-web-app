@@ -37,7 +37,7 @@ final readonly class CancelFixedCostPaymentAction
      * @throws InvalidArgumentException If the occurrence is already void or in an un-cancellable state.
      * @throws Throwable If the DB transaction fails.
      */
-    public function execute(int $userId, int $occurrenceId): void
+    public function execute(int $userId, int $occurrenceId): FixedCostOccurrence
     {
         $occurrence = FixedCostOccurrence::query()
             ->where('user_id', $userId)
@@ -48,7 +48,7 @@ final readonly class CancelFixedCostPaymentAction
             ])
             ->findOrFail($occurrenceId);
 
-        DB::transaction(function () use ($userId, $occurrence): void {
+        return DB::transaction(function () use ($userId, $occurrence): FixedCostOccurrence {
             if ($occurrence->status === FixedCostOccurenceStatus::PAID) {
 
                 $timezone = DB::table('user_budget_settings')
@@ -80,6 +80,8 @@ final readonly class CancelFixedCostPaymentAction
 
             // Recalculate balance, reserved cost, and daily allowance (BR §14).
             $this->recalculateBudgetSnapshot->execute($userId);
+
+            return $occurrence->refresh();
         });
     }
 }

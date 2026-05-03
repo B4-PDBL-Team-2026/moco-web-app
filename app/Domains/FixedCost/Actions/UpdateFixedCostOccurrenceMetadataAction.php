@@ -2,9 +2,11 @@
 
 namespace App\Domains\FixedCost\Actions;
 
+use App\Commons\Exceptions\BusinessRuleException;
+use App\Domains\FixedCost\DTOs\UpdateFixedCostOccurrenceMetadataData;
 use App\Domains\FixedCost\Models\FixedCostOccurrence;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use InvalidArgumentException;
+use Illuminate\Support\Facades\DB;
+use Throwable;
 
 /**
  * Updates non-financial metadata on a fixed cost occurrence.
@@ -22,37 +24,53 @@ final readonly class UpdateFixedCostOccurrenceMetadataAction
     /**
      * @param  int  $userId  Ownership guard.
      * @param  int  $occurrenceId  The occurrence to update.
-     * @param  array  $metadata  Associative array of allowed metadata fields.
-     *                           Supported keys: 'name', 'note'.
+     * @param  UpdateFixedCostOccurrenceMetadataData  $data  Associative array of allowed metadata fields.
+     *                                                       Supported keys: 'name', 'note'.
      *
-     * @throws ModelNotFoundException If the occurrence does not belong to the user.
-     * @throws InvalidArgumentException If an unsupported field is provided or name is empty.
+     * @throws Throwable
      */
-    public function execute(int $userId, int $occurrenceId, array $metadata): void
+    public function execute(int $userId, int $occurrenceId, UpdateFixedCostOccurrenceMetadataData $data): FixedCostOccurrence
     {
-        $allowedFields = ['name', 'note'];
-
-        $disallowed = array_diff(array_keys($metadata), $allowedFields);
-
-        if (! empty($disallowed)) {
-            throw new InvalidArgumentException(
-                'The following fields cannot be updated via metadata action: '.implode(', ', $disallowed)
-            );
+        if (isset($data->name) && trim($data->name) === '') {
+            throw new BusinessRuleException('error.validation.empty');
         }
 
-        if (isset($metadata['name']) && trim($metadata['name']) === '') {
-            throw new InvalidArgumentException('Fixed cost occurrence name cannot be empty.');
-        }
+        return DB::transaction(function () use ($userId, $occurrenceId, $data): FixedCostOccurrence {
+            $occurrence = FixedCostOccurrence::with(['transaction', 'category'])
+                ->where('user_id', $userId)
+                ->findOrFail($occurrenceId);
 
-        $occurrence = FixedCostOccurrence::query()
-            ->where('user_id', $userId)
-            ->findOrFail($occurrenceId);
+            $updates = [];
 
-        // Filter to only known-safe columns before persisting.
-        $safeUpdates = array_intersect_key($metadata, array_flip($allowedFields));
+            if ($data->name) {
+                $updates['name'] = $data->name;
+            }
 
-        if (! empty($safeUpdates)) {
-            $occurrence->update($safeUpdates);
-        }
+            if ($data->note) {
+                $updates['note'] = $data->note;
+            }
+
+            if (! empty($updates)) {
+                $occurrence->update($updates);
+
+                if ($occurrence->transaction) {
+                    $transactionUpdates = [];
+
+                    if ($data->name) {
+                        $transactionUpdates['name'] = $data->name;
+                    }
+
+                    if ($data->note) {
+                        $transactionUpdates['note'] = $data->note;
+                    }
+
+                    if (! empty($transactionUpdates)) {
+                        $occurrence->transaction->update($transactionUpdates);
+                    }
+                }
+            }
+
+            return $occurrence->refresh();
+        });
     }
 }

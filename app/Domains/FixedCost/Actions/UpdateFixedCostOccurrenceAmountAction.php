@@ -37,58 +37,50 @@ final readonly class UpdateFixedCostOccurrenceAmountAction
         int $userId,
         int $occurrenceId,
         UpdateFixedCostOccurrenceAmountData $data,
-    ): void {
+    ): FixedCostOccurrence {
         if (Money::lte($data->amount, '0')) {
             throw new InvalidArgumentException('Occurrence amount must be greater than zero.');
         }
 
-        // BR §17: only voided occurrences may have their amount edited.
         $occurrence = FixedCostOccurrence::query()
             ->where('user_id', $userId)
-            ->where('status', '!=', FixedCostOccurenceStatus::VOID->value)
+            ->whereIn('status', [
+                FixedCostOccurenceStatus::PENDING->value,
+                FixedCostOccurenceStatus::OVERDUE->value,
+                FixedCostOccurenceStatus::PAID->value,
+            ])
             ->findOrFail($occurrenceId);
 
         $snapshot = UserBudgetSnapshot::query()
             ->where('user_id', $userId)
             ->firstOrFail();
 
+        // perform balance checking if its paid occurrence
         if ($occurrence->status === FixedCostOccurenceStatus::PAID) {
             $difference = Money::sub($data->amount, (string) $occurrence->amount);
 
             if (Money::gt($difference, '0.00')) {
                 if (Money::lt((string) $snapshot->current_balance, $difference)) {
-                    throw new BusinessRuleException(
-                        'Insufficient balance to increase the amount of an already paid occurrence.'
-                    );
+                    throw new BusinessRuleException('errors.budget.balance_insufficient');
                 }
-            }
-
-            $linkedTransaction = $occurrence->transaction;
-
-            if ($linkedTransaction) {
-                $linkedTransaction->update([
-                    'amount' => $data->amount,
-                ]);
             }
         }
 
-        DB::transaction(function () use ($occurrence, $userId, $data): void {
+        return DB::transaction(function () use ($occurrence, $userId, $data): FixedCostOccurrence {
             $occurrence->update([
                 'amount' => $data->amount,
             ]);
 
-            if ($occurrence->status === FixedCostOccurenceStatus::PAID->value) {
-                if ($occurrence->transaction()->exists()) {
-                    $occurrence->transaction()->update([
-                        'amount' => $data->amount,
-                    ]);
-                }
+            if ($occurrence->status === FixedCostOccurenceStatus::PAID) {
+                Transaction::query()
+                    ->where('fixed_cost_occurrence_id', '=', $occurrence->id)
+                    ->update(['amount' => $data->amount]);
             }
 
-            Transaction::query()->where('fixed_cost_occurrence_id', '=', $occurrence->id)
-                ->update(['amount' => $data->amount]);
-
+            // perform budget recalculation
             $this->recalculateBudgetSnapshotAction->execute($userId);
+
+            return $occurrence->refresh();
         });
     }
 }
