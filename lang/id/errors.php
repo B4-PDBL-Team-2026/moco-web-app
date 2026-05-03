@@ -15,4 +15,7 @@ return [
     'category' => [
         'mismatch' => 'Kategorinya nggak nyambung, nih. Pastikan kategori yang kamu pilih sesuai dengan jenis transaksinya, ya!',
     ],
+    'validation' => [
+        'empty' => 'Eh coba cek lagi, inputin kamu masi nggak valid nih.',
+    ],
 ];
