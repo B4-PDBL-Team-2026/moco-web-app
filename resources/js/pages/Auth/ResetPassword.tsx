@@ -1,7 +1,7 @@
 import { Head } from '@inertiajs/react';
 import axios, { isAxiosError } from 'axios';
 import React, { useState } from 'react';
-import { resetPassword } from '@/actions/App/Http/Controllers/Api/Auth/AuthController';
+import { resetPassword } from '@/actions/App/Http/Controllers/Api/User/AuthController';
 
 export default function ResetPassword({ token, email }: { token: string, email: string }) {
     const [data, setData] = useState({
