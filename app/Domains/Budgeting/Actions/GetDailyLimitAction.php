@@ -13,6 +13,6 @@ class GetDailyLimitAction
      */
     public function execute(User $user): UserBudgetSetting
     {
-        return $user->budgetSetting ?? throw new BusinessRuleException(__('errors.budget.budget_setting_not_found'));
+        return $user->budgetSetting ?? throw new BusinessRuleException(__('errors.budgeting.budget_setting_not_found'));
     }
 }
