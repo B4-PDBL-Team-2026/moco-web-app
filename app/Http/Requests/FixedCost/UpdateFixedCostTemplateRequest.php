@@ -3,6 +3,7 @@
 namespace App\Http\Requests\FixedCost;
 
 use App\Domains\Budgeting\Enums\CycleType;
+use App\Domains\FixedCost\DTOs\UpdateFixedCostTemplateData;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -43,29 +44,22 @@ class UpdateFixedCostTemplateRequest extends FormRequest
         ];
     }
 
-    public function toDto(): array
+    public function toDTO(): UpdateFixedCostTemplateData
     {
-        $data = [];
+        return new UpdateFixedCostTemplateData(
+            name: $this->has('name') ? trim((string) $this->validated('name')) : null,
 
-        if ($this->has('name')) {
-            $data['name'] = $this->input('name');
-        }
-        if ($this->has('amount')) {
-            $data['amount'] = $this->input('amount');
-        }
-        if ($this->has('cycleType')) {
-            $data['cycleType'] = $this->input('cycleType');
-        }
-        if ($this->has('dueDay')) {
-            $data['dueDay'] = (int) $this->input('dueDay');
-        }
-        if ($this->has('isActive')) {
-            $data['isActive'] = $this->boolean('isActive');
-        }
-        if ($this->has('categoryId')) {
-            $data['categoryId'] = (int) $this->input('categoryId');
-        }
+            amount: $this->has('amount') ? (string) $this->validated('amount') : null,
 
-        return $data;
+            cycleType: $this->has('cycleType')
+                ? CycleType::from($this->validated('cycleType'))
+                : null,
+
+            dueDay: $this->has('dueDay') ? (int) $this->validated('dueDay') : null,
+
+            isActive: $this->has('isActive') ? (bool) $this->validated('isActive') : null,
+
+            categoryId: $this->has('categoryId') ? (int) $this->validated('categoryId') : null,
+        );
     }
 }
