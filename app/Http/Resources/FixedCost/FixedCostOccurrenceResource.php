@@ -25,6 +25,13 @@ class FixedCostOccurrenceResource extends JsonResource
             'voidedAt' => $this->voided_at ? $this->voided_at->toIso8601String() : null,
             'cycleType' => $this->cycle_type,
             'note' => $this->note,
+            'category' => $this->whenLoaded('category', function () {
+                return [
+                    'id' => $this->category->id,
+                    'name' => $this->category->name,
+                    'icon' => $this->category->icon ?? null,
+                ];
+            }),
         ];
     }
 }
