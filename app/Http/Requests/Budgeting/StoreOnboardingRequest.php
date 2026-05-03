@@ -89,7 +89,14 @@ class StoreOnboardingRequest extends FormRequest
             flooringLimit: $this->validated('flooringLimit'),
             ceilingLimit: $this->validated('ceilingLimit'),
             fixedCosts: array_map(
-                fn (array $fixedCost) => CreateFixedCostTemplateData::fromArray($fixedCost),
+                fn (array $fixedCost) => new CreateFixedCostTemplateData(
+                    name: $fixedCost['name'],
+                    amount: $fixedCost['amount'],
+                    cycleType: CycleType::from($fixedCost['cycleType']),
+                    dueDay: $fixedCost['dueDay'],
+                    isActive: $fixedCost['isActive'] ?? true,
+                    categoryId: $fixedCost['categoryId'],
+                ),
                 $this->validated('fixedCosts') ?? []
             ),
             timezone: $this->validated('timezone'),
