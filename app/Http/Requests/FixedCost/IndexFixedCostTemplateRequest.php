@@ -42,7 +42,7 @@ class IndexFixedCostTemplateRequest extends FormRequest
         ];
     }
 
-    public function toDto(): FilterFixedCostTemplateData
+    public function toDTO(): FilterFixedCostTemplateData
     {
         return FilterFixedCostTemplateData::fromArray($this->only([
             'keyword',
