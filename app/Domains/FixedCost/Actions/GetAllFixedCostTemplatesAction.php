@@ -10,7 +10,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
  * Returns a paginated list of fixed cost templates for a user,
  * with optional filters on name, due_day, cycle_type, and is_active.
  */
-class ListFixedCostTemplateAction
+class GetAllFixedCostTemplatesAction
 {
     /**
      * @param  int  $userId  The authenticated user's ID.
@@ -24,7 +24,7 @@ class ListFixedCostTemplateAction
             ->where('deleted_at', null);
 
         if ($filters->keyword !== null) {
-            $query->where('name', 'like', '%'.$filters->keyword.'%');
+            $query->where('name', 'like', $filters->keyword.'%');
         }
 
         if ($filters->dueDay !== null) {
