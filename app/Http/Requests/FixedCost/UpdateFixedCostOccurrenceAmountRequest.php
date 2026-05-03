@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\FixedCost;
 
+use App\Domains\FixedCost\DTOs\UpdateFixedCostOccurrenceAmountData;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -32,10 +33,8 @@ class UpdateFixedCostOccurrenceAmountRequest extends FormRequest
         ];
     }
 
-    public function toDto(): array
+    public function toDTO(): UpdateFixedCostOccurrenceAmountData
     {
-        return [
-            'amount' => (string) $this->input('amount'),
-        ];
+        return new UpdateFixedCostOccurrenceAmountData($this->input('amount'));
     }
 }
