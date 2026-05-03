@@ -20,10 +20,16 @@ use App\Http\Responses\ApiResponse;
 use Illuminate\Http\Request;
 use Throwable;
 
+/**
+ * Handles HTTP requests for User Authentication and Account Management.
+ */
 class AuthController extends Controller
 {
     /**
      * Register a new user in the system.
+     *
+     *
+     * @response array{success: bool, message: string, data: AuthResource}
      */
     public function register(RegisterRequest $request, RegisterUserAction $action): ApiResponse
     {
@@ -38,6 +44,9 @@ class AuthController extends Controller
 
     /**
      * Authenticate a user and return an access token.
+     *
+     *
+     * @response array{success: bool, message: string, data: AuthResource}
      */
     public function login(LoginRequest $request, LoginUserAction $action): ApiResponse
     {
@@ -51,6 +60,10 @@ class AuthController extends Controller
 
     /**
      * Handle an incoming password reset link request.
+     *
+     *
+     * @response array{success: bool, message: string}
+     * @response 422 array{success: bool, message: string}
      */
     public function forgotPassword(ForgotPasswordRequest $request, ForgotPasswordAction $action): ApiResponse
     {
@@ -60,11 +73,15 @@ class AuthController extends Controller
             return $this->errorResponse(message: $result['message'], status: 422);
         }
 
-        return $this->successResponse(null, $result['message']);
+        return $this->successResponse(message: $result['message']);
     }
 
     /**
      * Handle an incoming new password reset request.
+     *
+     *
+     * @response array{success: bool, message: string}
+     * @response 422 array{success: bool, message: string}
      */
     public function resetPassword(ResetPasswordRequest $request, ResetPasswordAction $action): ApiResponse
     {
@@ -82,6 +99,9 @@ class AuthController extends Controller
 
     /**
      * Send a new email verification notification.
+     *
+     *
+     * @response array{success: bool, message: string}
      */
     public function sendVerificationEmail(SendEmailVerificationAction $action): ApiResponse
     {
@@ -92,6 +112,9 @@ class AuthController extends Controller
 
     /**
      * Log the user out of the application and revoke their current token.
+     *
+     *
+     * @response array{success: bool, message: string}
      */
     public function logout(Request $request, LogoutUserAction $action): ApiResponse
     {
@@ -101,20 +124,19 @@ class AuthController extends Controller
     }
 
     /**
-     * DELETE /api/user
+     * Permanently deletes the authenticated user's account and all associated data.
      *
-     * Permanently deletes the authenticated user's account and all associated
-     * data. Requires the user's current password as confirmation.
-     *
+     * Requires the user's current password as confirmation.
      * After a successful deletion the client should discard the token it holds
      * — it has already been revoked server-side.
      *
+     *
      * @throws Throwable
+     *
+     * @response array{success: bool, message: string}
      */
-    public function destroy(
-        ConfirmDeleteUserRequest $request,
-        DeleteUserAction $action,
-    ): ApiResponse {
+    public function destroy(ConfirmDeleteUserRequest $request, DeleteUserAction $action): ApiResponse
+    {
         $action->execute($request->user());
 
         return $this->successResponse(message: 'Account deleted successfully.');
