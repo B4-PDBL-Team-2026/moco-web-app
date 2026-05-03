@@ -33,7 +33,7 @@ class FixedCostController extends Controller
      *     success: bool,
      *     message: string,
      *     data: array<FixedCostTemplateResource>,
-     *     meta: array {
+     *     meta: array{
      *         currentPage: int,
      *         lastPage: int,
      *         perPage: int,
@@ -121,6 +121,8 @@ class FixedCostController extends Controller
      * Soft-deletes the template and voids any pending/overdue occurrences.
      * Paid occurrences are preserved for audit history.
      *
+     * @response array{ message: string, status: bool }
+     *
      * @throws Throwable
      */
     public function destroy(
@@ -144,7 +146,14 @@ class FixedCostController extends Controller
      * @response array{
      *      success: bool,
      *      message: string,
-     *      data: array<FixedCostOccurrenceResource>
+     *      data: array<FixedCostOccurrenceResource>,
+     *      meta: array{
+     *          currentPage: int,
+     *          lastPage: int,
+     *          perPage: int,
+     *          total: int,
+     *          hasMore: bool
+     *      }
      * }
      */
     public function indexOccurrences(
