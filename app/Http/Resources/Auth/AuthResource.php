@@ -11,7 +11,7 @@ class AuthResource extends JsonResource
         return [
             'user' => $this['user'],
             'token' => $this['token'],
-            'requiresOnboarding' => $this['requiresOnboarding'],
+            'requiresOnboarding' => (bool) $this['requiresOnboarding'],
         ];
     }
 }
