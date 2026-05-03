@@ -35,7 +35,7 @@ describe('GET /api/settings/dailyLimit', function () {
         $this->getJson('/api/settings/dailyLimit')
             ->assertStatus(422)
             ->assertJsonPath('success', false)
-            ->assertJsonPath('errors.businessRule.0', __('errors.budget.budget_setting_not_found'));
+            ->assertJsonPath('errors.businessRule.0', __('errors.budgeting.budget_setting_not_found'));
     });
 });
 

@@ -55,7 +55,7 @@ class TransactionValidator
     public function ensureSufficientBalance(string $balance, string $amount): void
     {
         if (Money::lt($balance, Money::normalize($amount))) {
-            throw new BusinessRuleException(__('errors.budget.balance_insufficient'));
+            throw new BusinessRuleException(__('errors.budgeting.balance_insufficient'));
         }
     }
 
@@ -88,7 +88,7 @@ class TransactionValidator
         $transactionDate = $date->timezone($userTimezone)->startOfDay();
 
         if ($transactionDate->greaterThan($userToday)) {
-            throw new BusinessRuleException(__('errors.transactions.future_date'));
+            throw new BusinessRuleException(__('errors.transaction.future_date'));
         }
     }
 

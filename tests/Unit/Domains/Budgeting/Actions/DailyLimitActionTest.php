@@ -32,7 +32,7 @@ describe('GetDailyLimitAction', function () {
 
         /** @var BusinessRuleException $exception */
         expect($exception)
-            ->getTranslationKey()->toBe(__('errors.budget.budget_setting_not_found'))
+            ->getTranslationKey()->toBe(__('errors.budgeting.budget_setting_not_found'))
             ->getTranslationParams()->toBe([])
             ->getHttpStatus()->toBe(422);
     });
@@ -83,7 +83,7 @@ describe('UpdateDailyLimitAction', function () {
 
         /** @var BusinessRuleException $exception */
         expect($exception)
-            ->getTranslationKey()->toBe('errors.budget.ceiling_too_low')
+            ->getTranslationKey()->toBe('errors.budgeting.ceiling_too_low')
             ->getTranslationParams()->toBe([])
             ->getHttpStatus()->toBe(422);
     });

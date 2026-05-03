@@ -61,7 +61,7 @@ final readonly class UpdateFixedCostOccurrenceAmountAction
 
             if (Money::gt($difference, '0.00')) {
                 if (Money::lt((string) $snapshot->current_balance, $difference)) {
-                    throw new BusinessRuleException('errors.budget.balance_insufficient');
+                    throw new BusinessRuleException('errors.budgeting.balance_insufficient');
                 }
             }
         }
