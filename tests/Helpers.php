@@ -100,3 +100,24 @@ function catchException(callable $fn, string $exceptionClass): object
         return $e;
     }
 }
+
+function indexTemplateSetup(): array
+{
+    $user = User::factory()->create(['has_onboarded' => true]);
+    $cat = Category::factory()->expense()->create();
+
+    return [$user, $cat];
+}
+
+function createTemplate(User $user, Category $cat, array $overrides = []): FixedCostTemplate
+{
+    return FixedCostTemplate::factory()->create(array_merge([
+        'user_id' => $user->id,
+        'name' => 'Netflix',
+        'amount' => '150000.00',
+        'cycle_type' => CycleType::MONTHLY->value,
+        'due_day' => 15,
+        'is_active' => true,
+        'category_id' => $cat->id,
+    ], $overrides));
+}
