@@ -11,27 +11,33 @@ Cara install dan run app:
    ```sh
     cp .env.example .env
     ```
-5. Generate app key
+4. Generate app key
    ```sh
     php artisan key:generate
     ```
-7. Jalanin migration ke db
+5. Jalanin migration ke db
     ```sh
     php artisan migrate:fresh
     ```
-9. Install package npm
+6. Install package npm
     ```sh
     npm install
     ```
-11. Jalanin app-nya
+7. Build frontend
+   ```sh
+   npm run build
+   ```
+8. Jalanin app-nya
     ```sh
     composer run dev
     ```
+> Buat file firebase key, taruh di `storage/app/private/firebase_key.json`
 
-## Documentation
+## API Documentation
 **OpenAPI Spec**
-
-API documentation is accessible from path '/api/docs'. You have to run the app first to access it.
+This API documentation follows Open API standard and can be accessed from:
+- Web UI: access at `/api/docs`.
+- Raw JSON: access at `/docs/api.json`
 
 ## Developer Notes
 Standar Koding & Arsitektur
@@ -46,35 +52,64 @@ Contoh:
     - Service/Calculator = Kata Benda (Noun). Contoh: AllowanceCalculator, bukan CalculateService.
     - Boolean = Pake prefix is, has, atau should. Contoh: hasOnboarded.
 
-2. Alur Kerja (Work-Flow)
-Jangan asal nubruk! Ikuti urutan ini kalau dapet task:
-    - Lihat Skeleton: Gue udah nyiapin file-nya. Pahami class mana yang harus diisi.
-    - Pahami Codebase: BACA KODE YANG SUDAH ADA. Kalau sudah ada Service yang bisa dipake (misal: MoneyService), pake itu! Jangan tulis ulang logikanya di Action atau Controller. Don't reinvent the wheel!
-    - FormRequest & DTO: Validasi input di Request, lalu bungkus ke DTO. Jangan lempar array mentah ke Action.
-    - Action: Taruh logika utama di sini. Cukup satu public method yaitu execute().
-    - Controller: Cukup panggil Action dan balikin respon pake ApiResponse trait.
+### 2. Alur Kerja (Work-Flow)
+Jangan asal nubruk! Ikuti urutan ini kalau dapet *task*:
+1.  **Lihat Skeleton:** Gue udah nyiapin file-nya. Pahami class mana yang harus diisi.
+2.  **Pahami Codebase:** BACA KODE YANG SUDAH ADA. Kalau sudah ada *Service* yang bisa dipake (misal: pengelolaan uang di `Money` Value Object / Service), pake itu! *Don't reinvent the wheel!*
+3.  **FormRequest & Strict DTO:** Validasi input wajib di *Form Request*. Jangan pakai metode array mentah! Bikin method `toDTO()` di dalam *Request* untuk *mapping* data yang tervalidasi langsung ke *constructor* DTO.
+4.  **Action:** Taruh logika bisnis utama di sini. Cukup satu *public method* yaitu `execute()`.
+5.  **Resource:** Data dari Model/Action wajib dibungkus ke `JsonResource` buat nyesuain *format* JSON (misal ubah *snake_case* jadi *camelCase*) dan menangani relasi sebelum dikirim ke *frontend*.
+6.  **Controller:** Cukup otorisasi (Gate), panggil `toDTO()`, eksekusi Action, bungkus hasil ke Resource, dan kembalikan pake metode wrapper `$this->successResponse()`.
 
-3. Dilarang Keras (Daftar Merah PR Rejected)
+### 3. Dilarang Keras (Daftar Merah PR Rejected)
 Gue bakal REJECT otomatis PR lu kalau ketemu hal ini:
-    - Reinvent the Wheel: Nulis logika sum atau kalkulasi yang sebenernya udah ada di Service.
-    - Logic di Controller: Ada Model::create() atau foreach ribet di Controller? Langsung gue hapus.
-    - Bahasa Indonesia: Ada variabel atau komen bahasa Indo di kodingan.
-    - Float buat Duit: Haram pake float buat uang. Wajib pake MoneyService, cast semua ke string di DTO.
-    - Looping Query: Narik data pake ->get() cuma buat di-hitung totalnya di PHP. Pake ->sum() atau ->count() langsung di query database.
-    - Hardcoded Status: Pake 'pending' atau 'paid' secara manual. Gunakan Enums yang sudah disediakan, dan jangan bikin lagi, gue udah bikin semua enum yang dibutuhin, kalo emang bener-bener ada kebutuhan enum baru dan alasan bisa diterima, okelah gue setuju.
+*   **Reinvent the Wheel:** Nulis logika *sum* atau kalkulasi rumit yang sebenernya udah ada di *Service* atau *Value Object* bawaan.
+*   **Logic di Controller:** Ada `Model::create()` atau `foreach` ribet di Controller? Langsung gue hapus.
+*   **Bahasa Indonesia di Kode:** Ada variabel atau komen bahasa Indo di kodingan.
+*   **Float buat Duit:** Haram pake *float* atau *integer* telanjang buat uang. Cast semua nominal ke *string* di DTO dan kalkulasi pakai *Value Object* uang yang ada.
+*   **Looping Query PHP:** Narik data pake `->get()` cuma buat di-hitung totalnya di PHP. Pake `->sum()` atau `->count()` langsung di query database.
+*   **Hardcoded Status:** Pake `'pending'` atau `'paid'` secara manual. Gunakan `Enums` yang sudah disediakan. Kalau emang butuh *enum* baru, diskusiin dulu alasannya.
+*   **Ngeludahin Raw Model ke API:** Ngereturn *raw* object Eloquent langsung dari Controller ke *frontend*. **Wajib dibungkus pakai `JsonResource`!**
 
-Contoh pola yang bener:
-```php 
-// Controller cuma jadi 'satpam' dan 'kurir'
-public function store(StoreOnboardingRequest $request, CompleteOnboardingAction $action)
+---
+
+### Contoh Pola yang Bener (Role Model)
+
+Controller lu cuma bertugas jadi 'satpam' (otorisasi) dan 'kurir' (oper data). Nggak boleh ada logika di sini!
+
+**1. Di dalam Form Request (Urusan Validasi & DTO Mapping):**
+```php
+public function toDTO(): CreateTransactionData
 {
-    // 1. Data mateng masuk ke DTO
-    $dto = CompleteOnboardingData::fromData($request->validated());
+    // Mapping manual & type-safe ke constructor DTO
+    return new CreateTransactionData(
+        amount: $this->validated('amount'),
+        name: $this->validated('name'),
+        type: TransactionType::from($this->validated('type')),
+        categoryId: $this->validated('categoryId'),
+    );
+}
+```
 
-    // 2. Logic berat dijalankan Action
-    $result = $action->execute(auth()->id(), $dto);
+**2. Di dalam Controller (Urusan Alur & Respon):**
 
-    // 3. Respon seragam
-    return $this->success($result, 'Onboarding completed.');
+```php
+public function store(StoreTransactionRequest $request, CreateTransactionAction $action): ApiResponse
+{
+    // 1. Satpam: Otorisasi via Gate
+    Gate::authorize('create', Transaction::class);
+
+    // 2. Data mateng langsung diconvert ke DTO yang strict
+    $dto = $request->toDTO();
+
+    // 3. Logic berat & urusan database dijalankan Action
+    $result = $action->execute(Auth::user(), $dto);
+
+    // 4. Respon seragam: Bungkus ke Resource, lalu lempar ke ApiResponse Wrapper
+    return $this->successResponse(
+        data: new TransactionResource($result),
+        message: 'Transaction created successfully.',
+        status: 201
+    );
 }
 ```
