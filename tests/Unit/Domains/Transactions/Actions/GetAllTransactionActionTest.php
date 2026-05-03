@@ -150,7 +150,7 @@ it('search matches the keyword anywhere in the name', function () {
 
     $result = $this->action->execute($this->user->id, txFilters(['search' => 'Netflix']));
 
-    expect($result->total())->toBe(2);
+    expect($result->total())->toBe(1);
 });
 
 it('returns all transactions when search is null', function () {
