@@ -15,17 +15,24 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Transaction\IndexTransactionRequest;
 use App\Http\Requests\Transaction\StoreTransactionRequest;
 use App\Http\Requests\Transaction\UpdateTransactionRequest;
-use App\Traits\ApiResponse;
-use Illuminate\Http\JsonResponse;
+use App\Http\Resources\Transaction\TransactionResource;
+use App\Http\Responses\ApiResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Throwable;
 
+/**
+ * Handles HTTP requests for Transaction management.
+ */
 class TransactionController extends Controller
 {
-    use ApiResponse;
-
-    public function index(IndexTransactionRequest $request, GetAllTransactionAction $action): JsonResponse
+    /**
+     * Retrieve a paginated and filtered list of user transactions.
+     *
+     *
+     * @response array{success: bool, message: string, data: array, meta: array}
+     */
+    public function index(IndexTransactionRequest $request, GetAllTransactionAction $action): ApiResponse
     {
         Gate::authorize('view-any', Transaction::class);
 
@@ -33,13 +40,21 @@ class TransactionController extends Controller
 
         $result = $action->execute(Auth::id(), $filterData);
 
-        return $this->success($result, 'Transactions retrieved successfully.');
+        return $this->successResponse(
+            TransactionResource::collection($result),
+            'Transactions retrieved successfully.'
+        );
     }
 
     /**
+     * Store a newly created transaction in storage.
+     *
+     *
      * @throws Throwable
+     *
+     * @response 201 array{success: bool, message: string, data: array}
      */
-    public function store(StoreTransactionRequest $request, CreateTransactionAction $action): JsonResponse
+    public function store(StoreTransactionRequest $request, CreateTransactionAction $action): ApiResponse
     {
         Gate::authorize('create', Transaction::class);
 
@@ -47,26 +62,40 @@ class TransactionController extends Controller
 
         $result = $action->execute(Auth::user(), $dto);
 
-        return $this->success(
-            $result,
+        return $this->successResponse(
+            TransactionResource::make($result),
             'Transaction created successfully.',
             201
         );
     }
 
-    public function show(Transaction $transaction, GetTransactionDetailAction $action): JsonResponse
+    /**
+     * Display the specified transaction detail.
+     *
+     *
+     * @response array{success: bool, message: string, data: array}
+     */
+    public function show(Transaction $transaction, GetTransactionDetailAction $action): ApiResponse
     {
         Gate::authorize('view', $transaction);
 
         $result = $action->execute(Auth::user(), $transaction);
 
-        return $this->success($result, 'Transaction retrieved successfully.');
+        return $this->successResponse(
+            TransactionResource::make($result),
+            'Transaction retrieved successfully.'
+        );
     }
 
     /**
+     * Update the specified transaction in storage.
+     *
+     *
      * @throws Throwable
+     *
+     * @response array{success: bool, message: string, data: array}
      */
-    public function update(UpdateTransactionRequest $request, Transaction $transaction, UpdateTransactionAction $action): JsonResponse
+    public function update(UpdateTransactionRequest $request, Transaction $transaction, UpdateTransactionAction $action): ApiResponse
     {
         Gate::authorize('update', $transaction);
 
@@ -74,19 +103,29 @@ class TransactionController extends Controller
 
         $result = $action->execute(Auth::user(), $transaction, $dto);
 
-        return $this->success($result, 'Transaction updated successfully.');
+        return $this->successResponse(
+            TransactionResource::make($result),
+            'Transaction updated successfully.'
+        );
     }
 
     /**
+     * Remove the specified transaction from storage.
+     *
+     *
      * @throws Throwable
+     *
+     * @response 204 array{success: bool, message: string}
      */
-    public function destroy(Transaction $transaction, DeleteTransactionAction $action): JsonResponse
+    public function destroy(Transaction $transaction, DeleteTransactionAction $action): ApiResponse
     {
         Gate::authorize('delete', $transaction);
 
         $action->execute(Auth::user(), $transaction);
 
-        // Return 204 No Content
-        return response()->json(null, 204);
+        return $this->successResponse(
+            message: 'Transaction deleted successfully.',
+            status: 204
+        );
     }
 }
