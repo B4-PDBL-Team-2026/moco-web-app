@@ -2,15 +2,13 @@
 
 namespace App\Http\Middleware;
 
-use App\Traits\ApiResponse;
+use App\Http\Responses\ApiResponse;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureOnboardingIsCompleted
 {
-    use ApiResponse;
-
     /**
      * Handle an incoming request.
      *
@@ -24,12 +22,13 @@ class EnsureOnboardingIsCompleted
             return $next($request);
         }
 
-        return $this->error(
-            'Onboarding required.',
-            Response::HTTP_FORBIDDEN,
-            [
+        return (new ApiResponse(
+            errors: [
                 'requires_onboarding' => true,
-            ]
-        );
+            ],
+            message: __('errors.validation.onboarding'),
+            status: Response::HTTP_FORBIDDEN,
+            success: false
+        ))->toResponse($request);
     }
 }
