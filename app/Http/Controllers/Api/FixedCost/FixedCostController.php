@@ -6,76 +6,81 @@ use App\Domains\FixedCost\Actions\CancelFixedCostPaymentAction;
 use App\Domains\FixedCost\Actions\ConfirmFixedCostPaymentAction;
 use App\Domains\FixedCost\Actions\CreateFixedCostTemplateAction;
 use App\Domains\FixedCost\Actions\DeleteFixedCostTemplateAction;
-use App\Domains\FixedCost\Actions\ListCurrentCycleOccurrencesAction;
-use App\Domains\FixedCost\Actions\ListFixedCostTemplateAction;
+use App\Domains\FixedCost\Actions\GetAllFixedCostOccurrencesAction;
+use App\Domains\FixedCost\Actions\GetAllFixedCostTemplatesAction;
 use App\Domains\FixedCost\Actions\UpdateFixedCostOccurrenceAmountAction;
 use App\Domains\FixedCost\Actions\UpdateFixedCostOccurrenceMetadataAction;
 use App\Domains\FixedCost\Actions\UpdateFixedCostTemplateAction;
-use App\Domains\FixedCost\DTOs\CreateFixedCostTemplateData;
-use App\Domains\FixedCost\DTOs\UpdateFixedCostOccurrenceAmountData;
-use App\Domains\FixedCost\DTOs\UpdateFixedCostTemplateData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\FixedCost\IndexFixedCostTemplateRequest;
 use App\Http\Requests\FixedCost\StoreFixedCostTemplateRequest;
 use App\Http\Requests\FixedCost\UpdateFixedCostOccurrenceAmountRequest;
 use App\Http\Requests\FixedCost\UpdateFixedCostOccurrenceMetadataRequest;
 use App\Http\Requests\FixedCost\UpdateFixedCostTemplateRequest;
-use App\Traits\ApiResponse;
-use Illuminate\Http\JsonResponse;
+use App\Http\Requests\IndexFixedCostOccurrenceRequest;
+use App\Http\Resources\FixedCost\FixedCostOccurrenceResource;
+use App\Http\Resources\FixedCost\FixedCostTemplateResource;
+use App\Http\Responses\ApiResponse;
 use Illuminate\Http\Request;
 use Throwable;
 
 class FixedCostController extends Controller
 {
-    use ApiResponse;
-
     /**
-     * GET /api/fixed-costs
+     * Get list of fixed cost templates.
      *
-     * Returns a paginated, filterable list of the authenticated user's
-     * fixed cost templates.
-     *
-     * Query parameters (all optional):
-     *   - keyword   string  Filter by partial name match.
-     *   - dueDay    int     Filter by exact due_day value (1–31).
-     *   - cycleType string  Filter by cycle type (weekly|monthly).
-     *   - isActive  bool    Filter by active status.
-     *   - perPage   int     Items per page (default 15, max 100).
-     *   - page      int     Page number (default 1).
+     * @response array{
+     *     success: bool,
+     *     message: string,
+     *     data: array<FixedCostTemplateResource>,
+     *     meta: array {
+     *         currentPage: int,
+     *         lastPage: int,
+     *         perPage: int,
+     *         total: int,
+     *         hasMore: bool
+     *     }
+     * }
      */
     public function index(
         IndexFixedCostTemplateRequest $request,
-        ListFixedCostTemplateAction $action,
-    ): JsonResponse {
+        GetAllFixedCostTemplatesAction $action,
+    ): ApiResponse {
         $result = $action->execute(
             userId: auth()->id(),
-            filters: $request->toDto(),
+            filters: $request->toDTO(),
         );
 
-        return $this->success(data: $result, message: 'Fixed cost templates retrieved successfully.');
+        return $this->successResponse(
+            data: FixedCostTemplateResource::collection($result),
+            message: 'Fixed cost templates retrieved successfully.'
+        );
     }
 
     /**
-     * POST /api/fixed-costs
+     * Create a new fixed cost template.
      *
-     * Create a new fixed cost template. Immediately generates the occurrence
-     * for the current budget window and recalculates the snapshot (BR §12).
+     * @response array{
+     *     success: bool,
+     *     message: string,
+     *     data: FixedCostTemplateResource
+     * }
      *
      * @throws Throwable
      */
     public function store(
         StoreFixedCostTemplateRequest $request,
         CreateFixedCostTemplateAction $action,
-    ): JsonResponse {
+    ): ApiResponse {
         $template = $action->execute(
             userId: $request->user()->id,
-            fixedCost: CreateFixedCostTemplateData::fromArray($request->toDto()),
+            fixedCost: $request->toDTO(),
         );
 
-        return $this->success(
-            data: $template,
+        return $this->successResponse(
+            data: FixedCostTemplateResource::make($template),
             message: 'Fixed cost template created successfully.',
-            statusCode: 201,
+            status: 201,
         );
     }
 
@@ -83,7 +88,13 @@ class FixedCostController extends Controller
      * PATCH /api/fixed-costs/{templateId}
      *
      * Sparse update of a template. Amount/due_day changes are deferred if a
-     * paid occurrence already exists (BR §18).
+     * paid occurrence already exists.
+     *
+     * @response array{
+     *     success: bool,
+     *     message: string,
+     *     data: FixedCostResource
+     * }
      *
      * @throws Throwable
      */
@@ -91,14 +102,17 @@ class FixedCostController extends Controller
         UpdateFixedCostTemplateRequest $request,
         int $templateId,
         UpdateFixedCostTemplateAction $action,
-    ): JsonResponse {
-        $action->execute(
+    ): ApiResponse {
+        $result = $action->execute(
             userId: $request->user()->id,
             templateId: $templateId,
-            data: UpdateFixedCostTemplateData::fromArray($request->toDto()),
+            data: $request->toDTO(),
         );
 
-        return $this->success(message: 'Fixed cost template updated successfully.');
+        return $this->successResponse(
+            data: FixedCostTemplateResource::make($result),
+            message: 'Fixed cost template updated successfully.',
+        );
     }
 
     /**
@@ -113,34 +127,52 @@ class FixedCostController extends Controller
         Request $request,
         int $templateId,
         DeleteFixedCostTemplateAction $action,
-    ): JsonResponse {
+    ): ApiResponse {
         $action->execute(
             userId: $request->user()->id,
             templateId: $templateId,
         );
 
-        return $this->success(message: 'Fixed cost template deleted successfully.');
+        return $this->successResponse(message: 'Fixed cost template deleted successfully.');
     }
 
     /**
      * GET /api/fixed-costs/occurrences
      *
-     * List all occurrences for the user's current budget cycle.
+     * List all non-void fixed cost occurrences.
+     *
+     * @response array{
+     *      success: bool,
+     *      message: string,
+     *      data: array<FixedCostOccurrenceResource>
+     * }
      */
     public function indexOccurrences(
-        Request $request,
-        ListCurrentCycleOccurrencesAction $action,
-    ): JsonResponse {
-        $occurrences = $action->execute(userId: $request->user()->id);
+        IndexFixedCostOccurrenceRequest $request,
+        GetAllFixedCostOccurrencesAction $action,
+    ): ApiResponse {
+        $occurrences = $action->execute(
+            userId: $request->user()->id,
+            filters: $request->toDTO(),
+        );
 
-        return $this->success(data: $occurrences);
+        return $this->successResponse(
+            data: FixedCostOccurrenceResource::collection($occurrences),
+            message: 'Fixed cost occurrences retrieved successfully.'
+        );
     }
 
     /**
-     * POST /api/fixed-costs/occurrences/{occurrenceId}/confirm
+     * Confirm occurrence payment
      *
      * Confirms payment of an occurrence. Rejects if balance < amount (BR §13).
      * Creates a linked expense transaction and recalculates the snapshot (BR §14).
+     *
+     * @response array{
+     *     success: bool,
+     *     message: string,
+     *     data: FixedCostOccurrenceResource
+     * }
      *
      * @throws Throwable
      */
@@ -148,22 +180,29 @@ class FixedCostController extends Controller
         Request $request,
         int $occurrenceId,
         ConfirmFixedCostPaymentAction $action,
-    ): JsonResponse {
-        $action->execute(
+    ): ApiResponse {
+        $result = $action->execute(
             userId: $request->user()->id,
             occurrenceId: $occurrenceId,
         );
 
-        return $this->success(message: 'Payment confirmed successfully.');
+        return $this->successResponse(
+            data: FixedCostOccurrenceResource::make($result),
+            message: 'Payment confirmed successfully.',
+        );
     }
 
     /**
-     * POST /api/fixed-costs/occurrences/{occurrenceId}/cancel
+     * Cancel occurrence payment
      *
      * Cancels/voids a payment. Soft-deletes the linked transaction and
-     * recalculates the snapshot (BR §14).
+     * recalculates the snapshot.
      *
-     * Also serves as step 1 of the BR §17 edit-paid-amount flow.
+     * @response array{
+     *     success: bool,
+     *     message: string,
+     *     data: FixedCostOccurrenceResource
+     * }
      *
      * @throws Throwable
      */
@@ -171,17 +210,30 @@ class FixedCostController extends Controller
         Request $request,
         int $occurrenceId,
         CancelFixedCostPaymentAction $action,
-    ): JsonResponse {
-        $action->execute(
+    ): ApiResponse {
+        $result = $action->execute(
             userId: $request->user()->id,
             occurrenceId: $occurrenceId,
         );
 
-        return $this->success(message: 'Payment cancelled successfully.');
+        return $this->successResponse(
+            data: FixedCostOccurrenceResource::make($result),
+            message: 'Payment cancelled successfully.',
+        );
     }
 
     /**
-     * PATCH /api/fixed-costs/occurrences/{occurrenceId}/amount
+     * Update occurrence amount
+     *
+     * Updates the exact billing amount for a specific occurrence.
+     * If the occurrence is already paid and the amount is increased,
+     * it will check if the user has sufficient balance (BR §17).
+     *
+     * @response array{
+     *     success: bool,
+     *     message: string,
+     *     data: FixedCostOccurrenceResource
+     * }
      *
      * @throws Throwable
      */
@@ -189,32 +241,47 @@ class FixedCostController extends Controller
         UpdateFixedCostOccurrenceAmountRequest $request,
         int $occurrenceId,
         UpdateFixedCostOccurrenceAmountAction $action,
-    ): JsonResponse {
-        $action->execute(
+    ): ApiResponse {
+        $result = $action->execute(
             userId: $request->user()->id,
             occurrenceId: $occurrenceId,
-            data: UpdateFixedCostOccurrenceAmountData::fromArray($request->toDto()),
+            data: $request->toDTO(),
         );
 
-        return $this->success(message: 'Occurrence amount updated succesfully.');
+        return $this->successResponse(
+            data: FixedCostOccurrenceResource::make($result),
+            message: 'Occurrence amount updated succesfully.',
+        );
     }
 
     /**
-     * PATCH /api/fixed-costs/occurrences/{occurrenceId}/metadata
+     * Update occurrence metadata
      *
-     * Updates name/note only. No recalculation triggered
+     * Updates non-financial metadata (name and note) on a fixed cost occurrence.
+     * Changing these fields does not trigger any recalculation.
+     *
+     * @response array{
+     *     success: bool,
+     *     message: string,
+     *     data: FixedCostOccurrenceResource
+     * }
+     *
+     * @throws Throwable
      */
     public function updateOccurrenceMetadata(
         UpdateFixedCostOccurrenceMetadataRequest $request,
         int $occurrenceId,
         UpdateFixedCostOccurrenceMetadataAction $action,
-    ): JsonResponse {
-        $action->execute(
+    ): ApiResponse {
+        $result = $action->execute(
             userId: $request->user()->id,
             occurrenceId: $occurrenceId,
-            metadata: $request->toMetadata(),
+            data: $request->toDTO(),
         );
 
-        return $this->success(message: 'Occurrence metadata updated successfully.');
+        return $this->successResponse(
+            data: FixedCostOccurrenceResource::make($result),
+            message: 'Occurrence metadata updated successfully.',
+        );
     }
 }
