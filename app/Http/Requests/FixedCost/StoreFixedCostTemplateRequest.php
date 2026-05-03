@@ -3,6 +3,7 @@
 namespace App\Http\Requests\FixedCost;
 
 use App\Domains\Budgeting\Enums\CycleType;
+use App\Domains\FixedCost\DTOs\CreateFixedCostTemplateData;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
 
@@ -14,7 +15,7 @@ class StoreFixedCostTemplateRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // Gate handled by auth middleware.
+        return true;
     }
 
     public function rules(): array
@@ -46,15 +47,15 @@ class StoreFixedCostTemplateRequest extends FormRequest
     /**
      * Keys already match the DTO contract — pass through directly.
      */
-    public function toDto(): array
+    public function toDTO(): CreateFixedCostTemplateData
     {
-        return [
-            'name' => $this->input('name'),
-            'amount' => $this->input('amount'),
-            'cycleType' => $this->input('cycleType'),
-            'dueDay' => (int) $this->input('dueDay'),
-            'isActive' => $this->boolean('isActive', true),
-            'categoryId' => (int) $this->input('categoryId'),
-        ];
+        return new CreateFixedCostTemplateData(
+            name: $this->validated('name'),
+            amount: (string) $this->validated('amount'),
+            cycleType: CycleType::from($this->validated('cycleType')),
+            dueDay: (int) $this->validated('dueDay'),
+            isActive: (bool) $this->input('isActive', true),
+            categoryId: (int) $this->validated('categoryId'),
+        );
     }
 }
