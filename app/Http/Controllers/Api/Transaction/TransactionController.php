@@ -29,8 +29,18 @@ class TransactionController extends Controller
     /**
      * Retrieve a paginated and filtered list of user transactions.
      *
-     *
-     * @response array{success: bool, message: string, data: array, meta: array}
+     * @response array{
+     *     success: bool,
+     *     message: string,
+     *     data: array<TransactionResource>,
+     *     meta: array{
+     *         currentPage: int,
+     *         lastPage: int,
+     *         perPage: int,
+     *         total: int,
+     *         hasMore: bool
+     *     }
+     * }
      */
     public function index(IndexTransactionRequest $request, GetAllTransactionAction $action): ApiResponse
     {
@@ -49,10 +59,13 @@ class TransactionController extends Controller
     /**
      * Store a newly created transaction in storage.
      *
-     *
      * @throws Throwable
      *
-     * @response 201 array{success: bool, message: string, data: array}
+     * @response array{
+     *     success: bool,
+     *     message: string,
+     *     data: TransactionResource
+     * }
      */
     public function store(StoreTransactionRequest $request, CreateTransactionAction $action): ApiResponse
     {
@@ -72,8 +85,11 @@ class TransactionController extends Controller
     /**
      * Display the specified transaction detail.
      *
-     *
-     * @response array{success: bool, message: string, data: array}
+     * @response array{
+     *     success: bool,
+     *     message: string,
+     *     data: TransactionResource
+     * }
      */
     public function show(Transaction $transaction, GetTransactionDetailAction $action): ApiResponse
     {
@@ -90,10 +106,13 @@ class TransactionController extends Controller
     /**
      * Update the specified transaction in storage.
      *
-     *
      * @throws Throwable
      *
-     * @response array{success: bool, message: string, data: array}
+     * @response array{
+     *     success: bool,
+     *     message: string,
+     *     data: TransactionResource
+     * }
      */
     public function update(UpdateTransactionRequest $request, Transaction $transaction, UpdateTransactionAction $action): ApiResponse
     {
@@ -112,10 +131,12 @@ class TransactionController extends Controller
     /**
      * Remove the specified transaction from storage.
      *
-     *
      * @throws Throwable
      *
-     * @response 204 array{success: bool, message: string}
+     * @response array{
+     *     success: bool,
+     *     message: string
+     * }
      */
     public function destroy(Transaction $transaction, DeleteTransactionAction $action): ApiResponse
     {
