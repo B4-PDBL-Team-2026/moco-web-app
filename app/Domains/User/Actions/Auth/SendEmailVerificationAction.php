@@ -3,7 +3,6 @@
 namespace App\Domains\User\Actions\Auth;
 
 use App\Domains\User\Models\User;
-use App\Traits\ApiResponse;
 
 /**
  * Sends (or re-sends) the email verification notification to the authenticated user.
@@ -13,8 +12,6 @@ use App\Traits\ApiResponse;
  */
 class SendEmailVerificationAction
 {
-    use ApiResponse;
-
     public function execute(User $user): array
     {
         if ($user->hasVerifiedEmail()) {
