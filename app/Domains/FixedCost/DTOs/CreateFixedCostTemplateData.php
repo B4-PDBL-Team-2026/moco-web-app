@@ -14,16 +14,4 @@ class CreateFixedCostTemplateData
         public bool $isActive,
         public int $categoryId,
     ) {}
-
-    public static function fromArray(array $data): self
-    {
-        return new self(
-            name: $data['name'],
-            amount: (string) $data['amount'],
-            cycleType: CycleType::from($data['cycleType']),
-            dueDay: $data['dueDay'],
-            isActive: $data['isActive'] ?? true,
-            categoryId: $data['categoryId'],
-        );
-    }
 }

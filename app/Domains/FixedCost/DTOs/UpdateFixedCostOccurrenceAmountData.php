@@ -12,11 +12,4 @@ final readonly class UpdateFixedCostOccurrenceAmountData
     public function __construct(
         public string $amount,
     ) {}
-
-    public static function fromArray(array $data): self
-    {
-        return new self(
-            amount: (string) $data['amount'],
-        );
-    }
 }
