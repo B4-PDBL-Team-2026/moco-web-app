@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\FixedCost;
 
+use App\Domains\FixedCost\DTOs\UpdateFixedCostOccurrenceMetadataData;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -26,11 +27,11 @@ class UpdateFixedCostOccurrenceMetadataRequest extends FormRequest
     /**
      * Returns only the whitelisted metadata fields that were actually present.
      */
-    public function toMetadata(): array
+    public function toDTO(): UpdateFixedCostOccurrenceMetadataData
     {
-        return array_filter(
-            $this->only(['name', 'note']),
-            fn ($value) => $value !== null,
+        return new UpdateFixedCostOccurrenceMetadataData(
+            name: $this->has('name') ? $this->validated('name') : null,
+            note: $this->has('note') ? $this->validated('note') : null,
         );
     }
 }
