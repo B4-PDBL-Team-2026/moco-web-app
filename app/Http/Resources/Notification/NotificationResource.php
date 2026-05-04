@@ -13,7 +13,7 @@ class NotificationResource extends JsonResource
             'title' => $this->data['title'],
             'message' => $this->data['message'],
             'isRead' => $this->read_at !== null,
-            'readAt' => $this->read_at->toIso8601String(),
+            'readAt' => $this->read_at,
             'createdAt' => $this->created_at,
             'payload' => [
                 'notificationCode' => $this->data['code'],
