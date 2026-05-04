@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Notification;
 
+use App\Domains\Notification\TestNotification;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Notification\NotificationResource;
 use App\Http\Responses\ApiResponse;
@@ -69,6 +70,23 @@ class InAppNotificationController extends Controller
                 'total' => auth()->user()->unreadNotifications->count(),
             ],
             message: 'Unread notification total retrieved successfully.',
+        );
+    }
+
+    /**
+     * Trigger a test push notification to the authenticated user.
+     * (Useful for mobile dev testing FCM payload handling)
+     *
+     * @response array{success: bool, message: string}
+     */
+    public function testPush(): ApiResponse
+    {
+        $user = auth()->user();
+
+        $user->notify(new TestNotification);
+
+        return $this->successResponse(
+            message: 'Test push notification sent successfully. Please check your mobile device.',
         );
     }
 }
