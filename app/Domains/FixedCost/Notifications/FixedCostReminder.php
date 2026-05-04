@@ -48,7 +48,10 @@ class FixedCostReminder extends Notification implements ShouldQueue
             deviceToken: '',
             title: "Pengingat Pembayaran: {$name}",
             body: "Tagihan sebesar {$amount} akan segera jatuh tempo.",
-            data: ['occurrence_id' => (string) $this->occurrence->id]
+            data: [
+                'occurrence_id' => (string) $this->occurrence->id,
+                'notificationCode' => NotificationCode::FIXED_COST_REMINDER->value,
+            ],
         );
     }
 }

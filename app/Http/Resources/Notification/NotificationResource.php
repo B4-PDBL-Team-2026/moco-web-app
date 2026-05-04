@@ -10,13 +10,15 @@ class NotificationResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'title' => $this->data['title'] ?? null,
-            'message' => $this->data['message'] ?? null,
-            'code' => $this->data['code'] ?? null,
-            'occurrenceId' => $this->data['id'] ?? null,
+            'title' => $this->data['title'],
+            'message' => $this->data['message'],
             'isRead' => $this->read_at !== null,
             'readAt' => $this->read_at,
             'createdAt' => $this->created_at,
+            'payload' => [
+                'notificationCode' => $this->data['code'],
+                'occurrenceId' => $this->data['id'],
+            ],
         ];
     }
 }
