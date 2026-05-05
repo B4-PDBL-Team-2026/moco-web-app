@@ -11,7 +11,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use Number;
 
-class FixedCostReminder extends Notification implements ShouldQueue
+class FixedCostOccurrenceNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -42,15 +42,23 @@ class FixedCostReminder extends Notification implements ShouldQueue
     public function toFcm(): PushMessage
     {
         $name = $this->occurrence->name;
-        $amount = number_format($this->occurrence->amount, 0, ',', '.');
+        $formattedAmount = Number::currency($this->occurrence->amount, 'IDR', 'id');
 
         return new PushMessage(
             deviceToken: '',
             title: "Pengingat Pembayaran: {$name}",
-            body: "Tagihan sebesar {$amount} akan segera jatuh tempo.",
+            body: "Tagihan sebesar {$formattedAmount} akan segera jatuh tempo.",
             data: [
-                'occurrence_id' => (string) $this->occurrence->id,
-                'notificationCode' => NotificationCode::FIXED_COST_REMINDER->value,
+                'id' => $this->id,
+                'title' => 'Pengingat Pembayaran: '.$this->occurrence->name,
+                'message' => 'Tagihan sebesar '.$formattedAmount.' akan segera jatuh tempo.',
+                'isRead' => 'false',
+                'readAt' => '',
+                'createdAt' => now()->toIso8601String(),
+                'payload' => json_encode([
+                    'occurrence_id' => (string) $this->occurrence->id,
+                    'notificationCode' => NotificationCode::FIXED_COST_REMINDER->value,
+                ]),
             ],
         );
     }

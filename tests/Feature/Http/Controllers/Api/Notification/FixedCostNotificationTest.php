@@ -3,7 +3,7 @@
 use App\Domains\Category\Models\Category;
 use App\Domains\FixedCost\Models\FixedCostOccurrence;
 use App\Domains\FixedCost\Models\FixedCostTemplate;
-use App\Domains\FixedCost\Notifications\FixedCostReminder;
+use App\Domains\FixedCost\Notifications\FixedCostOccurrenceNotification;
 use App\Domains\User\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Notification;
@@ -37,5 +37,5 @@ test('notification is sent on due date', function () {
 
     $this->artisan('fixed-cost:remind')->assertSuccessful();
 
-    Notification::assertSentTo($user, FixedCostReminder::class);
+    Notification::assertSentTo($user, FixedCostOccurrenceNotification::class);
 });

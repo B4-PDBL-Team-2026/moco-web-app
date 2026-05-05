@@ -3,7 +3,7 @@
 use App\Domains\Category\Models\Category;
 use App\Domains\FixedCost\Models\FixedCostOccurrence;
 use App\Domains\FixedCost\Models\FixedCostTemplate;
-use App\Domains\FixedCost\Notifications\FixedCostReminder;
+use App\Domains\FixedCost\Notifications\FixedCostOccurrenceNotification;
 use App\Domains\User\Models\User;
 use Laravel\Sanctum\Sanctum;
 
@@ -41,7 +41,7 @@ test('user can get their notification list', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user);
 
-    $user->notify(new FixedCostReminder(createDummyOccurrence($user)));
+    $user->notify(new FixedCostOccurrenceNotification(createDummyOccurrence($user)));
 
     $this->getJson('/api/notifications')
         ->assertStatus(200)
@@ -57,7 +57,7 @@ test('user can mark notification as read', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user);
 
-    $user->notify(new FixedCostReminder(createDummyOccurrence($user)));
+    $user->notify(new FixedCostOccurrenceNotification(createDummyOccurrence($user)));
     $notification = $user->unreadNotifications->first();
 
     $this->postJson("/api/notifications/{$notification->id}/read")

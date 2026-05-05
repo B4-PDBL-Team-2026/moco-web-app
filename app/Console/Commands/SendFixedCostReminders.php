@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Domains\FixedCost\Models\FixedCostOccurrence;
-use App\Domains\FixedCost\Notifications\FixedCostReminder;
+use App\Domains\FixedCost\Notifications\FixedCostOccurrenceNotification;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 
@@ -21,7 +21,7 @@ class SendFixedCostReminders extends Command
             ->get();
 
         foreach ($items as $item) {
-            $item->template->user->notify(new FixedCostReminder($item));
+            $item->template->user->notify(new FixedCostOccurrenceNotification($item));
         }
 
         $this->info('Fixed cost notifications sent successfully');
