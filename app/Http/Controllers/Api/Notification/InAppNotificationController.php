@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Notification;
 
+use App\Domains\Notification\Actions\DeleteNotificationByIdAction;
 use App\Domains\Notification\TestNotification;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Notification\NotificationResource;
 use App\Http\Responses\ApiResponse;
+use Illuminate\Support\Facades\Log;
 
 class InAppNotificationController extends Controller
 {
@@ -63,13 +65,30 @@ class InAppNotificationController extends Controller
      *
      * @response array{success: bool, message: string, data: array{total: int}}
      */
-    public function getUnreadTotal()
+    public function getUnreadTotal(): ApiResponse
     {
         return $this->successResponse(
             data: [
                 'total' => auth()->user()->unreadNotifications->count(),
             ],
             message: 'Unread notification total retrieved successfully.',
+        );
+    }
+
+    /**
+     * Delete a notification by its id.
+     *
+     * @response array{success: bool, message: string}
+     */
+    public function destroy(string $id, DeleteNotificationByIdAction $action): ApiResponse
+    {
+        $user = auth()->user();
+
+        $action->execute($user, $id);
+
+        return $this->successResponse(
+            message: 'Notification deleted.',
+            status: 204,
         );
     }
 
@@ -81,6 +100,7 @@ class InAppNotificationController extends Controller
      */
     public function testPush(): ApiResponse
     {
+        Log::info('[InAppNotificationController] Incoming test push notification');
         $user = auth()->user();
 
         $user->notify(new TestNotification);
