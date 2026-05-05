@@ -22,6 +22,7 @@ class TestNotification extends Notification implements ShouldQueue
     public function toArray(): array
     {
         Log::info('[Notification] DB notification triggered');
+
         return [
             'id' => 999,
             'title' => 'Test Notifikasi Moco',
