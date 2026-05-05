@@ -30,6 +30,8 @@ Cara install dan run app:
 8. Jalanin app-nya
     ```sh
     composer run dev
+    # halo butuh fitur notifikasi
+    php artisan queue:work
     ```
 > Buat file firebase key, taruh di `storage/app/private/firebase_key.json`
 
