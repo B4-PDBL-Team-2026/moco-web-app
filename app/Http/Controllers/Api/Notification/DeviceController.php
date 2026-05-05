@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Notification;
 
+use App\Domains\Notification\Actions\DeleteRegisteredDeviceAction;
 use App\Domains\Notification\Actions\GetAllRegisteredDeviceAction;
 use App\Domains\Notification\Actions\RegisterUserDeviceAction;
 use App\Http\Controllers\Controller;
@@ -32,10 +33,25 @@ class DeviceController extends Controller
      *
      * @response array{data: array<UserDeviceResource>, success: bool, message: string}
      */
-    public function getAllRegisteredDevice(GetAllRegisteredDeviceAction $action)
+    public function getAllRegisteredDevice(GetAllRegisteredDeviceAction $action): ApiResponse
     {
         $result = UserDeviceResource::collection($action->execute(auth()->id()));
 
         return $this->successResponse($result, 'Retrieved successfully.');
+    }
+
+    /**
+     * Delete user registered device for push notification target.
+     *
+     * @response array{success: bool, message: string}
+     */
+    public function unregisterDevice(string $id, DeleteRegisteredDeviceAction $action): ApiResponse
+    {
+        $action->execute(auth()->user(), $id);
+
+        return $this->successResponse(
+            message: 'Device unregistered successfully.',
+            status: 204,
+        );
     }
 }

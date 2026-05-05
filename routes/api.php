@@ -47,6 +47,24 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/system', 'getAllSystemCategory');
     });
 
+    // Notification Routes
+    Route::prefix('/notifications')->group(function () {
+        // Device for push notifications
+        Route::prefix('/device')->controller(DeviceController::class)->group(function () {
+            Route::post('/', 'registerDevice');
+            Route::get('/', 'getAllRegisteredDevice');
+            Route::delete('/{id}', 'unregisterDevice');
+        });
+
+        Route::controller(InAppNotificationController::class)->group(function () {
+            Route::get('/', 'index');
+            Route::post('/test-push', 'testPush');
+            Route::get('/unread-count', 'getUnreadTotal');
+            Route::post('/{id}/read', 'markAsRead');
+            Route::delete('/{id}', 'destroy');
+        });
+    });
+
     Route::middleware('hasRecaculatedToday')->group(function () {
         // Fixed Cost Endpoints
         Route::prefix('fixed-costs')->controller(FixedCostController::class)->group(function () {
@@ -73,34 +91,19 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::delete('/{transaction}', 'destroy');
         });
 
-        // Notification Routes
-        Route::prefix('/notifications')->group(function () {
-            Route::prefix('/device')->controller(DeviceController::class)->group(function () {
-                Route::post('/', 'registerDevice');
-            });
-
-            Route::get('/', [InAppNotificationController::class, 'index']);
-            Route::post('/test-push', [InAppNotificationController::class, 'testPush']);
-            Route::get('/unread-count', [InAppNotificationController::class, 'getUnreadTotal']);
-            Route::post('/{id}/read', [InAppNotificationController::class, 'markAsRead']);
-
-        });
-
-        // Device for push notifications
-
-        // User Endpoints (profile + dashboard)
-        Route::prefix('user')->group(function () {
-            Route::get('/profile', [ProfileController::class, 'show']);
-            Route::patch('/profile', [ProfileController::class, 'update']);
-            Route::get('/dashboard', [DashboardController::class, 'index']);
-        });
-
         // Budgeting
         Route::prefix('settings')->controller(BudgetingController::class)->group(function () {
             Route::prefix('dailyLimit')->group(function () {
                 Route::get('/', 'getUserDailyLimit');
                 Route::patch('/', 'updateUserDailyLimit');
             });
+        });
+
+        // User Endpoints (profile + dashboard)
+        Route::prefix('user')->group(function () {
+            Route::get('/profile', [ProfileController::class, 'show']);
+            Route::patch('/profile', [ProfileController::class, 'update']);
+            Route::get('/dashboard', [DashboardController::class, 'index']);
         });
     });
 });
