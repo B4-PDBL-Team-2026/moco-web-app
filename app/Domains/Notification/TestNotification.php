@@ -7,6 +7,7 @@ use App\Infrastructure\Firebase\Channels\FcmCustomChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class TestNotification extends Notification implements ShouldQueue
@@ -20,6 +21,7 @@ class TestNotification extends Notification implements ShouldQueue
 
     public function toArray(): array
     {
+        Log::info('[Notification] DB notification triggered');
         return [
             'id' => 999,
             'title' => 'Test Notifikasi Moco',
@@ -30,6 +32,7 @@ class TestNotification extends Notification implements ShouldQueue
 
     public function toFcm(): PushMessage
     {
+        Log::info('[Notification] fcm push notification triggered');
         $notificationId = $this->id ?? Str::uuid()->toString();
 
         return new PushMessage(
