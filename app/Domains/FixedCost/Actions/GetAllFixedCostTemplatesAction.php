@@ -19,7 +19,7 @@ class GetAllFixedCostTemplatesAction
      */
     public function execute(int $userId, FilterFixedCostTemplateData $filters): LengthAwarePaginator
     {
-        $query = FixedCostTemplate::query()
+        $query = FixedCostTemplate::with(['category'])
             ->where('user_id', $userId)
             ->where('deleted_at', null);
 
