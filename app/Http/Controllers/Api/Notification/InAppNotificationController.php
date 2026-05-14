@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\Notification;
 
 use App\Domains\Notification\Actions\DeleteNotificationByIdAction;
-use App\Domains\Notification\TestNotification;
+use App\Domains\Notification\Notifications\TestNotification;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Notification\NotificationResource;
 use App\Http\Responses\ApiResponse;

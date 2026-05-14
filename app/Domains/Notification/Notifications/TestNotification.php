@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domains\Notification;
+namespace App\Domains\Notification\Notifications;
 
 use App\Domains\Notification\DTOs\PushMessage;
 use App\Infrastructure\Firebase\Channels\FcmCustomChannel;
