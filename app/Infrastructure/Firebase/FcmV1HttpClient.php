@@ -6,6 +6,7 @@ use App\Domains\Notification\Contracts\PushNotification;
 use App\Domains\Notification\DTOs\PushMessage;
 use App\Domains\User\Models\UserDevice;
 use Google\Auth\Credentials\ServiceAccountCredentials;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -22,6 +23,9 @@ class FcmV1HttpClient implements PushNotification
         $this->credentialsPath = storage_path('app/private/firebase_key.json');
     }
 
+    /**
+     * @throws ConnectionException
+     */
     public function send(PushMessage $message): bool
     {
         $accessToken = $this->getAccessToken();
@@ -36,8 +40,17 @@ class FcmV1HttpClient implements PushNotification
                     'body' => $message->body,
                 ],
                 'data' => array_map('strval', $message->data),
+                'android' => [
+                    'notification' => [
+                        'image' => $message->image,
+                    ],
+                ],
             ],
         ];
+
+        if ($message->image) {
+            $payload['message']['notification']['image'] = $message->image;
+        }
 
         $response = Http::withToken($accessToken)->post($endpoint, $payload);
 
