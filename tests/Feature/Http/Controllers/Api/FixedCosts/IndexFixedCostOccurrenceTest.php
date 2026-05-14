@@ -10,17 +10,16 @@ test('unauthenticated request returns 401', function () {
 });
 
 test('returns 200 with paginated structure inside api wrapper', function () {
-    [$user, $cat] = indexTemplateSetup();
+    [$user] = indexTemplateSetup();
     Sanctum::actingAs($user);
 
     $response = $this->getJson('/api/fixed-costs')->assertOk();
 
-    // Sesuai dengan struktur ApiResponse resolve() method
     $response->assertJsonStructure([
         'success',
         'message',
         'data' => [
-            '*' => ['id', 'name', 'amount'], // asumsikan resource punya field ini
+            '*' => ['id', 'name', 'amount'],
         ],
         'meta' => [
             'currentPage',
@@ -215,7 +214,7 @@ test('applies multiple filters simultaneously', function () {
 test('respects perPage parameter', function () {
     [$user, $cat] = indexTemplateSetup();
     foreach (range(1, 10) as $i) {
-        createTemplate($user, $cat, ['name' => "Template {$i}"]);
+        createTemplate($user, $cat, ['name' => "Template $i"]);
     }
 
     Sanctum::actingAs($user);
@@ -240,16 +239,16 @@ test('respects page parameter', function () {
     $page2 = $this->getJson('/api/fixed-costs?perPage=2&page=2')->assertOk();
 
     expect($page1->json('data.0.name'))->toBe('A')
-        ->and($page1->json('data.1.name'))->toBe('B');
-
-    expect($page2->json('data.0.name'))->toBe('C')
+        ->and($page1->json('data.1.name'))->toBe('B')
+        ->and($page2->json('data.0.name'))->toBe('C')
         ->and($page2->json('data.1.name'))->toBe('D');
+
 });
 
 test('defaults to page 1 and perPage 10 when not provided', function () {
     [$user, $cat] = indexTemplateSetup();
     foreach (range(1, 20) as $i) {
-        createTemplate($user, $cat, ['name' => "T{$i}"]);
+        createTemplate($user, $cat, ['name' => "T$i"]);
     }
 
     Sanctum::actingAs($user);
