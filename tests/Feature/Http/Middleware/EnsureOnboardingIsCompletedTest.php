@@ -56,7 +56,7 @@ it('blocks the request and returns 403 if user has not completed onboarding', fu
     expect($jsonResponse)->toMatchArray([
         'success' => false,
         'errors' => [
-            'requires_onboarding' => true,
+            'requiresOnboarding' => true,
         ],
     ])->toHaveKey('message');
 });
@@ -80,5 +80,5 @@ it('blocks the request if there is no authenticated user', function () {
 
     $jsonResponse = json_decode($response->getContent(), true);
 
-    expect($jsonResponse['errors']['requires_onboarding'])->toBeTrue();
+    expect($jsonResponse['errors']['requiresOnboarding'])->toBeTrue();
 });

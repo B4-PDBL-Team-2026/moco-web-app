@@ -24,7 +24,7 @@ class EnsureOnboardingIsCompleted
 
         return (new ApiResponse(
             errors: [
-                'requires_onboarding' => true,
+                'requiresOnboarding' => true,
             ],
             message: __('errors.validation.onboarding'),
             status: Response::HTTP_FORBIDDEN,
