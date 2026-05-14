@@ -14,6 +14,14 @@ return [
     ],
     'category' => [
         'mismatch' => 'Kategorinya nggak nyambung, nih. Pastikan kategori yang kamu pilih sesuai dengan jenis transaksinya, ya!',
+        'invalid_ownership' => 'Kamu cuma bisa pakai kategori buatanmu sendiri atau kategori bawaan dari Moco.',
+    ],
+    'fixed_cost' => [
+        'name_empty' => 'Nama tagihannya jangan dikosongin dong, nanti kamu lupa ini tagihan apa.',
+        'amount_invalid' => 'Nominal tagihan harus lebih dari nol dong. Masa gratis?',
+        'due_day_weekly_invalid' => 'Pilih hari antara Senin (1) sampai Minggu (7) buat jadwal tagihan mingguanmu.',
+        'due_day_monthly_invalid' => 'Pilih tanggal antara 1 sampai 31 buat jadwal tagihan bulananmu.',
+        'cycle_mismatch' => 'Eh, tagihan bulanan nggak bisa masuk kalau pengaturan budget kamu mingguan. Disesuaikan lagi, ya!',
     ],
     'validation' => [
         'empty' => 'Eh coba cek lagi, inputin kamu masi nggak valid nih.',
