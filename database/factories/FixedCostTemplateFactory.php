@@ -7,6 +7,7 @@ use App\Domains\Category\Models\Category;
 use App\Domains\FixedCost\Models\FixedCostTemplate;
 use App\Domains\User\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Arr;
 
 class FixedCostTemplateFactory extends Factory
 {
@@ -14,10 +15,10 @@ class FixedCostTemplateFactory extends Factory
 
     public function definition(): array
     {
-        $cycleType = $this->faker->randomElement(CycleType::cases());
+        $cycleType = Arr::random(CycleType::cases());
 
         return [
-            'name' => $this->faker->sentence(3),
+            'name' => Arr::random(['Cicilan Motor', 'Uang Kos', 'Langganan Internet', 'Listrik', 'Netflix']).' '.rand(1, 99),
             'user_id' => User::factory(),
             'amount' => $this->faker->randomFloat(2, 50000, 5000000),
             'cycle_type' => $cycleType->value,
@@ -25,7 +26,7 @@ class FixedCostTemplateFactory extends Factory
                 ? $this->faker->numberBetween(1, 28)
                 : $this->faker->numberBetween(1, 7),
             'is_active' => true,
-            'category_id' => Category::factory()->expense()->create(),
+            'category_id' => Category::factory()->expense(),
             'created_at' => now(),
             'updated_at' => now(),
         ];
