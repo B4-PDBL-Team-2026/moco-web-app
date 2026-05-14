@@ -14,9 +14,9 @@
         "dedoc/scramble": "^0.13.14",
         "google/apiclient": "^2.19",
         "inertiajs/inertia-laravel": "^2.0",
-        "laravel/framework": "^12.0",
+        "laravel/framework": "^13.0",
         "laravel/sanctum": "^4.0",
-        "laravel/tinker": "^2.10.1",
+        "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.11",
         "scalar/laravel": "^0.2.0",
         "sentry/sentry-laravel": "^4.24"
@@ -107,7 +107,8 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
-        }
+        },
+        "process-timeout": 600
     },
     "minimum-stability": "stable",
     "prefer-stable": true
