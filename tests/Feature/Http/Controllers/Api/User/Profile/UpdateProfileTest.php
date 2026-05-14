@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Http\Controllers\Api\Profile;
+namespace Tests\Feature\Http\Controllers\Api\User\Profile;
 
 use App\Domains\User\Models\User;
 use App\Domains\User\Models\UserProfile;
