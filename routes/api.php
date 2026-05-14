@@ -44,7 +44,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Category Endpoints
     Route::prefix('/category')->controller(CategoryController::class)->group(function () {
-        Route::get('/system', 'getAllSystemCategory');
+        Route::get('/system', 'indexSystemCategories');
+        Route::prefix('/custom')->group(function () {
+            Route::get('/', 'indexCustomCategories');
+            Route::post('/', 'store');
+            Route::patch('/{categoryId}', 'update');
+            Route::delete('/{categoryId}', 'destroy');
+        });
     });
 
     // Notification Routes
