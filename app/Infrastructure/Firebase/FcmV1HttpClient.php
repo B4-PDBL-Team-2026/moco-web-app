@@ -40,11 +40,6 @@ class FcmV1HttpClient implements PushNotification
                     'body' => $message->body,
                 ],
                 'data' => array_map('strval', $message->data),
-                'android' => [
-                    'notification' => [
-                        'image' => $message->image,
-                    ],
-                ],
             ],
         ];
 
