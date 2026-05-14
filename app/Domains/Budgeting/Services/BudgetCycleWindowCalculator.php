@@ -48,7 +48,7 @@ final class BudgetCycleWindowCalculator
             cycleKey: $now->format('Y-m'),
             startDate: $start,
             endDate: $end,
-            remainingDays: $now->diffInDays($end) + 1,
+            remainingDays: $this->countRemainingDays($now, $end),
         );
     }
 
@@ -66,7 +66,18 @@ final class BudgetCycleWindowCalculator
             cycleKey: $now->format('o-\WW'),
             startDate: $start,
             endDate: $end,
-            remainingDays: $now->diffInDays($end) + 1,
+            remainingDays: $this->countRemainingDays($now, $end),
         );
+    }
+
+    /**
+     * Calculate remaining days in current month.
+     *
+     * @param  CarbonImmutable  $now  The normalized reference date at the start of the day.
+     * @param  CarbonImmutable  $end  The normalized end date at the start of the day.
+     */
+    private function countRemainingDays(CarbonImmutable $now, CarbonImmutable $end): int
+    {
+        return (int) round($now->diffInDays($end));
     }
 }
