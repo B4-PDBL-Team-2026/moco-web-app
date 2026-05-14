@@ -8,6 +8,8 @@ class DeleteRegisteredDeviceAction
 {
     public function execute(User $user, string $deviceId): bool
     {
-        return $user->devices()->findOrFail($deviceId)->delete();
+        return $user->devices()
+            ->where('device_id', '=', $deviceId)
+            ->delete();
     }
 }
