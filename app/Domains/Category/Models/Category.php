@@ -19,6 +19,7 @@ class Category extends Model
         'icon',
         'type',
         'is_system',
+        'user_id',
     ];
 
     protected $casts = [
