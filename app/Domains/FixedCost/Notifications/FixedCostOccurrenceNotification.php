@@ -56,10 +56,11 @@ class FixedCostOccurrenceNotification extends Notification implements ShouldQueu
                 'readAt' => '',
                 'createdAt' => now()->toIso8601String(),
                 'payload' => json_encode([
-                    'occurrence_id' => (string) $this->occurrence->id,
+                    'occurrenceId' => (string) $this->occurrence->id,
                     'notificationCode' => NotificationCode::FIXED_COST_REMINDER->value,
                 ]),
             ],
+            image: secure_asset('logo.png'),
         );
     }
 }
