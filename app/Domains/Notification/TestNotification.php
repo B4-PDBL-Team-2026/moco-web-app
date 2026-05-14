@@ -21,7 +21,7 @@ class TestNotification extends Notification implements ShouldQueue
 
     public function toArray(): array
     {
-        Log::info('[Notification] DB notification triggered');
+        Log::info('[TestNotification] DB notification triggered');
 
         return [
             'id' => 999,
@@ -33,7 +33,7 @@ class TestNotification extends Notification implements ShouldQueue
 
     public function toFcm(): PushMessage
     {
-        Log::info('[Notification] fcm push notification triggered');
+        Log::info('[TestNotification] fcm push notification triggered');
         $notificationId = $this->id ?? Str::uuid()->toString();
 
         return new PushMessage(
@@ -53,7 +53,8 @@ class TestNotification extends Notification implements ShouldQueue
                     'notificationCode' => 'TEST_PUSH',
                     'occurrenceId' => '999',
                 ]),
-            ]
+            ],
+            image: secure_asset('logo.png'),
         );
     }
 }

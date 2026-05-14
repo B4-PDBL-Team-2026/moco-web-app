@@ -3,13 +3,13 @@
 namespace App\Domains\FixedCost\Models;
 
 use App\Domains\Budgeting\Enums\CycleType;
+use App\Domains\Category\Models\Category;
 use App\Domains\User\Models\User;
 use Database\Factories\FixedCostTemplateFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class FixedCostTemplate extends Model
@@ -43,8 +43,8 @@ class FixedCostTemplate extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function category(): MorphTo
+    public function category(): BelongsTo
     {
-        return $this->morphTo();
+        return $this->belongsTo(Category::class);
     }
 }

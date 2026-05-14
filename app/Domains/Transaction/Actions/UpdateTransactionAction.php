@@ -61,6 +61,6 @@ class UpdateTransactionAction
             );
         }
 
-        return $transaction;
+        return $transaction->refresh()->load('category');
     }
 }

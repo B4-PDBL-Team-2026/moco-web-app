@@ -14,6 +14,6 @@ class GetTransactionDetailAction
             throw new UnauthorizedException('Transaction not found or unauthorized.');
         }
 
-        return $transaction;
+        return $transaction->load('category');
     }
 }

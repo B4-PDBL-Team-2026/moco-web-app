@@ -8,6 +8,7 @@ class PushMessage
         public string $deviceToken,
         public string $title,
         public string $body,
-        public array $data = []
+        public array $data = [],
+        public ?string $image = null,
     ) {}
 }
