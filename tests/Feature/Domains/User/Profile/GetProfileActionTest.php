@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Domains\Profile;
+namespace Tests\Feature\Domains\User\Profile;
 
 use App\Domains\User\Actions\Profile\GetProfileAction;
 use App\Domains\User\Models\User;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Domains\Profile;
+namespace Tests\Feature\Domains\User\Profile;
 
 use App\Domains\User\Actions\Profile\UpdateProfileAction;
 use App\Domains\User\DTOs\Profile\UpdateProfileData;
