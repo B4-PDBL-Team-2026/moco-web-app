@@ -12,7 +12,7 @@ use Illuminate\Support\Collection;
  * this action implements a caching layer to reduce database load
  * and ensures a consistent alphabetical sorting for the UI.
  */
-final readonly class GetSystemCategoriesAction
+final readonly class GetAllSystemCategoriesAction
 {
     /**
      * Cache key for system categories.
