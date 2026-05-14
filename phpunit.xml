@@ -20,6 +20,8 @@
             <directory>app/Providers</directory>
             <directory>app/Models</directory>
             <directory>app/Domains/*/DTOs</directory>
+            <directory>app/Domains/*/Enums</directory>
+            <directory>app/Domains/Notification/Notifications</directory>
         </exclude>
     </source>
     <php>
