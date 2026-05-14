@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\FixedCost;
 
 use App\Domains\FixedCost\DTOs\FilterFixedCostOccurrenceData;
 use App\Domains\FixedCost\Enums\FixedCostOccurenceStatus;
