@@ -192,6 +192,9 @@ return [
             'weekly_invalid' => 'Pilih hari antara Senin (1) sampai Minggu (7) buat jadwal tagihan mingguanmu.',
             'monthly_invalid' => 'Pilih tanggal antara 1 sampai 31 buat jadwal tagihan bulananmu.',
         ],
+        'transactionAt' => [
+            'before_or_equal' => 'Sabar dulu! Tanggal transaksi nggak boleh di masa depan. Pakai waktu saat ini atau sebelumnya, ya.',
+        ],
     ],
 
     /*
