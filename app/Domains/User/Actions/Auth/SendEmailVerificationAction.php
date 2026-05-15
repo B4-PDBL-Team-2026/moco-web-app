@@ -17,7 +17,7 @@ class SendEmailVerificationAction
         if ($user->hasVerifiedEmail()) {
             return [
                 'status' => 'success',
-                'message' => 'Email is already verified.',
+                'message' => __('verification.already_verified'),
             ];
         }
 
@@ -25,7 +25,7 @@ class SendEmailVerificationAction
 
         return [
             'status' => 'success',
-            'message' => 'Email verification link sent on email.',
+            'message' => __('verification.sent'),
         ];
     }
 }

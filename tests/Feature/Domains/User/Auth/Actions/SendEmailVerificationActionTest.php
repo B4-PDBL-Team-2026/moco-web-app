@@ -35,7 +35,7 @@ it('returns the sent confirmation message for an unverified user', function () {
 
     $result = $this->action->execute(User::factory()->unverified()->create());
 
-    expect($result['message'])->toBe('Email verification link sent on email.');
+    expect($result['message'])->toBe(__('verification.sent'));
 });
 
 it('sends a VerifyEmail notification to an unverified user', function () {
@@ -80,7 +80,7 @@ it('returns success status when the user is already verified', function () {
 it('returns the already-verified message when the user is already verified', function () {
     $result = $this->action->execute(User::factory()->create(['email_verified_at' => now()]));
 
-    expect($result['message'])->toBe('Email is already verified.');
+    expect($result['message'])->toBe(__('verification.already_verified'));
 });
 
 it('does not send a notification when the user is already verified', function () {

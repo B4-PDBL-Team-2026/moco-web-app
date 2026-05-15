@@ -101,7 +101,7 @@ test('response contains the already-verified message when the user is already ve
 
     $this->postJson('/api/auth/verify-email/request')
         ->assertOk()
-        ->assertJsonPath('message', 'Email is already verified.');
+        ->assertJsonPath('message', __('verification.already_verified'));
 });
 
 test('does not send a notification when the user is already verified', function () {

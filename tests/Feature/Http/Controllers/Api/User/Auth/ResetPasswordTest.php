@@ -33,7 +33,7 @@ test('it can not reset password if token is invalid', function () {
     ]);
 
     $response->assertStatus(422)->assertJsonPath('success', false);
-    $response->assertJsonPath('message', 'This password reset token is invalid.');
+    $response->assertJsonPath('message', __('passwords.token'));
 });
 
 test('it can not reset password if confirmation field not match', function () {
