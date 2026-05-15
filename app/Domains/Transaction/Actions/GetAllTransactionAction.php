@@ -3,27 +3,82 @@
 namespace App\Domains\Transaction\Actions;
 
 use App\Domains\Transaction\DTOs\FilterTransactionData;
-use App\Domains\Transaction\Models\Transaction;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class GetAllTransactionAction
 {
     public function execute(int $userId, FilterTransactionData $data): LengthAwarePaginator
     {
-        return Transaction::with('category')
-            ->where('user_id', $userId)
-            ->when($data->month, fn ($query) => $query->whereMonth('transaction_at', $data->month))
-            ->when($data->year, fn ($query) => $query->whereYear('transaction_at', $data->year))
-            ->when($data->search, function ($query) use ($data) {
-                $operator = $query->getConnection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
-                $query->where('name', $operator, "{$data->search}%");
-            })
-            ->when($data->categoryId, fn ($query) => $query
-                ->where('category_id', $data->categoryId)
+        // single transaction query
+        $singleTransaction = DB::table('transactions as t')
+            ->leftJoin('categories as c', 't.category_id', '=', 'c.id')
+            ->select(
+                't.id',
+                't.name',
+                't.amount',
+                't.transaction_at',
+                't.type',
+                't.category_id',
+                'c.name as category_name',
+                'c.icon as category_icon',
+                DB::raw("'transaction' as feed_type")
             )
-            ->latest('transaction_at')
-            ->latest()
-            ->paginate($data->perPage);
+            ->where('t.user_id', '=', $userId)
+            ->whereNull('t.transaction_batch_id')
+            ->whereNull('t.deleted_at');
 
+        $this->applyCommonFilters($singleTransaction, $data, 't');
+
+        // apply category filters on single transaction
+        $singleTransaction
+            ->when($data->categoryId, fn (Builder $query) => $query->where('t.category_id', '=', $data->categoryId));
+
+        // batch transaction query
+        $batchTransaction = DB::table('transaction_batches as tb')
+            ->select(
+                'tb.id',
+                'tb.name',
+                'tb.total_amount as amount',
+                'tb.transaction_at',
+                'tb.type',
+                DB::raw('NULL as category_id'),
+                DB::raw('NULL as category_name'),
+                DB::raw('NULL as category_icon'),
+                DB::raw("'batch' as feed_type"),
+            )
+            ->where('tb.user_id', $userId)
+            ->whereNull('tb.deleted_at');
+
+        $this->applyCommonFilters($batchTransaction, $data, 'tb');
+
+        $batchTransaction->when($data->categoryId, function (Builder $query) use ($data) {
+            $query->whereExists(function (Builder $subQuery) use ($data) {
+                $subQuery->select(DB::raw(1))
+                    ->from('transactions as item')
+                    ->whereColumn(first: 'item.transaction_batch_id', second: 'tb.id')
+                    ->where('item.category_id', '=', $data->categoryId)
+                    ->whereNull('item.deleted_at');
+            });
+        });
+
+        return $singleTransaction
+            ->union($batchTransaction)
+            ->orderBy('transaction_at', 'desc')
+            ->paginate($data->perPage);
+    }
+
+    /**
+     * Reusable filter logic for both queries
+     */
+    private function applyCommonFilters(Builder $query, FilterTransactionData $data, string $alias): void
+    {
+        $query->when($data->month, fn (Builder $subQuery) => $subQuery->whereMonth("{$alias}.transaction_at", $data->month))
+            ->when($data->year, fn (Builder $subQuery) => $subQuery->whereYear("{$alias}.transaction_at", $data->year))
+            ->when($data->search, function (Builder $subQuery) use ($data, $alias) {
+                $operator = $subQuery->getConnection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+                $subQuery->where("{$alias}.name", $operator, "{$data->search}%");
+            });
     }
 }
