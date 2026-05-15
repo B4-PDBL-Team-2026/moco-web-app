@@ -54,12 +54,12 @@ class GetAllTransactionAction
         $this->applyCommonFilters($batchTransaction, $data, 'tb');
 
         $batchTransaction->when($data->categoryId, function (Builder $query) use ($data) {
-            $query->whereExists(function (Builder $subQuery) use ($data) {
-                $subQuery->select(DB::raw(1))
+            $query->whereIn('tb.id', function (Builder $subQuery) use ($data) {
+                $subQuery->select('item.transaction_batch_id')
                     ->from('transactions as item')
-                    ->whereColumn(first: 'item.transaction_batch_id', second: 'tb.id')
                     ->where('item.category_id', '=', $data->categoryId)
-                    ->whereNull('item.deleted_at');
+                    ->whereNull('item.deleted_at')
+                    ->whereNotNull('item.transaction_batch_id');
             });
         });
 
