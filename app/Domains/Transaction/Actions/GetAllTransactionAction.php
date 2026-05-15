@@ -20,7 +20,9 @@ class GetAllTransactionAction
                 't.amount',
                 't.transaction_at',
                 't.type',
+                't.source',
                 't.category_id',
+                't.note',
                 'c.name as category_name',
                 'c.icon as category_icon',
                 DB::raw("'transaction' as feed_type")
@@ -46,6 +48,8 @@ class GetAllTransactionAction
                 DB::raw('NULL as category_id'),
                 DB::raw('NULL as category_name'),
                 DB::raw('NULL as category_icon'),
+                DB::raw('NULL as note'),
+                DB::raw("'receipt_scan' as source"),
                 DB::raw("'batch' as feed_type"),
             )
             ->where('tb.user_id', $userId)
