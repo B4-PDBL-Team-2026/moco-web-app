@@ -49,7 +49,7 @@ test('returns 422 with the correct error message when password is wrong', functi
     $this->deleteJson('/api/auth/user', ['password' => 'wrongpassword'])
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['password'])
-        ->assertJsonFragment(['The provided password is incorrect.']);
+        ->assertJsonFragment([__('validation.current_password')]);
 });
 
 // Success

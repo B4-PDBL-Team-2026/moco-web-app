@@ -68,7 +68,7 @@ final readonly class FixedCostValidator
     private function ensureValidName(?string $name): void
     {
         if (trim((string) $name) === '') {
-            throw new BusinessRuleException('errors.fixed_cost.name_empty');
+            throw new BusinessRuleException(__('errors.fixed_cost.name_empty'));
         }
     }
 
@@ -78,7 +78,7 @@ final readonly class FixedCostValidator
     private function ensureValidAmount(?string $amount): void
     {
         if ($amount !== null && Money::lte($amount, '0')) {
-            throw new BusinessRuleException('errors.fixed_cost.amount_invalid');
+            throw new BusinessRuleException(__('errors.fixed_cost.amount_invalid'));
         }
     }
 
@@ -88,11 +88,11 @@ final readonly class FixedCostValidator
     private function ensureValidDueDay(CycleType $cycleType, int $dueDay): void
     {
         if ($cycleType === CycleType::WEEKLY && ($dueDay < 1 || $dueDay > 7)) {
-            throw new BusinessRuleException('errors.fixed_cost.due_day_weekly_invalid');
+            throw new BusinessRuleException(__('errors.fixed_cost.due_day_weekly_invalid'));
         }
 
         if ($cycleType === CycleType::MONTHLY && ($dueDay < 1 || $dueDay > 31)) {
-            throw new BusinessRuleException('errors.fixed_cost.due_day_monthly_invalid');
+            throw new BusinessRuleException(__('errors.fixed_cost.due_day_monthly_invalid'));
         }
     }
 
@@ -102,7 +102,7 @@ final readonly class FixedCostValidator
     public function validateCycleCompatibility(CycleType $budgetCycle, CycleType $fixedCostCycle): void
     {
         if ($budgetCycle === CycleType::WEEKLY && $fixedCostCycle === CycleType::MONTHLY) {
-            throw new BusinessRuleException('errors.fixed_cost.cycle_mismatch');
+            throw new BusinessRuleException(__('errors.fixed_cost.cycle_mismatch'));
         }
     }
 
@@ -114,11 +114,11 @@ final readonly class FixedCostValidator
         $category = Category::findOrFail($categoryId);
 
         if (! $category->is_system && $category->user_id !== $userId) {
-            throw new BusinessRuleException('errors.category.invalid_ownership');
+            throw new BusinessRuleException(__('errors.category.invalid_ownership'));
         }
 
         if ($category->type !== TransactionType::EXPENSE) {
-            throw new BusinessRuleException('errors.category.mismatch');
+            throw new BusinessRuleException(__('errors.category.mismatch'));
         }
     }
 }
