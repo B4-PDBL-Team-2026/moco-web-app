@@ -6,6 +6,7 @@ use App\Domains\Transaction\Actions\CreateBatchTransactionAction;
 use App\Domains\Transaction\Actions\CreateTransactionAction;
 use App\Domains\Transaction\Actions\DeleteTransactionAction;
 use App\Domains\Transaction\Actions\GetAllTransactionAction;
+use App\Domains\Transaction\Actions\GetBatchTransactionDetailAction;
 use App\Domains\Transaction\Actions\GetTransactionDetailAction;
 use App\Domains\Transaction\Actions\UpdateTransactionAction;
 use App\Domains\Transaction\DTOs\CreateTransactionData;
@@ -18,6 +19,7 @@ use App\Http\Requests\Transaction\StoreBatchTransactionRequest;
 use App\Http\Requests\Transaction\StoreTransactionRequest;
 use App\Http\Requests\Transaction\UpdateTransactionRequest;
 use App\Http\Resources\Transaction\TransactionBatchResource;
+use App\Http\Resources\Transaction\TransactionFeedResource;
 use App\Http\Resources\Transaction\TransactionResource;
 use App\Http\Responses\ApiResponse;
 use Illuminate\Support\Facades\Auth;
@@ -35,7 +37,7 @@ class TransactionController extends Controller
      * @response array{
      *     success: bool,
      *     message: string,
-     *     data: array<TransactionResource>,
+     *     data: array<TransactionFeedResource>,
      *     meta: array{
      *         currentPage: int,
      *         lastPage: int,
@@ -54,7 +56,7 @@ class TransactionController extends Controller
         $result = $action->execute(Auth::id(), $filterData);
 
         return $this->successResponse(
-            TransactionResource::collection($result),
+            TransactionFeedResource::collection($result),
             'Transactions retrieved successfully.'
         );
     }
