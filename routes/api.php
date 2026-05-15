@@ -92,6 +92,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::controller(TransactionController::class)->prefix('transaction')->group(function () {
             Route::get('/', 'index');
             Route::post('/', 'store');
+            Route::post('/batch', 'storeBatch');
             Route::get('/{transaction}', 'show');
             Route::put('/{transaction}', 'update');
             Route::delete('/{transaction}', 'destroy');
