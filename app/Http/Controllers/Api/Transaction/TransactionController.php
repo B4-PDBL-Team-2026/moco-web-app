@@ -127,6 +127,28 @@ class TransactionController extends Controller
     }
 
     /**
+     * Get detail of a batch transaction.
+     *
+     * @response array{
+     * success: bool,
+     * message: string,
+     * data: TransactionBatchResource
+     * }
+     */
+    public function showBatch(int $batchId, GetBatchTransactionDetailAction $action): ApiResponse
+    {
+        $batch = $action->execute(
+            userId: auth()->id(),
+            batchId: $batchId
+        );
+
+        return $this->successResponse(
+            data: TransactionBatchResource::make($batch),
+            message: 'Batch transaction retrieved successfully.'
+        );
+    }
+
+    /**
      * Update the specified transaction in storage.
      *
      * @throws Throwable
