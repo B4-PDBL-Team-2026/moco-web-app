@@ -3,6 +3,8 @@
 namespace App\Domains\Transaction\Models;
 
 use App\Domains\User\Models\User;
+use Database\Factories\TransactionBatchFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,6 +19,7 @@ class TransactionBatch extends Model
         'user_id',
         'name',
         'total_amount',
+        'type',
         'transaction_at',
     ];
 
@@ -33,5 +36,10 @@ class TransactionBatch extends Model
     public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    protected static function newFactory(): Factory
+    {
+        return TransactionBatchFactory::new();
     }
 }
