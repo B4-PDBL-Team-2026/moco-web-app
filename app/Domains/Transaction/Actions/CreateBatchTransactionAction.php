@@ -28,6 +28,7 @@ class CreateBatchTransactionAction
                 'name' => $data->name,
                 'total_amount' => $totalAmount,
                 'transaction_at' => $data->transactionAt,
+                'type' => $data->type,
             ]);
 
             // Prepare child transaction records
