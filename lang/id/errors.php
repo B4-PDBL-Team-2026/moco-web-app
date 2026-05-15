@@ -10,6 +10,7 @@ return [
     ],
     'transaction' => [
         'future_date' => 'Sabar dulu! Tanggal transaksi nggak boleh di masa depan. Pakai tanggal hari ini atau sebelumnya, ya.',
+        'not_found' => 'Data transaksi engga ditemuin nih, coba cek ulang ya',
     ],
     'category' => [
         'mismatch' => 'Kategorinya nggak nyambung, nih. Pastikan kategori yang kamu pilih sesuai dengan jenis transaksinya, ya!',
