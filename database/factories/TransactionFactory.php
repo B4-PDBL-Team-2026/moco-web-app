@@ -26,19 +26,19 @@ class TransactionFactory extends Factory
         ];
     }
 
-    public function expense(): array
+    public function expense(): Factory
     {
-        return [
-            'category_id' => Category::factory()->expense()->create(),
+        return $this->state(fn (array $attributes) => [
             'type' => 'expense',
-        ];
+            'category_id' => Category::factory()->expense()->create(),
+        ]);
     }
 
-    public function income(): array
+    public function income(): Factory
     {
-        return [
-            'category_id' => Category::factory()->income()->create(),
+        return $this->state(fn (array $attributes) => [
             'type' => 'income',
-        ];
+            'category_id' => Category::factory()->income()->create(),
+        ]);
     }
 }
