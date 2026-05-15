@@ -32,16 +32,6 @@ class IndexFixedCostTemplateRequest extends FormRequest
         ];
     }
 
-    public function messages(): array
-    {
-        return [
-            'cycleType.in' => 'cycleType must be one of: '.implode(', ', array_column(CycleType::cases(), 'value')).'.',
-            'dueDay.min' => 'dueDay must be at least 1.',
-            'dueDay.max' => 'dueDay cannot exceed 31.',
-            'perPage.max' => 'perPage cannot exceed '.FilterFixedCostTemplateData::MAX_PER_PAGE.'.',
-        ];
-    }
-
     public function toDTO(): FilterFixedCostTemplateData
     {
         return FilterFixedCostTemplateData::fromArray($this->only([

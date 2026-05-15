@@ -26,13 +26,6 @@ class UpdateFixedCostOccurrenceAmountRequest extends FormRequest
         ];
     }
 
-    public function messages(): array
-    {
-        return [
-            'amount.gt' => 'Amount must be greater than zero.',
-        ];
-    }
-
     public function toDTO(): UpdateFixedCostOccurrenceAmountData
     {
         return new UpdateFixedCostOccurrenceAmountData($this->input('amount'));

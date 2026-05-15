@@ -34,16 +34,6 @@ class StoreFixedCostTemplateRequest extends FormRequest
         ];
     }
 
-    public function messages(): array
-    {
-        return [
-            'cycleType.in' => 'Cycle type must be one of: '.implode(', ', array_column(CycleType::cases(), 'value')).'.',
-            'dueDay.min' => 'Due day must be at least 1.',
-            'dueDay.max' => 'Due day cannot exceed 31.',
-            'amount.gt' => 'Amount must be greater than zero.',
-        ];
-    }
-
     /**
      * Keys already match the DTO contract — pass through directly.
      */

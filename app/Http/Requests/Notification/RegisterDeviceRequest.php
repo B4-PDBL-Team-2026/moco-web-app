@@ -24,9 +24,9 @@ class RegisterDeviceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'deviceId' => 'required|string',
-            'deviceType' => 'required|in:android,ios',
-            'fcmToken' => 'required|string',
+            'deviceId' => ['required', 'string'],
+            'deviceType' => ['required', 'in:android,ios'],
+            'fcmToken' => ['required', 'string'],
         ];
     }
 

@@ -36,14 +36,6 @@ class UpdateFixedCostTemplateRequest extends FormRequest
         ];
     }
 
-    public function messages(): array
-    {
-        return [
-            'amount.gt' => 'Amount must be greater than zero.',
-            'cycleType.in' => 'Cycle type must be one of: '.implode(', ', array_column(CycleType::cases(), 'value')).'.',
-        ];
-    }
-
     public function toDTO(): UpdateFixedCostTemplateData
     {
         return new UpdateFixedCostTemplateData(

@@ -44,7 +44,7 @@ class StoreOnboardingRequest extends FormRequest
                     $budgetCycle = request()->input('budgetCycle');
 
                     if ($budgetCycle === CycleType::WEEKLY->value && $value === CycleType::MONTHLY->value) {
-                        $fail('Monthly fixed cost is not allowed when budget cycle is weekly.');
+                        $fail(__('validation.custom.fixedCosts.*.cycleType.mismatch'));
                     }
                 },
             ],
@@ -62,19 +62,18 @@ class StoreOnboardingRequest extends FormRequest
                 'min:1',
                 function (string $attribute, mixed $value, Closure $fail) {
                     preg_match('/fixedCosts\.(\d+)\.dueDay/', $attribute, $matches);
-                    $index = $matches[1];
+                    $index = $matches[1] ?? null;
 
-                    if ($index === null) {
-                        return;
-                    }
+                    if ($index === null) return;
+
                     $cycleType = request()->input("fixedCosts.$index.cycleType");
 
                     if ($cycleType === CycleType::WEEKLY->value && (int) $value > 7) {
-                        $fail('The dueDay for weekly fixed cost must be between 1 and 7.');
+                        $fail(__('validation.custom.fixedCosts.*.dueDay.weekly_invalid'));
                     }
 
                     if ($cycleType === CycleType::MONTHLY->value && (int) $value > 31) {
-                        $fail('The dueDay for monthly fixed cost must be between 1 and 31.');
+                        $fail(__('validation.custom.fixedCosts.*.dueDay.monthly_invalid'));
                     }
                 },
             ],

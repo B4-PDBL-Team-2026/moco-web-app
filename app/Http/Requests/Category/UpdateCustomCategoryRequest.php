@@ -27,17 +27,6 @@ class UpdateCustomCategoryRequest extends FormRequest
         ];
     }
 
-    public function messages(): array
-    {
-        $allowedValues = implode(', ', array_column(TransactionType::cases(), 'value'));
-
-        return [
-            'type.in' => __('errors.validation.invalid_type', [
-                'values' => $allowedValues,
-            ]),
-        ];
-    }
-
     /**
      * Map the validated request data into a strongly-typed DTO.
      */

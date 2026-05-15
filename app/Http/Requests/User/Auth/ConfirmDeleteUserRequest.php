@@ -34,7 +34,7 @@ class ConfirmDeleteUserRequest extends FormRequest
         return [
             function (Validator $validator): void {
                 if (! Hash::check($this->input('password'), $this->user()->password)) {
-                    $validator->errors()->add('password', 'The provided password is incorrect.');
+                    $validator->errors()->add('password', __('validation.current_password'));
                 }
             },
         ];
