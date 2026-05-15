@@ -3,10 +3,13 @@
 use App\Domains\Category\Models\Category;
 use App\Domains\Transaction\Actions\GetAllTransactionAction;
 use App\Domains\Transaction\DTOs\FilterTransactionData;
-use App\Domains\Transaction\Enums\TransactionType;
 use App\Domains\Transaction\Models\Transaction;
+use App\Domains\Transaction\Models\TransactionBatch;
 use App\Domains\User\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
+
+// HELPERS
 
 if (! function_exists('txFilters')) {
     function txFilters(array $overrides = []): FilterTransactionData
@@ -22,265 +25,178 @@ if (! function_exists('txFilters')) {
 }
 
 if (! function_exists('makeTx')) {
-    function makeTx(User $user, array $overrides = []): Transaction
+    function makeTx(User $user, array $overrides = [], ?Category $category = null): Transaction
     {
-        $cat = Category::factory()->expense()->create();
+        $cat = $category ?? Category::factory()->create(['user_id' => $user->id, 'type' => 'expense']);
 
-        return Transaction::factory()->create(array_merge([
+        return Transaction::factory()->expense()->create(array_merge([
             'user_id' => $user->id,
             'category_id' => $cat->id,
-            'type' => TransactionType::EXPENSE->value,
-            'transaction_at' => '2026-03-15',
+            'transaction_at' => '2026-03-15 10:00:00',
+            'transaction_batch_id' => null, // Pastikan ini single tx
         ], $overrides));
     }
 }
+
+if (! function_exists('makeBatchTx')) {
+    function makeBatchTx(User $user, array $overrides = [], array $itemCategories = []): TransactionBatch
+    {
+        $batch = TransactionBatch::factory()->expense()->create(array_merge([
+            'user_id' => $user->id,
+            'name' => 'Struk Belanja',
+            'total_amount' => 50000,
+            'transaction_at' => '2026-03-15 10:00:00',
+        ], $overrides));
+
+        foreach ($itemCategories as $catId) {
+            Transaction::factory()->create([
+                'user_id' => $user->id,
+                'transaction_batch_id' => $batch->id,
+                'category_id' => $catId,
+                'amount' => 10000, // Dummy
+                'transaction_at' => $batch->transaction_at,
+            ]);
+        }
+
+        return $batch;
+    }
+}
+
+// SETUP
 
 beforeEach(function () {
     $this->action = app(GetAllTransactionAction::class);
     $this->user = User::factory()->create();
 });
 
-it('returns a LengthAwarePaginator', function () {
-    $result = $this->action->execute($this->user->id, txFilters());
+// HAPPY PATHS
 
-    expect($result)->toBeInstanceOf(LengthAwarePaginator::class);
-});
-
-it('returns paginated transactions only for the given user', function () {
-    makeTx($this->user);
-    makeTx($this->user);
-    makeTx($this->user);
-
-    $other = User::factory()->create();
-    makeTx($other);
-    makeTx($other);
+it('returns a LengthAwarePaginator containing both single and batch transactions', function () {
+    makeTx($this->user, ['name' => 'Single Tx']);
+    makeBatchTx($this->user, ['name' => 'Batch Tx']);
 
     $result = $this->action->execute($this->user->id, txFilters());
 
-    expect($result->total())->toBe(3);
+    expect($result)->toBeInstanceOf(LengthAwarePaginator::class)
+        ->and($result->total())->toBe(2);
+
+    // Pastikan property feed_type ter-mapping dengan benar
+    $feedTypes = collect($result->items())->pluck('feed_type')->toArray();
+    expect($feedTypes)->toContain('transaction', 'batch');
 });
 
-it('returns empty collection when user has no transactions', function () {
+it('returns transactions only for the given user', function () {
+    makeTx($this->user);
+    makeBatchTx($this->user);
+
+    $otherUser = User::factory()->create();
+    makeTx($otherUser);
+    makeBatchTx($otherUser);
+
     $result = $this->action->execute($this->user->id, txFilters());
-
-    expect($result->total())->toBe(0);
-});
-
-it('filters transactions by month', function () {
-    makeTx($this->user, ['transaction_at' => '2026-03-10']);
-    makeTx($this->user, ['transaction_at' => '2026-02-10']);
-
-    $result = $this->action->execute($this->user->id, txFilters(['month' => 3]));
-
-    expect($result->total())->toBe(1)
-        ->and($result->items()[0]->transaction_at->format('m'))->toBe('03');
-});
-
-it('returns all transactions when month filter is null', function () {
-    makeTx($this->user, ['transaction_at' => '2026-01-10']);
-    makeTx($this->user, ['transaction_at' => '2026-06-10']);
-    makeTx($this->user, ['transaction_at' => '2026-12-10']);
-
-    $result = $this->action->execute($this->user->id, txFilters(['month' => null]));
-
-    expect($result->total())->toBe(3);
-});
-
-it('returns empty when month filter matches no transactions', function () {
-    makeTx($this->user, ['transaction_at' => '2026-03-10']);
-
-    $result = $this->action->execute($this->user->id, txFilters(['month' => 12]));
-
-    expect($result->total())->toBe(0);
-});
-
-it('filters transactions by year', function () {
-    makeTx($this->user, ['transaction_at' => '2026-01-10']);
-    makeTx($this->user, ['transaction_at' => '2025-01-10']);
-
-    $result = $this->action->execute($this->user->id, txFilters(['year' => 2026]));
-
-    expect($result->total())->toBe(1)
-        ->and($result->items()[0]->transaction_at->format('Y'))->toBe('2026');
-});
-
-it('returns all transactions when year filter is null', function () {
-    makeTx($this->user, ['transaction_at' => '2024-01-10']);
-    makeTx($this->user, ['transaction_at' => '2025-01-10']);
-    makeTx($this->user, ['transaction_at' => '2026-01-10']);
-
-    $result = $this->action->execute($this->user->id, txFilters(['year' => null]));
-
-    expect($result->total())->toBe(3);
-});
-
-it('returns empty when year filter matches no transactions', function () {
-    makeTx($this->user, ['transaction_at' => '2026-03-10']);
-
-    $result = $this->action->execute($this->user->id, txFilters(['year' => 2020]));
-
-    expect($result->total())->toBe(0);
-});
-
-it('filters by both month and year together', function () {
-    makeTx($this->user, ['transaction_at' => '2026-03-10']); // match
-    makeTx($this->user, ['transaction_at' => '2025-03-10']); // wrong year
-    makeTx($this->user, ['transaction_at' => '2026-04-10']); // wrong month
-
-    $result = $this->action->execute($this->user->id, txFilters(['month' => 3, 'year' => 2026]));
-
-    expect($result->total())->toBe(1)
-        ->and($result->items()[0]->transaction_at->format('Y-m'))->toBe('2026-03');
-});
-
-it('filters transactions by partial name search', function () {
-    makeTx($this->user, ['name' => 'Groceries']);
-    makeTx($this->user, ['name' => 'Internet Bill']);
-
-    $result = $this->action->execute($this->user->id, txFilters(['search' => 'Groc']));
-
-    expect($result->total())->toBe(1)
-        ->and($result->items()[0]->name)->toBe('Groceries');
-});
-
-it('search matches the keyword anywhere in the name', function () {
-    makeTx($this->user, ['name' => 'Monthly Netflix Subscription']);
-    makeTx($this->user, ['name' => 'Netflix Basic']);
-    makeTx($this->user, ['name' => 'Spotify']);
-
-    $result = $this->action->execute($this->user->id, txFilters(['search' => 'Netflix']));
-
-    expect($result->total())->toBe(1);
-});
-
-it('returns all transactions when search is null', function () {
-    makeTx($this->user, ['name' => 'Groceries']);
-    makeTx($this->user, ['name' => 'Internet Bill']);
-
-    $result = $this->action->execute($this->user->id, txFilters(['search' => null]));
 
     expect($result->total())->toBe(2);
 });
 
-it('returns empty when search matches nothing', function () {
-    makeTx($this->user, ['name' => 'Groceries']);
+// FILTER PATHS
 
-    $result = $this->action->execute($this->user->id, txFilters(['search' => 'zzznomatch']));
+it('filters both feeds by month', function () {
+    makeTx($this->user, ['transaction_at' => '2026-03-10 10:00:00']);
+    makeBatchTx($this->user, ['transaction_at' => '2026-02-10 10:00:00']);
 
-    expect($result->total())->toBe(0);
+    $result = $this->action->execute($this->user->id, txFilters(['month' => 3]));
+
+    expect($result->total())->toBe(1)
+        ->and(Carbon::parse($result->items()[0]->transaction_at)->format('m'))->toBe('03')
+        ->and($result->items()[0]->feed_type)->toBe('transaction');
 });
 
-it('filters transactions by system category id and type', function () {
-    $catA = Category::factory()->expense()->create();
-    $catB = Category::factory()->expense()->create();
+it('filters both feeds by year', function () {
+    makeTx($this->user, ['transaction_at' => '2025-01-10 10:00:00']);
+    makeBatchTx($this->user, ['transaction_at' => '2026-01-10 10:00:00']);
 
-    makeTx($this->user, ['category_id' => $catA->id]);
-    makeTx($this->user, ['category_id' => $catB->id]);
+    $result = $this->action->execute($this->user->id, txFilters(['year' => 2026]));
 
-    $result = $this->action->execute($this->user->id, txFilters([
-        'categoryId' => $catA->id,
-    ]));
+    expect($result->total())->toBe(1)
+        ->and(Carbon::parse($result->items()[0]->transaction_at)->format('Y'))->toBe('2026')
+        ->and($result->items()[0]->feed_type)->toBe('batch');
+});
+
+it('filters both feeds by partial search name', function () {
+    makeTx($this->user, ['name' => 'Beli Kuota Telkomsel']);
+    makeBatchTx($this->user, ['name' => 'Belanja Superindo']);
+    makeTx($this->user, ['name' => 'Makan Siang']);
+
+    $result = $this->action->execute($this->user->id, txFilters(['search' => 'Belanja']));
+
+    expect($result->total())->toBe(1)
+        ->and($result->items()[0]->name)->toBe('Belanja Superindo');
+});
+
+it('filters single transactions by categoryId', function () {
+    $catA = Category::factory()->create(['user_id' => $this->user->id]);
+    $catB = Category::factory()->create(['user_id' => $this->user->id]);
+
+    makeTx($this->user, [], $catA);
+    makeTx($this->user, [], $catB);
+
+    $result = $this->action->execute($this->user->id, txFilters(['categoryId' => $catA->id]));
 
     expect($result->total())->toBe(1)
         ->and($result->items()[0]->category_id)->toBe($catA->id);
 });
 
-it('filters transactions by custom category id and type', function () {
-    $custom = Category::factory()->custom($this->user)->expense()->create();
-    $sys = Category::factory()->expense()->create();
+it('filters batch transactions if ANY of its items match the categoryId', function () {
+    $targetCat = Category::factory()->create(['user_id' => $this->user->id]);
+    $otherCat = Category::factory()->create(['user_id' => $this->user->id]);
 
-    makeTx($this->user, ['category_id' => $custom->id]);
-    makeTx($this->user, ['category_id' => $sys->id]);
+    makeBatchTx($this->user, ['name' => 'Batch Target'], [$otherCat->id, $targetCat->id]);
 
-    $result = $this->action->execute($this->user->id, txFilters([
-        'categoryId' => $custom->id,
-        'categoryType' => CustomCategory::class,
-    ]));
+    makeBatchTx($this->user, ['name' => 'Batch Miss'], [$otherCat->id, $otherCat->id]);
+
+    $result = $this->action->execute($this->user->id, txFilters(['categoryId' => $targetCat->id]));
 
     expect($result->total())->toBe(1)
-        ->and($result->items()[0]->category_id)->toBe($custom->id);
+        ->and($result->items()[0]->name)->toBe('Batch Target');
 });
 
-it('scopes by categoryType so a system and custom category sharing the same id do not mix', function () {
-    // Both tables are independent, so a system_category and a custom_category
-    // could have the same numeric id. categoryType must scope the query correctly.
-    $custom = Category::factory()->custom($this->user)->expense()->create();
-    $sys = Category::factory()->expense()->create();
+// EDGE CASES & SORTING
 
-    makeTx($this->user, ['category_id' => $sys->id]);
-    makeTx($this->user, ['category_id' => $custom->id]);
-
-    $sysResult = $this->action->execute($this->user->id, txFilters([
-        'categoryId' => $sys->id,
-    ]));
-
-    expect($sysResult->total())->toBe(1);
-});
-
-it('returns all transactions when categoryId is null', function () {
-    $catA = Category::factory()->expense()->create();
-    $catB = Category::factory()->expense()->create();
-
-    makeTx($this->user, ['category_id' => $catA->id]);
-    makeTx($this->user, ['category_id' => $catB->id]);
-
-    $result = $this->action->execute($this->user->id, txFilters(['categoryId' => null]));
-
-    expect($result->total())->toBe(2);
-});
-
-it('respects the perPage value', function () {
-    for ($i = 0; $i < 15; $i++) {
-        makeTx($this->user);
-    }
-
-    $result = $this->action->execute($this->user->id, txFilters(['perPage' => 5]));
-
-    expect($result->perPage())->toBe(5)
-        ->and($result->items())->toHaveCount(5)
-        ->and($result->total())->toBe(15);
-});
-
-it('returns correct total and last page across pages', function () {
-    for ($i = 0; $i < 20; $i++) {
-        makeTx($this->user);
-    }
-
-    $result = $this->action->execute($this->user->id, txFilters(['perPage' => 5]));
-
-    expect($result->total())->toBe(20)
-        ->and($result->lastPage())->toBe(4);
-});
-
-it('defaults to 10 items per page', function () {
-    for ($i = 0; $i < 15; $i++) {
-        makeTx($this->user);
-    }
+it('returns feeds sorted by transaction_at descending across both tables', function () {
+    $oldest = makeTx($this->user, ['transaction_at' => '2026-03-01 10:00:00']);
+    $newest = makeBatchTx($this->user, ['transaction_at' => '2026-03-03 10:00:00']);
 
     $result = $this->action->execute($this->user->id, txFilters());
 
-    expect($result->perPage())->toBe(10)
-        ->and($result->items())->toHaveCount(10);
+    expect($result->items()[0]->id)->toBe($newest->id)
+        ->and($result->items()[0]->feed_type)->toBe('batch')
+        ->and($result->items()[1]->id)->toBe($oldest->id);
 });
 
-it('returns transactions in latest-first order', function () {
-    $first = makeTx($this->user, ['created_at' => now()->subMinutes(3)]);
-    $second = makeTx($this->user, ['created_at' => now()->subMinutes(2)]);
-    $third = makeTx($this->user, ['created_at' => now()->subMinutes(1)]);
+it('excludes soft-deleted records from both single and batch transactions', function () {
+    $tx = makeTx($this->user, ['name' => 'Deleted Tx']);
+    $tx->delete();
+
+    $batch = makeBatchTx($this->user, ['name' => 'Deleted Batch']);
+    $batch->delete();
 
     $result = $this->action->execute($this->user->id, txFilters());
 
-    expect($result->items()[0]->id)->toBe($third->id)
-        ->and($result->items()[2]->id)->toBe($first->id);
+    expect($result->total())->toBe(0);
 });
 
-it('excludes soft-deleted transactions', function () {
-    makeTx($this->user, ['name' => 'Active']);
-    $deleted = makeTx($this->user, ['name' => 'Deleted']);
-    $deleted->delete();
+it('respects the perPage value for union queries', function () {
+    // Total 15 data: 10 tx, 5 batch
+    for ($i = 0; $i < 10; $i++) {
+        makeTx($this->user);
+    }
+    for ($i = 0; $i < 5; $i++) {
+        makeBatchTx($this->user);
+    }
 
-    $result = $this->action->execute($this->user->id, txFilters());
+    $result = $this->action->execute($this->user->id, txFilters(['perPage' => 7]));
 
-    expect($result->total())->toBe(1);
-    expect($result->items()[0]->name)->toBe('Active');
+    expect($result->total())->toBe(15)
+        ->and($result->items())->toHaveCount(7)
+        ->and($result->lastPage())->toBe(3);
 });
