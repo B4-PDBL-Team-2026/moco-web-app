@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Transaction;
 
+use App\Domains\Transaction\Actions\CreateBatchTransactionAction;
 use App\Domains\Transaction\Actions\CreateTransactionAction;
 use App\Domains\Transaction\Actions\DeleteTransactionAction;
 use App\Domains\Transaction\Actions\GetAllTransactionAction;
@@ -13,8 +14,10 @@ use App\Domains\Transaction\DTOs\UpdateTransactionData;
 use App\Domains\Transaction\Models\Transaction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Transaction\IndexTransactionRequest;
+use App\Http\Requests\Transaction\StoreBatchTransactionRequest;
 use App\Http\Requests\Transaction\StoreTransactionRequest;
 use App\Http\Requests\Transaction\UpdateTransactionRequest;
+use App\Http\Resources\Transaction\TransactionBatchResource;
 use App\Http\Resources\Transaction\TransactionResource;
 use App\Http\Responses\ApiResponse;
 use Illuminate\Support\Facades\Auth;
@@ -57,14 +60,32 @@ class TransactionController extends Controller
     }
 
     /**
-     * Store a newly created transaction in storage.
+     * @throws Throwable
+     */
+    public function storeBatch(StoreBatchTransactionRequest $request, CreateBatchTransactionAction $action): ApiResponse
+    {
+        $batch = $action->execute(
+            userId: $request->user()->id,
+            data: $request->toDTO()
+        );
+
+        // Make sure to create a TransactionBatchResource later
+        return $this->successResponse(
+            data: TransactionBatchResource::make($batch),
+            message: 'Batch transactions saved successfully.',
+            status: 201
+        );
+    }
+
+    /**
+     * Create a batch of transactions from a scanned receipt.
      *
      * @throws Throwable
      *
      * @response array{
-     *     success: bool,
-     *     message: string,
-     *     data: TransactionResource
+     * success: bool,
+     * message: string,
+     * data: TransactionBatchResource
      * }
      */
     public function store(StoreTransactionRequest $request, CreateTransactionAction $action): ApiResponse
