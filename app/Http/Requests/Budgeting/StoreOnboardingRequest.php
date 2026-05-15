@@ -64,7 +64,9 @@ class StoreOnboardingRequest extends FormRequest
                     preg_match('/fixedCosts\.(\d+)\.dueDay/', $attribute, $matches);
                     $index = $matches[1] ?? null;
 
-                    if ($index === null) return;
+                    if ($index === null) {
+                        return;
+                    }
 
                     $cycleType = request()->input("fixedCosts.$index.cycleType");
 

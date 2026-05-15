@@ -13,7 +13,9 @@ class CreateBatchTransactionAction
     /**
      * Store a batch of transactions originating from a receipt scan.
      * Ensures atomic insertion of the batch parent and all child items.
+     *
      * * @return TransactionBatch The created batch with loaded items.
+     *
      * @throws Throwable
      */
     public function execute(int $userId, CreateBatchTransactionData $data): TransactionBatch
