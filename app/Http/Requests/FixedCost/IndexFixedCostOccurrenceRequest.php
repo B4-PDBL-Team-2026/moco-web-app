@@ -45,7 +45,7 @@ class IndexFixedCostOccurrenceRequest extends FormRequest
             startDate: $this->has('startDate') ? $this->validated('startDate') : null,
             endDate: $this->has('endDate') ? $this->validated('endDate') : null,
             page: (int) $this->input('page', 1),
-            perPage: (int) $this->input('per_page', 15),
+            perPage: (int) $this->input('perPage', 15),
         );
     }
 }
