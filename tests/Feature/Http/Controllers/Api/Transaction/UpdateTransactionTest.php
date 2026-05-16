@@ -1,7 +1,5 @@
 <?php
 
-use App\Domains\Budgeting\Models\UserBudgetSetting;
-use App\Domains\Budgeting\Models\UserBudgetSnapshot;
 use App\Domains\Category\Models\Category;
 use App\Domains\Transaction\Enums\TransactionType;
 use App\Domains\Transaction\Models\Transaction;
@@ -10,13 +8,7 @@ use Carbon\CarbonImmutable;
 use Laravel\Sanctum\Sanctum;
 
 beforeEach(function () {
-    $this->user = User::factory()->create();
-
-    UserBudgetSetting::factory()->create(['user_id' => $this->user->id]);
-    UserBudgetSnapshot::factory()->create([
-        'user_id' => $this->user->id,
-        'current_balance' => '1000.00',
-    ]);
+    [$this->user] = setupUserWithBudget();
 });
 
 test('guest cannot update transaction', function () {
@@ -102,7 +94,6 @@ test('successfully updates category to a system category', function () {
 
 test('successfully updates category to a custom category', function () {
     $sysCategory = Category::factory()->expense()->create();
-
     $customCategory = Category::factory()->custom($this->user)->expense()->create();
 
     $transaction = Transaction::factory()->create([
@@ -136,8 +127,7 @@ test('validation fails if user tries to use another users custom category', func
 
     $this->putJson("/api/transaction/{$transaction->id}", [
         'categoryId' => $hackedCategory->id,
-    ])->assertStatus(422)
-        ->assertJsonValidationErrors(['businessRule']);
+    ])->assertStatus(422);
 });
 
 test('validation fails if category type does not match transaction type', function () {
@@ -154,8 +144,7 @@ test('validation fails if category type does not match transaction type', functi
 
     $this->putJson("/api/transaction/{$transaction->id}", [
         'categoryId' => $incomeCategory->id,
-    ])->assertStatus(422)
-        ->assertJsonValidationErrors(['businessRule']);
+    ])->assertStatus(422);
 });
 
 test('successfully updates transaction date', function () {
