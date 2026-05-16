@@ -11,25 +11,22 @@ use App\Domains\Budgeting\Enums\CycleType;
 final readonly class UpdateFixedCostTemplateData
 {
     public function __construct(
+        public bool $nameProvided,
         public ?string $name,
+
+        public bool $amountProvided,
         public ?string $amount,
+
+        public bool $cycleTypeProvided,
         public ?CycleType $cycleType,
+
+        public bool $dueDayProvided,
         public ?int $dueDay,
+
+        public bool $isActiveProvided,
         public ?bool $isActive,
+
+        public bool $categoryIdProvided,
         public ?int $categoryId,
     ) {}
-
-    public static function fromArray(array $data): self
-    {
-        return new self(
-            name: isset($data['name']) ? trim($data['name']) : null,
-            amount: isset($data['amount']) ? (string) $data['amount'] : null,
-            cycleType: isset($data['cycleType'])
-                ? ($data['cycleType'] instanceof CycleType ? $data['cycleType'] : CycleType::from($data['cycleType']))
-                : null,
-            dueDay: isset($data['dueDay']) ? (int) $data['dueDay'] : null,
-            isActive: isset($data['isActive']) ? (bool) $data['isActive'] : null,
-            categoryId: isset($data['categoryId']) ? (int) $data['categoryId'] : null,
-        );
-    }
 }

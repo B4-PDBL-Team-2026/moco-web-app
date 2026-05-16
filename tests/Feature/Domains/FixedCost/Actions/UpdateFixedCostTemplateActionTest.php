@@ -1,6 +1,7 @@
 <?php
 
 use App\Commons\Exceptions\BusinessRuleException;
+use App\Domains\Budgeting\Enums\CycleType;
 use App\Domains\Budgeting\Models\UserBudgetSetting;
 use App\Domains\Category\Models\Category;
 use App\Domains\FixedCost\Actions\UpdateFixedCostTemplateAction;
@@ -23,7 +24,6 @@ function setupUserForUpdate(string $cycleType = 'monthly'): array
         'timezone' => 'Asia/Jakarta',
     ]);
 
-    // Udah pake Category biasa (System Category)
     $category = Category::factory()->expense()->create();
     $template = FixedCostTemplate::factory()->create([
         'user_id' => $user->id,
@@ -59,6 +59,32 @@ function makeOccurrenceForUpdate(
     ]);
 }
 
+// Helper to simulate DTO creation from array mapping
+function updateTemplateDto(array $data): UpdateFixedCostTemplateData
+{
+    return new UpdateFixedCostTemplateData(
+        nameProvided: array_key_exists('name', $data),
+        name: $data['name'] ?? null,
+
+        amountProvided: array_key_exists('amount', $data),
+        amount: isset($data['amount']) ? (string) $data['amount'] : null,
+
+        cycleTypeProvided: array_key_exists('cycleType', $data),
+        cycleType: isset($data['cycleType'])
+            ? ($data['cycleType'] instanceof CycleType ? $data['cycleType'] : CycleType::tryFrom($data['cycleType']))
+            : null,
+
+        dueDayProvided: array_key_exists('dueDay', $data),
+        dueDay: isset($data['dueDay']) ? (int) $data['dueDay'] : null,
+
+        isActiveProvided: array_key_exists('isActive', $data),
+        isActive: isset($data['isActive']) ? (bool) $data['isActive'] : null,
+
+        categoryIdProvided: array_key_exists('categoryId', $data),
+        categoryId: isset($data['categoryId']) ? (int) $data['categoryId'] : null,
+    );
+}
+
 beforeEach(function () {
     $this->action = app(UpdateFixedCostTemplateAction::class);
 });
@@ -66,7 +92,7 @@ beforeEach(function () {
 it('updates the template name immediately', function () {
     [$user, $template] = setupUserForUpdate();
 
-    $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray(['name' => 'Spotify']));
+    $this->action->execute($user->id, $template->id, updateTemplateDto(['name' => 'Spotify']));
 
     expect($template->fresh()->name)->toBe('Spotify');
 });
@@ -74,7 +100,7 @@ it('updates the template name immediately', function () {
 it('updates is_active immediately', function () {
     [$user, $template] = setupUserForUpdate();
 
-    $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray(['isActive' => false]));
+    $this->action->execute($user->id, $template->id, updateTemplateDto(['isActive' => false]));
 
     expect($template->fresh()->is_active)->toBeFalse();
 });
@@ -83,7 +109,7 @@ it('updates category immediately', function () {
     [$user, $template] = setupUserForUpdate();
     $newCat = Category::factory()->expense()->create();
 
-    $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray([
+    $this->action->execute($user->id, $template->id, updateTemplateDto([
         'categoryId' => $newCat->id,
     ]));
 
@@ -94,7 +120,7 @@ it('updates template amount and propagates to pending occurrences when no paid o
     [$user, $template] = setupUserForUpdate();
     $occ = makeOccurrenceForUpdate($user, $template, FixedCostOccurenceStatus::PENDING->value);
 
-    $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray(['amount' => '200000']));
+    $this->action->execute($user->id, $template->id, updateTemplateDto(['amount' => '200000']));
 
     expect($template->fresh()->amount)->toBe('200000.00')
         ->and($occ->fresh()->amount)->toBe('200000.00');
@@ -104,7 +130,7 @@ it('updates template due_day and updates pending occurrences name if name change
     [$user, $template] = setupUserForUpdate();
     makeOccurrenceForUpdate($user, $template, FixedCostOccurenceStatus::PENDING->value);
 
-    $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray([
+    $this->action->execute($user->id, $template->id, updateTemplateDto([
         'dueDay' => 20,
         'name' => 'Netflix HD',
     ]));
@@ -116,7 +142,7 @@ it('propagates name change to pending occurrences', function () {
     [$user, $template] = setupUserForUpdate();
     $occ = makeOccurrenceForUpdate($user, $template, FixedCostOccurenceStatus::PENDING->value);
 
-    $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray(['name' => 'Netflix HD']));
+    $this->action->execute($user->id, $template->id, updateTemplateDto(['name' => 'Netflix HD']));
 
     expect($occ->fresh()->name)->toBe('Netflix HD');
 });
@@ -125,7 +151,7 @@ it('does not propagate amount to void occurrences (only pending/overdue)', funct
     [$user, $template] = setupUserForUpdate();
     $voidOcc = makeOccurrenceForUpdate($user, $template, FixedCostOccurenceStatus::VOID->value, '150000.00');
 
-    $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray(['amount' => '200000']));
+    $this->action->execute($user->id, $template->id, updateTemplateDto(['amount' => '200000']));
 
     expect($voidOcc->fresh()->amount)->toBe('150000.00');
 });
@@ -140,7 +166,7 @@ it('updates template amount but does NOT propagate to pending occurrences when a
         $user, $template, FixedCostOccurenceStatus::PENDING->value, '150000.00', '2026-03', '2026-03-15'
     );
 
-    $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray(['amount' => '200000']));
+    $this->action->execute($user->id, $template->id, updateTemplateDto(['amount' => '200000']));
 
     expect($template->fresh()->amount)->toBe('200000.00')
         ->and($pendingOcc->fresh()->amount)->toBe('150000.00');
@@ -150,7 +176,7 @@ it('updates template due_day but does NOT propagate when a paid occurrence exist
     [$user, $template] = setupUserForUpdate();
     makeOccurrenceForUpdate($user, $template, FixedCostOccurenceStatus::PAID->value);
 
-    $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray(['dueDay' => 25]));
+    $this->action->execute($user->id, $template->id, updateTemplateDto(['dueDay' => 25]));
 
     expect($template->fresh()->due_day)->toBe(25);
 });
@@ -159,7 +185,7 @@ it('applies non-financial fields (name) even when paid occurrence exists', funct
     [$user, $template] = setupUserForUpdate();
     makeOccurrenceForUpdate($user, $template, FixedCostOccurenceStatus::PAID->value);
 
-    $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray(['name' => 'Netflix 4K']));
+    $this->action->execute($user->id, $template->id, updateTemplateDto(['name' => 'Netflix 4K']));
 
     expect($template->fresh()->name)->toBe('Netflix 4K');
 });
@@ -167,22 +193,22 @@ it('applies non-financial fields (name) even when paid occurrence exists', funct
 it('throws BusinessRuleException when updated name is empty', function () {
     [$user, $template] = setupUserForUpdate();
 
-    expect(fn () => $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray(['name' => ''])))
+    expect(fn () => $this->action->execute($user->id, $template->id, updateTemplateDto(['name' => ''])))
         ->toThrow(BusinessRuleException::class);
 });
 
 it('throws BusinessRuleException when updated amount is zero', function () {
     [$user, $template] = setupUserForUpdate();
 
-    expect(fn () => $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray(['amount' => '0'])))
+    expect(fn () => $this->action->execute($user->id, $template->id, updateTemplateDto(['amount' => '0'])))
         ->toThrow(BusinessRuleException::class);
 });
 
 it('throws BusinessRuleException when weekly due_day exceeds 7', function () {
     [$user, $template] = setupUserForUpdate('weekly');
-    $template->update(['cycle_type' => 'weekly', 'due_day' => 1]); // Prepare weekly template
+    $template->update(['cycle_type' => 'weekly', 'due_day' => 1]);
 
-    expect(fn () => $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray([
+    expect(fn () => $this->action->execute($user->id, $template->id, updateTemplateDto([
         'cycleType' => 'weekly',
         'dueDay' => 8,
     ])))
@@ -193,7 +219,7 @@ it('throws BusinessRuleException when changing to monthly cycle on a weekly budg
     [$user, $template] = setupUserForUpdate('weekly');
     $template->update(['cycle_type' => 'weekly', 'due_day' => 1]);
 
-    expect(fn () => $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray(['cycleType' => 'monthly'])))
+    expect(fn () => $this->action->execute($user->id, $template->id, updateTemplateDto(['cycleType' => 'monthly'])))
         ->toThrow(BusinessRuleException::class);
 });
 
@@ -201,10 +227,9 @@ it('throws BusinessRuleException when custom category belongs to another user', 
     [$user, $template] = setupUserForUpdate();
     $otherUser = User::factory()->create();
 
-    // Bikin category yg punyanya user lain (custom category user lain)
     $otherCategory = Category::factory()->custom($otherUser)->expense()->create();
 
-    expect(fn () => $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray([
+    expect(fn () => $this->action->execute($user->id, $template->id, updateTemplateDto([
         'categoryId' => $otherCategory->id,
     ])))
         ->toThrow(BusinessRuleException::class);
@@ -219,7 +244,7 @@ it('throws ModelNotFoundException when template belongs to another user', functi
         'cycle_type' => 'monthly',
     ]);
 
-    expect(fn () => $this->action->execute($otherUser->id, $template->id, UpdateFixedCostTemplateData::fromArray(['name' => 'X'])))
+    expect(fn () => $this->action->execute($otherUser->id, $template->id, updateTemplateDto(['name' => 'X'])))
         ->toThrow(ModelNotFoundException::class);
 });
 
@@ -227,6 +252,6 @@ it('throws ModelNotFoundException for a soft-deleted template', function () {
     [$user, $template] = setupUserForUpdate();
     $template->delete();
 
-    expect(fn () => $this->action->execute($user->id, $template->id, UpdateFixedCostTemplateData::fromArray(['name' => 'X'])))
+    expect(fn () => $this->action->execute($user->id, $template->id, updateTemplateDto(['name' => 'X'])))
         ->toThrow(ModelNotFoundException::class);
 });

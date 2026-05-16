@@ -38,20 +38,26 @@ class UpdateFixedCostTemplateRequest extends FormRequest
 
     public function toDTO(): UpdateFixedCostTemplateData
     {
+        $validated = $this->validated();
+
         return new UpdateFixedCostTemplateData(
-            name: $this->has('name') ? trim((string) $this->validated('name')) : null,
+            nameProvided: $this->has('name'),
+            name: isset($validated['name']) ? trim((string) $validated['name']) : null,
 
-            amount: $this->has('amount') ? (string) $this->validated('amount') : null,
+            amountProvided: $this->has('amount'),
+            amount: isset($validated['amount']) ? (string) $validated['amount'] : null,
 
-            cycleType: $this->has('cycleType')
-                ? CycleType::from($this->validated('cycleType'))
-                : null,
+            cycleTypeProvided: $this->has('cycleType'),
+            cycleType: isset($validated['cycleType']) ? CycleType::tryFrom($validated['cycleType']) : null,
 
-            dueDay: $this->has('dueDay') ? (int) $this->validated('dueDay') : null,
+            dueDayProvided: $this->has('dueDay'),
+            dueDay: isset($validated['dueDay']) ? (int) $validated['dueDay'] : null,
 
-            isActive: $this->has('isActive') ? (bool) $this->validated('isActive') : null,
+            isActiveProvided: $this->has('isActive'),
+            isActive: isset($validated['isActive']) ? (bool) $validated['isActive'] : null,
 
-            categoryId: $this->has('categoryId') ? (int) $this->validated('categoryId') : null,
+            categoryIdProvided: $this->has('categoryId'),
+            categoryId: isset($validated['categoryId']) ? (int) $validated['categoryId'] : null,
         );
     }
 }
