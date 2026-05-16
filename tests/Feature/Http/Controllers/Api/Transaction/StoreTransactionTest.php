@@ -48,7 +48,7 @@ it('successfully stores transaction and returns correct resource format', functi
         'transactionAt' => '2026-05-15 12:00:00',
     ];
 
-    $response = $this->actingAs($user)->postJson('/api/transaction', $payload)->dump();
+    $response = $this->actingAs($user)->postJson('/api/transaction', $payload);
 
     $response->assertCreated()
         ->assertJson([

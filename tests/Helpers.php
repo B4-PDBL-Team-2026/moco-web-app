@@ -17,19 +17,19 @@ use App\Domains\User\Models\User;
 function setupUserWithBudget(array $settingOverrides = [], string $initialTransactionDate = '2026-03-01'): array
 {
     $user = User::factory()->create();
-
     $category = Category::factory()->income()->create();
 
-    $defaultSettings = [
-        'user_id' => $user->id,
-        'cycle_type' => CycleType::MONTHLY->value,
-        'initial_balance' => '1000.00',
-        'flooring_limit' => '0.00',
-        'ceiling_limit' => '999999.00',
-        'timezone' => 'Asia/Jakarta',
-    ];
+    // Support both 'initial_balance' and 'balance' keys
+    $initialBalance = $settingOverrides['initial_balance'] ?? $settingOverrides['balance'] ?? '1000.00';
 
-    $settings = UserBudgetSetting::query()->create(array_merge($defaultSettings, $settingOverrides));
+    $settings = UserBudgetSetting::query()->create([
+        'user_id' => $user->id,
+        'cycle_type' => $settingOverrides['cycle_type'] ?? CycleType::MONTHLY->value,
+        'initial_balance' => $initialBalance,
+        'flooring_limit' => $settingOverrides['flooring_limit'] ?? '0.00',
+        'ceiling_limit' => $settingOverrides['ceiling_limit'] ?? '999999.00',
+        'timezone' => $settingOverrides['timezone'] ?? 'Asia/Jakarta',
+    ]);
 
     Transaction::query()->create([
         'user_id' => $user->id,
@@ -44,16 +44,22 @@ function setupUserWithBudget(array $settingOverrides = [], string $initialTransa
 
     UserBudgetSnapshot::factory()->create([
         'user_id' => $user->id,
-        'current_cycle_key' => '2026-03',
-        'cycle_start_date' => '2026-03-01',
-        'cycle_end_date' => '2026-03-31',
-        'remaining_days' => 10,
-        'current_balance' => $settings->initial_balance,
+        'current_balance' => $settingOverrides['current_balance'] ?? $initialBalance,
+        'reserved_cost' => $settingOverrides['reserved_cost'] ?? '0.00',
+        'remaining_daily_allowance' => $settingOverrides['remaining_daily_allowance'] ?? '100.00',
+        'daily_allowance_limit' => $settingOverrides['daily_allowance_limit'] ?? '100.00',
+        'raw_daily_allowance' => $settingOverrides['raw_daily_allowance'] ?? '100.00',
+        'current_cycle_key' => $settingOverrides['current_cycle_key'] ?? '2026-03',
+        'cycle_start_date' => $settingOverrides['cycle_start_date'] ?? '2026-03-01',
+        'cycle_end_date' => $settingOverrides['cycle_end_date'] ?? '2026-03-31',
+        'remaining_days' => $settingOverrides['remaining_days'] ?? 12,
+
+        // Force default recalculated_at to yesterday so action limit recalculation triggers properly
+        'recalculated_at' => $settingOverrides['recalculated_at'] ?? now()->subDay()->utc(),
     ]);
 
     return [$user, $category];
 }
-
 function amountSetup(string $status = 'void', string $balance = '500000.00'): array
 {
     $user = User::factory()->create();

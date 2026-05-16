@@ -61,11 +61,8 @@ it('successfully creates an expense transaction and triggers recalculation', fun
 });
 
 it('successfully creates expense transaction using a Custom Category', function () {
-    [$user] = setupUserWithBudget();
-
-    UserBudgetSnapshot::factory()->create([
-        'user_id' => $user->id,
-        'current_balance' => '5000000.00',
+    [$user] = setupUserWithBudget([
+        'balance' => '5000000.00',
     ]);
 
     $customCategory = Category::factory()->custom($user)->expense()->create();

@@ -1,13 +1,13 @@
- <?php
+<?php
 
- use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
-use App\Domains\Budgeting\Models\UserBudgetSnapshot;
+use App\Domains\Budgeting\Actions\RecalculateBudgetSnapshotAction;
 use App\Domains\Category\Models\Category;
 use App\Domains\FixedCost\Enums\FixedCostOccurenceStatus;
 use App\Domains\FixedCost\Models\FixedCostOccurrence;
 use App\Domains\Transaction\Enums\TransactionType;
 use App\Domains\Transaction\Models\Transaction;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
 
 use function Pest\Laravel\assertDatabaseHas;
 
@@ -131,67 +131,52 @@ it('ignores unknown transaction types when calculating balance', function () {
 });
 
 it('does not update daily_allowance_limit when recalculated on the same day', function () {
-    [$user] = setupUserWithBudget(['initial_balance' => '1000.00']);
-
     $morningTime = CarbonImmutable::parse('2026-03-20 08:00:00', 'Asia/Jakarta');
 
-    // seed snapshot in the past
-    UserBudgetSnapshot::query()->create([
-        'user_id' => $user->id,
-        'current_balance' => '1000.00',
+    // Use the new helper completely to seed both Settings and Snapshot atomically
+    [$user] = setupUserWithBudget([
+        'initial_balance' => '1000.00',
         'reserved_cost' => '0.00',
         'remaining_daily_allowance' => '100.00',
         'daily_allowance_limit' => '100.00',
         'raw_daily_allowance' => '100.00',
-        'current_cycle_key' => '2026-03',
-        'cycle_start_date' => '2026-03-01',
-        'cycle_end_date' => '2026-03-31',
-        'remaining_days' => 12,
-        'recalculated_at' => $morningTime,
+        'recalculated_at' => $morningTime->utc(),
     ]);
 
-    // transaction entry created
+    // Transaction entry created
     Transaction::query()->create([
         'user_id' => $user->id,
         'category_id' => Category::factory()->create()->id,
         'type' => TransactionType::EXPENSE->value,
-        'amount' => '400.00', // Sisa uang harusnya tinggal 600
+        'amount' => '400.00', // Remaining balance should be 600
         'name' => 'Jajan Siang',
         'transaction_at' => '2026-03-20',
     ]);
 
-    // force call recaltulate snapshot
+    // Force call recalculate snapshot on the same day
     $afternoonTime = CarbonImmutable::parse('2026-03-20 14:00:00', 'Asia/Jakarta');
     $status = app(RecalculateBudgetSnapshotAction::class)->execute($user->id, $afternoonTime);
 
-    // limit must be fixed
+    // Limit must be fixed since it's the same day
     expect((string) $status->current_balance)->toBe('600.00')
-        ->and((string) $status->remaining_daily_allowance)->toBe('50.00') // 600 / 12 day left
+        ->and((string) $status->remaining_daily_allowance)->toBe('50.00') // 600 / 12 days left
         ->and((string) $status->daily_allowance_limit)->toBe('100.00');
 });
 
 it('updates daily_allowance_limit when recalculated on a new day', function () {
-    [$user] = setupUserWithBudget();
-
-    // last snapshot time
+    // Last snapshot time
     $yesterdayTime = CarbonImmutable::parse('2026-03-20 23:00:00', 'Asia/Jakarta');
 
-    // fake snapshot budget
-    UserBudgetSnapshot::query()->create([
-        'user_id' => $user->id,
-        'current_balance' => '1000.00',
+    [$user] = setupUserWithBudget([
+        'initial_balance' => '1000.00',
         'reserved_cost' => '0.00',
         'remaining_daily_allowance' => '100.00',
         'daily_allowance_limit' => '100.00',
         'raw_daily_allowance' => '100.00',
-        'current_cycle_key' => '2026-03',
-        'cycle_start_date' => '2026-03-01',
-        'cycle_end_date' => '2026-03-31',
-        'remaining_days' => 12,
         'recalculated_at' => $yesterdayTime->utc(),
     ]);
 
-    // expense transaction yesterday that should be included in next day allowance calculation
+    // Expense transaction yesterday that should be included in next day allowance calculation
     Transaction::query()->create([
         'user_id' => $user->id,
         'category_id' => Category::factory()->create()->id,
@@ -211,21 +196,14 @@ it('updates daily_allowance_limit when recalculated on a new day', function () {
 });
 
 it('determines new day strictly based on user timezone, not UTC server time', function () {
-    [$user] = setupUserWithBudget();
-
     $lateNightJakarta = CarbonImmutable::parse('2026-03-20 23:00:00', 'Asia/Jakarta');
 
-    UserBudgetSnapshot::query()->create([
-        'user_id' => $user->id,
-        'current_balance' => '1000.00',
+    [$user] = setupUserWithBudget([
+        'initial_balance' => '1000.00',
         'reserved_cost' => '0.00',
         'remaining_daily_allowance' => '100.00',
         'daily_allowance_limit' => '100.00',
         'raw_daily_allowance' => '100.00',
-        'current_cycle_key' => '2026-03',
-        'cycle_start_date' => '2026-03-01',
-        'cycle_end_date' => '2026-03-31',
-        'remaining_days' => 12,
         'recalculated_at' => $lateNightJakarta->utc(),
     ]);
 
@@ -238,7 +216,7 @@ it('determines new day strictly based on user timezone, not UTC server time', fu
         'transaction_at' => '2026-03-20',
     ]);
 
-    // 21 Maret 01:00 PM Asia/Jakarta, 20 Maret 06:00 PM UTC)
+    // 21 March 01:00 AM Asia/Jakarta (20 March 06:00 PM UTC)
     $earlyMorningJakarta = CarbonImmutable::parse('2026-03-21 01:00:00', 'Asia/Jakarta');
 
     $status = app(RecalculateBudgetSnapshotAction::class)->execute($user->id, $earlyMorningJakarta);
