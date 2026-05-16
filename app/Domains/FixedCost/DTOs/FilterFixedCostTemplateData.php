@@ -24,23 +24,4 @@ final class FilterFixedCostTemplateData
         public readonly int $perPage,
         public readonly int $page,
     ) {}
-
-    public static function fromArray(array $data): self
-    {
-        $keyword = isset($data['keyword']) ? trim($data['keyword']) : null;
-        $perPage = min((int) ($data['perPage'] ?? self::DEFAULT_PER_PAGE), self::MAX_PER_PAGE);
-        $page = max(1, (int) ($data['page'] ?? 1));
-        $dueDay = isset($data['dueDay']) ? (int) $data['dueDay'] : null;
-        $cycleType = isset($data['cycleType']) ? CycleType::from($data['cycleType']) : null;
-        $isActive = isset($data['isActive']) ? filter_var($data['isActive'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null;
-
-        return new self(
-            keyword: ($keyword !== null && $keyword !== '') ? $keyword : null,
-            dueDay: $dueDay,
-            cycleType: $cycleType,
-            isActive: $isActive,
-            perPage: $perPage > 0 ? $perPage : self::DEFAULT_PER_PAGE,
-            page: $page,
-        );
-    }
 }

@@ -10,14 +10,26 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 function filters(array $overrides = []): FilterFixedCostTemplateData
 {
-    return FilterFixedCostTemplateData::fromArray(array_merge([
-        'page' => 1,
-    ], $overrides));
+    $cycleType = null;
+    if (array_key_exists('cycleType', $overrides) && $overrides['cycleType'] !== null) {
+        $cycleType = $overrides['cycleType'] instanceof CycleType
+            ? $overrides['cycleType']
+            : CycleType::tryFrom($overrides['cycleType']);
+    }
+
+    return new FilterFixedCostTemplateData(
+        keyword: $overrides['keyword'] ?? null,
+        dueDay: $overrides['dueDay'] ?? null,
+        cycleType: $cycleType,
+        isActive: $overrides['isActive'] ?? null,
+        perPage: $overrides['perPage'] ?? 10,
+        page: $overrides['page'] ?? 1,
+    );
 }
 
 function setupTemplate(User $user, array $overrides = []): FixedCostTemplate
 {
-    $cat = Category::factory()->expense()->create();
+    $cat = Category::factory()->create(['user_id' => $user->id, 'type' => 'expense']);
 
     return FixedCostTemplate::factory()->create(array_merge([
         'user_id' => $user->id,
@@ -26,7 +38,6 @@ function setupTemplate(User $user, array $overrides = []): FixedCostTemplate
         'cycle_type' => CycleType::MONTHLY->value,
         'due_day' => 15,
         'is_active' => true,
-
         'category_id' => $cat->id,
     ], $overrides));
 }
@@ -140,15 +151,6 @@ it('ignores keyword filter when keyword is null', function () {
     expect($result->total())->toBe(2);
 });
 
-it('ignores keyword filter when keyword is an empty string', function () {
-    setupTemplate($this->user, ['name' => 'Netflix']);
-    setupTemplate($this->user, ['name' => 'Spotify']);
-
-    $result = $this->action->execute($this->user->id, filters(['keyword' => '  ']));
-
-    expect($result->total())->toBe(2);
-});
-
 it('filters by exact due_day', function () {
     setupTemplate($this->user, ['due_day' => 10, 'name' => 'A']);
     setupTemplate($this->user, ['due_day' => 15, 'name' => 'B']);
@@ -178,8 +180,8 @@ it('ignores due_day filter when dueDay is null', function () {
 });
 
 it('filters by cycle_type monthly', function () {
-    setupTemplate($this->user, ['cycle_type' => 'monthly', 'name' => 'Monthly']);
-    setupTemplate($this->user, ['cycle_type' => 'weekly',  'name' => 'Weekly', 'due_day' => 3]);
+    setupTemplate($this->user, ['cycle_type' => CycleType::MONTHLY->value, 'name' => 'Monthly']);
+    setupTemplate($this->user, ['cycle_type' => CycleType::WEEKLY->value,  'name' => 'Weekly', 'due_day' => 3]);
 
     $result = $this->action->execute($this->user->id, filters(['cycleType' => 'monthly']));
 
@@ -188,9 +190,9 @@ it('filters by cycle_type monthly', function () {
 });
 
 it('filters by cycle_type weekly', function () {
-    setupTemplate($this->user, ['cycle_type' => 'monthly', 'name' => 'Monthly']);
-    setupTemplate($this->user, ['cycle_type' => 'weekly',  'name' => 'Weekly A', 'due_day' => 1]);
-    setupTemplate($this->user, ['cycle_type' => 'weekly',  'name' => 'Weekly B', 'due_day' => 3]);
+    setupTemplate($this->user, ['cycle_type' => CycleType::MONTHLY->value, 'name' => 'Monthly']);
+    setupTemplate($this->user, ['cycle_type' => CycleType::WEEKLY->value,  'name' => 'Weekly A', 'due_day' => 1]);
+    setupTemplate($this->user, ['cycle_type' => CycleType::WEEKLY->value,  'name' => 'Weekly B', 'due_day' => 3]);
 
     $result = $this->action->execute($this->user->id, filters(['cycleType' => 'weekly']));
 
@@ -198,8 +200,8 @@ it('filters by cycle_type weekly', function () {
 });
 
 it('ignores cycleType filter when cycleType is null', function () {
-    setupTemplate($this->user, ['cycle_type' => 'monthly']);
-    setupTemplate($this->user, ['cycle_type' => 'weekly', 'due_day' => 2]);
+    setupTemplate($this->user, ['cycle_type' => CycleType::MONTHLY->value]);
+    setupTemplate($this->user, ['cycle_type' => CycleType::WEEKLY->value, 'due_day' => 2]);
 
     $result = $this->action->execute($this->user->id, filters(['cycleType' => null]));
 
@@ -236,9 +238,9 @@ it('returns both active and inactive when isActive filter is null', function () 
 });
 
 it('applies multiple filters simultaneously', function () {
-    setupTemplate($this->user, ['name' => 'Netflix', 'cycle_type' => 'monthly', 'due_day' => 15, 'is_active' => true]);
-    setupTemplate($this->user, ['name' => 'Netflix Paused', 'cycle_type' => 'monthly', 'due_day' => 15, 'is_active' => false]);
-    setupTemplate($this->user, ['name' => 'Spotify', 'cycle_type' => 'monthly', 'due_day' => 10, 'is_active' => true]);
+    setupTemplate($this->user, ['name' => 'Netflix', 'cycle_type' => CycleType::MONTHLY->value, 'due_day' => 15, 'is_active' => true]);
+    setupTemplate($this->user, ['name' => 'Netflix Paused', 'cycle_type' => CycleType::MONTHLY->value, 'due_day' => 15, 'is_active' => false]);
+    setupTemplate($this->user, ['name' => 'Spotify', 'cycle_type' => CycleType::MONTHLY->value, 'due_day' => 10, 'is_active' => true]);
 
     $result = $this->action->execute($this->user->id, filters([
         'keyword' => 'Netflix',
@@ -252,11 +254,11 @@ it('applies multiple filters simultaneously', function () {
 });
 
 it('returns empty when combined filters have no matching records', function () {
-    setupTemplate($this->user, ['name' => 'Netflix', 'cycle_type' => 'monthly', 'due_day' => 15]);
+    setupTemplate($this->user, ['name' => 'Netflix', 'cycle_type' => CycleType::MONTHLY->value, 'due_day' => 15]);
 
     $result = $this->action->execute($this->user->id, filters([
         'keyword' => 'Netflix',
-        'cycleType' => 'weekly',  // conflicts — Netflix is monthly
+        'cycleType' => 'weekly',
     ]));
 
     expect($result->total())->toBe(0);
@@ -264,7 +266,7 @@ it('returns empty when combined filters have no matching records', function () {
 
 it('paginates results correctly', function () {
     foreach (range(1, 5) as $i) {
-        setupTemplate($this->user, ['name' => "Template {$i}"]); // alphabetical: Template 1…5
+        setupTemplate($this->user, ['name' => "Template {$i}"]);
     }
 
     $page1 = $this->action->execute($this->user->id, filters(['perPage' => 2, 'page' => 1]));
@@ -297,7 +299,7 @@ it('returns an empty last page gracefully when page exceeds total', function () 
         ->and($result->total())->toBe(1);
 });
 
-it('defaults to 15 items per page when perPage is not provided', function () {
+it('defaults to 10 items per page when perPage is not provided', function () {
     foreach (range(1, 20) as $i) {
         setupTemplate($this->user, ['name' => "T{$i}"]);
     }
@@ -306,10 +308,4 @@ it('defaults to 15 items per page when perPage is not provided', function () {
 
     expect($result->perPage())->toBe(FilterFixedCostTemplateData::DEFAULT_PER_PAGE)
         ->and($result->items())->toHaveCount(10);
-});
-
-it('clamps perPage to MAX_PER_PAGE', function () {
-    $dto = FilterFixedCostTemplateData::fromArray(['perPage' => 9999]);
-
-    expect($dto->perPage)->toBe(FilterFixedCostTemplateData::MAX_PER_PAGE);
 });

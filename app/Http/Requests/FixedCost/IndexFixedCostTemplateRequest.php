@@ -34,13 +34,15 @@ class IndexFixedCostTemplateRequest extends FormRequest
 
     public function toDTO(): FilterFixedCostTemplateData
     {
-        return FilterFixedCostTemplateData::fromArray($this->only([
-            'keyword',
-            'dueDay',
-            'cycleType',
-            'isActive',
-            'perPage',
-            'page',
-        ]));
+        $validated = $this->validated();
+
+        return new FilterFixedCostTemplateData(
+            keyword: $validated['keyword'] ?? null,
+            dueDay: isset($validated['dueDay']) ? (int) $validated['dueDay'] : null,
+            cycleType: isset($validated['cycleType']) ? CycleType::tryFrom($validated['cycleType']) : null,
+            isActive: isset($validated['isActive']) ? filter_var($validated['isActive'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null,
+            perPage: isset($validated['perPage']) ? (int) $validated['perPage'] : FilterFixedCostTemplateData::DEFAULT_PER_PAGE,
+            page: isset($validated['page']) ? (int) $validated['page'] : 1,
+        );
     }
 }
