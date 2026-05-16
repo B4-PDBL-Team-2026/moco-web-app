@@ -13,3 +13,7 @@ Schedule::command('fixed-cost:remind')
 Schedule::command('fixed-cost:remind')
     ->timezone('Asia/Jakarta')
     ->dailyAt('19:00');
+
+Schedule::command('fixed-cost:mark-overdue')
+    ->timezone('Asia/Jakarta')
+    ->daily();
