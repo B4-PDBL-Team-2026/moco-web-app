@@ -103,9 +103,7 @@ class TransactionController extends Controller
     {
         Gate::authorize('create', Transaction::class);
 
-        $dto = CreateTransactionData::fromArray($request->validated());
-
-        $result = $action->execute(Auth::user(), $dto);
+        $result = $action->execute(Auth::user(), $request->toDTO());
 
         return $this->successResponse(
             TransactionResource::make($result),

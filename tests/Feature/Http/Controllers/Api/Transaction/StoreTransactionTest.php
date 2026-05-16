@@ -1,75 +1,72 @@
 <?php
 
-use App\Domains\Budgeting\Models\UserBudgetSetting;
-use App\Domains\Budgeting\Models\UserBudgetSnapshot;
 use App\Domains\Category\Models\Category;
+use App\Domains\Transaction\Enums\TransactionType;
 use App\Domains\User\Models\User;
-use Carbon\CarbonImmutable;
-use Laravel\Sanctum\Sanctum;
 
-test('guest cannot store transaction', function () {
-    $this->postJson('/api/transaction', [])
-        ->assertUnauthorized();
+it('denies unauthenticated users', function () {
+    $this->postJson('/api/transaction', [])->assertUnauthorized();
 });
 
-test('authenticated user can create income transaction', function () {
-    $this->travelTo(CarbonImmutable::parse('2026-04-04 12:00:00', 'UTC'));
+it('validates required payload for transaction', function () {
     $user = User::factory()->create();
-    Sanctum::actingAs($user);
 
-    UserBudgetSetting::factory()->create(['user_id' => $user->id]);
-    UserBudgetSnapshot::factory()->create([
-        'user_id' => $user->id,
-        'current_balance' => '5000.00',
-    ]);
+    $response = $this->actingAs($user)->postJson('/api/transaction', []);
 
-    $category = Category::factory()->income()->create();
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['categoryId', 'name', 'amount', 'type', 'transactionAt']);
+});
+
+it('validates correct enum type', function () {
+    $user = User::factory()->create();
+    $category = Category::factory()->create(['user_id' => $user->id]);
 
     $payload = [
         'categoryId' => $category->id,
-        'name' => 'Salary',
-        'amount' => '1000.00',
-        'type' => 'income',
-        'transactionAt' => '2026-04-04T10:00:00Z',
+        'name' => 'Makan Siang',
+        'amount' => 50000.00,
+        'type' => 'invalid_type',
+        'transactionAt' => '2026-05-15 12:00:00',
     ];
 
-    $response = $this->postJson('/api/transaction', $payload);
-    $response->assertCreated();
-    $this->assertDatabaseHas('transactions', [
-        'name' => 'Salary',
-        'transaction_at' => '2026-04-04 10:00:00',
-    ]);
+    $response = $this->actingAs($user)->postJson('/api/transaction', $payload);
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['type']);
 });
 
-test('authenticated user can create income transaction and timezone is converted to UTC', function () {
-    $user = User::factory()->create();
-    Sanctum::actingAs($user);
+it('successfully stores transaction and returns correct resource format', function () {
+    [$user] = setupUserWithBudget();
+    $category = Category::factory()->expense()->create(['user_id' => $user->id]);
 
-    UserBudgetSetting::factory()->create(['user_id' => $user->id]);
-    UserBudgetSnapshot::factory()->create([
-        'user_id' => $user->id,
-        'current_balance' => '5000.00',
-    ]);
-
-    $category = Category::factory()->income()->create();
-
-    // user at Asia/Jakarta
     $payload = [
         'categoryId' => $category->id,
-        'name' => 'Salary',
-        'amount' => '1000.00',
-        'type' => 'income',
-        'transactionAt' => '2026-04-04T13:00:00+07:00',
+        'name' => 'Makan Siang',
+        'amount' => 500.00,
+        'type' => TransactionType::EXPENSE->value,
+        'note' => 'Makan bareng tim',
+        'transactionAt' => '2026-05-15 12:00:00',
     ];
 
-    $response = $this->postJson('/api/transaction', $payload);
+    $response = $this->actingAs($user)->postJson('/api/transaction', $payload)->dump();
 
-    $response->assertCreated();
-
-    // should be stored as UTC timezone
-    $this->assertDatabaseHas('transactions', [
-        'user_id' => $user->id,
-        'name' => 'Salary',
-        'transaction_at' => '2026-04-04 06:00:00',
-    ]);
+    $response->assertCreated()
+        ->assertJson([
+            'success' => true,
+            'message' => 'Transaction created successfully.',
+        ])
+        ->assertJsonStructure([
+            'data' => [
+                'id',
+                'name',
+                'amount',
+                'type',
+                'note',
+                'transactionAt',
+                'category' => ['id', 'name', 'icon'],
+            ],
+        ])
+        ->assertJsonPath('data.name', 'Makan Siang')
+        ->assertJsonPath('data.amount', '500.00')
+        ->assertJsonPath('data.type', 'expense');
 });

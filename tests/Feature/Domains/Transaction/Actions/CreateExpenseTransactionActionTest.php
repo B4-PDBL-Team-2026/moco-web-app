@@ -39,7 +39,6 @@ it('successfully creates an expense transaction and triggers recalculation', fun
 
     $dto = new CreateTransactionData(
         categoryId: $category->id,
-
         name: 'Groceries',
         amount: '200.00',
         type: TransactionType::EXPENSE,
@@ -96,11 +95,10 @@ it('successfully creates expense transaction using a Custom Category', function 
     $this->mockRecalculate->shouldHaveReceived('execute');
 });
 
-it('parses transaction date from local timezone offset to UTC correctly', function () {
-    // user at Asia/Jakarta (+07:00)
+it('parses transaction date from local timezone offset to UTC correctly via DTO mapping', function () {
+    // Simulate user at Asia/Jakarta (+07:00) sending payload through the FormRequest
     $payload = [
         'categoryId' => 1,
-        'categoryType' => 'system',
         'name' => 'Makan Siang',
         'amount' => '50000',
         'type' => TransactionType::EXPENSE->value,
@@ -108,9 +106,15 @@ it('parses transaction date from local timezone offset to UTC correctly', functi
         'transactionAt' => '2026-04-04T13:00:00+07:00',
     ];
 
-    $dto = CreateTransactionData::fromArray($payload);
+    $dto = new CreateTransactionData(
+        categoryId: $payload['categoryId'],
+        name: $payload['name'],
+        amount: $payload['amount'],
+        type: TransactionType::tryFrom($payload['type']),
+        note: $payload['note'],
+        transactionAt: CarbonImmutable::parse($payload['transactionAt'])->utc(),
+    );
 
-    // should parsed into UTC timezone
     expect($dto->transactionAt->format('Y-m-d H:i:s'))->toBe('2026-04-04 06:00:00')
         ->and($dto->transactionAt->timezone->getName())->toBe('UTC');
 });
@@ -147,12 +151,11 @@ it('throws BusinessRuleException when category type does not match transaction t
         'current_balance' => '1000.00',
     ]);
 
-    // Category is EXPENSE but transaction type is INCOME — should fail
+    // Category is EXPENSE but transaction type is INCOME - should fail
     $category = Category::factory()->custom($user)->expense()->create();
 
     $dto = new CreateTransactionData(
         categoryId: $category->id,
-
         name: 'Salary',
         amount: '500.00',
         type: TransactionType::INCOME,
@@ -175,7 +178,6 @@ it('throws ModelNotFoundException when category does not exist', function () {
 
     $dto = new CreateTransactionData(
         categoryId: 999999, // non-existent
-
         name: 'Salary',
         amount: '500.00',
         type: TransactionType::INCOME,

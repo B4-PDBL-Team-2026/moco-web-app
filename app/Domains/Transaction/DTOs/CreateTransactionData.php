@@ -15,16 +15,4 @@ final readonly class CreateTransactionData
         public ?string $note,
         public CarbonImmutable $transactionAt,
     ) {}
-
-    public static function fromArray(array $data): self
-    {
-        return new self(
-            categoryId: (int) $data['categoryId'],
-            name: $data['name'],
-            amount: (string) $data['amount'],
-            type: TransactionType::from($data['type']),
-            note: $data['note'] ?? null,
-            transactionAt: CarbonImmutable::parse($data['transactionAt'])->utc(),
-        );
-    }
 }

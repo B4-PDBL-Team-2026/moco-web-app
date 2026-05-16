@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Transaction;
 
+use App\Domains\Transaction\DTOs\CreateTransactionData;
 use App\Domains\Transaction\Enums\TransactionType;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -28,5 +30,19 @@ class StoreTransactionRequest extends FormRequest
             'note' => ['nullable', 'string', 'max:1000'],
             'transactionAt' => ['required', 'date', 'before_or_equal:now'],
         ];
+    }
+
+    public function toDTO(): CreateTransactionData
+    {
+        $validated = $this->validated();
+
+        return new CreateTransactionData(
+            categoryId: (int) $validated['categoryId'],
+            name: $validated['name'],
+            amount: (string) $validated['amount'],
+            type: TransactionType::from($validated['type']),
+            note: $validated['note'] ?? null,
+            transactionAt: CarbonImmutable::parse($validated['transactionAt'])->utc(),
+        );
     }
 }

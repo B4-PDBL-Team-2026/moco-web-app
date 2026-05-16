@@ -49,7 +49,7 @@ class CreateIncomeTransactionAction
                 now: CarbonImmutable::now(),
             );
 
-            return $transaction;
+            return $transaction->load('category');
         });
     }
 }
