@@ -30,7 +30,7 @@ class CreateBatchTransactionAction
                 'name' => $data->name,
                 'total_amount' => $totalAmount,
                 'transaction_at' => $data->transactionAt,
-                'type' => $data->type,
+                'note' => $data->note,
             ]);
 
             // Prepare child transaction records
@@ -39,8 +39,8 @@ class CreateBatchTransactionAction
                     'transaction_batch_id' => $batch->id,
                     'user_id' => $userId,
                     'category_id' => $item->categoryId,
-                    'type' => $data->type->value,
-                    'source' => TransactionSource::RECEIPT_SCAN->value,
+                    'type' => $item->type->value,
+                    'source' => $data->source->value,
                     'name' => $item->name,
                     'amount' => $item->amount,
                     'transaction_at' => $data->transactionAt,

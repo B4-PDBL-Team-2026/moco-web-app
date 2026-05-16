@@ -19,7 +19,7 @@ class TransactionBatch extends Model
         'user_id',
         'name',
         'total_amount',
-        'type',
+        'note',
         'transaction_at',
     ];
 

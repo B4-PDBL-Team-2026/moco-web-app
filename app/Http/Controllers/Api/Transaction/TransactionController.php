@@ -52,7 +52,7 @@ class TransactionController extends Controller
     {
         Gate::authorize('view-any', Transaction::class);
 
-        $filterData = FilterTransactionData::fromArray($request->validated());
+        $filterData = $request->toDTO();
 
         $result = $action->execute(Auth::id(), $filterData);
 

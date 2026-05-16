@@ -1,6 +1,7 @@
 <?php
 
 use App\Domains\Category\Models\Category;
+use App\Domains\Transaction\Enums\TransactionSource;
 use App\Domains\Transaction\Enums\TransactionType;
 use App\Domains\User\Models\User;
 
@@ -14,7 +15,7 @@ it('validates required payload for batch transaction', function () {
     $response = $this->actingAs($user)->postJson('/api/transaction/batch', []);
 
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['name', 'type', 'transactionAt', 'items']);
+        ->assertJsonValidationErrors(['name', 'transactionAt', 'items']);
 });
 
 it('validates nested items array payload correctly', function () {
@@ -22,7 +23,6 @@ it('validates nested items array payload correctly', function () {
 
     $payload = [
         'name' => 'Belanja Validasi',
-        'type' => TransactionType::EXPENSE->value,
         'transactionAt' => now()->toDateTimeString(),
         'items' => [
             [
@@ -40,7 +40,32 @@ it('validates nested items array payload correctly', function () {
             'items.0.name',
             'items.0.amount',
             'items.0.categoryId',
+            'items.0.type',
         ]);
+});
+
+it('validates source enum correctly', function () {
+    $user = User::factory()->create();
+    $category = Category::factory()->create(['user_id' => $user->id]);
+
+    $payload = [
+        'name' => 'Test Source',
+        'transactionAt' => now()->toDateTimeString(),
+        'source' => 'invalid_source_type',
+        'items' => [
+            [
+                'name' => 'Item',
+                'amount' => 10000,
+                'categoryId' => $category->id,
+                'type' => TransactionType::EXPENSE->value,
+            ],
+        ],
+    ];
+
+    $response = $this->actingAs($user)->postJson('/api/transaction/batch', $payload);
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['source']);
 });
 
 it('successfully stores batch transaction and returns correct resource format', function () {
@@ -49,18 +74,21 @@ it('successfully stores batch transaction and returns correct resource format', 
 
     $payload = [
         'name' => 'Belanja Supermarket',
-        'type' => TransactionType::EXPENSE->value,
         'transactionAt' => '2026-04-15 12:00:00',
+        'note' => 'Catatan batch',
+        'source' => TransactionSource::RECEIPT_SCAN->value,
         'items' => [
             [
                 'name' => 'Sabun Mandi',
                 'amount' => 20000,
                 'categoryId' => $category->id,
+                'type' => TransactionType::EXPENSE->value,
             ],
             [
                 'name' => 'Shampoo',
                 'amount' => 35000,
                 'categoryId' => $category->id,
+                'type' => TransactionType::EXPENSE->value,
                 'note' => 'Beli yang botol gede',
             ],
         ],
@@ -79,6 +107,7 @@ it('successfully stores batch transaction and returns correct resource format', 
                 'name',
                 'totalAmount',
                 'transactionAt',
+                'note',
                 'items' => [
                     '*' => [
                         'id', 'name', 'amount', 'type', 'source', 'note', 'transactionAt',
@@ -88,8 +117,33 @@ it('successfully stores batch transaction and returns correct resource format', 
             ],
         ])
         ->assertJsonPath('data.name', 'Belanja Supermarket')
+        ->assertJsonPath('data.note', 'Catatan batch')
         ->assertJsonPath('data.totalAmount', '55000.00')
         ->assertJsonCount(2, 'data.items')
         ->assertJsonPath('data.items.0.name', 'Sabun Mandi')
+        ->assertJsonPath('data.items.0.type', 'expense')
         ->assertJsonPath('data.items.0.source', 'receipt_scan');
+});
+
+it('defaults source to manual if not provided', function () {
+    $user = User::factory()->create();
+    $category = Category::factory()->create(['user_id' => $user->id]);
+
+    $payload = [
+        'name' => 'Belanja Default Source',
+        'transactionAt' => '2026-04-15 12:00:00',
+        'items' => [
+            [
+                'name' => 'Item 1',
+                'amount' => 10000,
+                'categoryId' => $category->id,
+                'type' => TransactionType::EXPENSE->value,
+            ],
+        ],
+    ];
+
+    $response = $this->actingAs($user)->postJson('/api/transaction/batch', $payload);
+
+    $response->assertCreated()
+        ->assertJsonPath('data.items.0.source', 'manual');
 });

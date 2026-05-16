@@ -4,6 +4,7 @@ use App\Domains\Category\Models\Category;
 use App\Domains\Transaction\Actions\CreateBatchTransactionAction;
 use App\Domains\Transaction\DTOs\CreateBatchTransactionData;
 use App\Domains\Transaction\DTOs\CreateBatchTransactionItemData;
+use App\Domains\Transaction\Enums\TransactionSource;
 use App\Domains\Transaction\Enums\TransactionType;
 use App\Domains\Transaction\Models\TransactionBatch;
 use App\Domains\User\Models\User;
@@ -14,33 +15,32 @@ it('successfully stores a batch and its items with correct total amount', functi
 
     $data = new CreateBatchTransactionData(
         name: 'Belanja Indomaret',
-        type: TransactionType::EXPENSE,
+        note: 'Beli bulanan',
         transactionAt: '2026-05-15 10:00:00',
+        source: TransactionSource::RECEIPT_SCAN,
         items: [
-            new CreateBatchTransactionItemData(name: 'Indomie Goreng', amount: '15000.50', categoryId: $category->id),
-            new CreateBatchTransactionItemData(name: 'Telur Ayam', amount: '25000.00', categoryId: $category->id, note: 'Beli 1 Kg'),
+            new CreateBatchTransactionItemData(name: 'Indomie Goreng', amount: '15000.50', categoryId: $category->id, type: TransactionType::EXPENSE),
+            new CreateBatchTransactionItemData(name: 'Telur Ayam', amount: '25000.00', categoryId: $category->id, type: TransactionType::EXPENSE, note: 'Beli 1 Kg'),
         ]
     );
 
     $action = app(CreateBatchTransactionAction::class);
     $batch = $action->execute($user->id, $data);
 
-    // Assert return type and loaded relation
     expect($batch)->toBeInstanceOf(TransactionBatch::class)
         ->and($batch->relationLoaded('transactions'))->toBeTrue()
         ->and($batch->transactions)->toHaveCount(2)
         ->and((float) $batch->total_amount)->toBe(40000.50)
-        ->and($batch->name)->toBe('Belanja Indomaret');
+        ->and($batch->name)->toBe('Belanja Indomaret')
+        ->and($batch->note)->toBe('Beli bulanan');
 
-    // Assert calculated total is correct (15000.50 + 25000.00 = 40000.50)
-    // Note: Cast to float for exact Pest comparison if your DB returns decimal as string
     $this->assertDatabaseHas('transaction_batches', [
         'id' => $batch->id,
         'user_id' => $user->id,
         'total_amount' => 40000.50,
+        'note' => 'Beli bulanan',
     ]);
 
-    // Assert Child Database Records (Items)
     $this->assertDatabaseHas('transactions', [
         'transaction_batch_id' => $batch->id,
         'user_id' => $user->id,
@@ -48,6 +48,7 @@ it('successfully stores a batch and its items with correct total amount', functi
         'name' => 'Indomie Goreng',
         'amount' => 15000.50,
         'source' => 'receipt_scan',
+        'type' => 'expense',
     ]);
 
     $this->assertDatabaseHas('transactions', [
@@ -55,6 +56,7 @@ it('successfully stores a batch and its items with correct total amount', functi
         'name' => 'Telur Ayam',
         'note' => 'Beli 1 Kg',
         'source' => 'receipt_scan',
+        'type' => 'expense',
     ]);
 });
 
@@ -65,10 +67,11 @@ it('rolls back database if an item insertion fails', function () {
 
     $data = new CreateBatchTransactionData(
         name: 'Belanja Gagal',
-        type: TransactionType::EXPENSE,
+        note: null,
         transactionAt: '2026-05-15 10:00:00',
+        source: TransactionSource::RECEIPT_SCAN,
         items: [
-            new CreateBatchTransactionItemData(name: 'Item 1', amount: '10000', categoryId: $invalidCategoryId),
+            new CreateBatchTransactionItemData(name: 'Item 1', amount: '10000', categoryId: $invalidCategoryId, type: TransactionType::EXPENSE),
         ]
     );
 
@@ -79,5 +82,33 @@ it('rolls back database if an item insertion fails', function () {
     $this->assertDatabaseMissing('transaction_batches', [
         'name' => 'Belanja Gagal',
         'user_id' => $user->id,
+    ]);
+});
+
+it('handles mixed income and expense types in a single batch', function () {
+    $user = User::factory()->create();
+    $category = Category::factory()->create(['user_id' => $user->id]);
+
+    $data = new CreateBatchTransactionData(
+        name: 'Mixed Batch',
+        note: null,
+        transactionAt: '2026-05-15 10:00:00',
+        source: TransactionSource::MANUAL,
+        items: [
+            new CreateBatchTransactionItemData(name: 'Beli Barang', amount: '50000', categoryId: $category->id, type: TransactionType::EXPENSE),
+            new CreateBatchTransactionItemData(name: 'Cashback Promo', amount: '10000', categoryId: $category->id, type: TransactionType::INCOME),
+        ]
+    );
+
+    $action = app(CreateBatchTransactionAction::class);
+    $batch = $action->execute($user->id, $data);
+
+    expect((float) $batch->total_amount)->toBe(60000.00);
+
+    $this->assertDatabaseHas('transactions', [
+        'transaction_batch_id' => $batch->id,
+        'name' => 'Cashback Promo',
+        'type' => 'income',
+        'source' => 'manual',
     ]);
 });

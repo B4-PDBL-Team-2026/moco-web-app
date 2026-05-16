@@ -19,18 +19,21 @@ test('returns batch details with correct resource structure', function () {
 
     $category = Category::factory()->create(['user_id' => $this->user->id]);
 
-    $batch = TransactionBatch::factory()->expense()->create([
+    $batch = TransactionBatch::factory()->create([
         'user_id' => $this->user->id,
         'name' => 'Struk Indomaret',
+        'note' => 'Snacks',
         'total_amount' => 50000,
     ]);
 
-    $transaction = Transaction::factory()->expense()->create([
+    $transaction = Transaction::factory()->create([
         'user_id' => $this->user->id,
         'transaction_batch_id' => $batch->id,
         'category_id' => $category->id,
         'name' => 'Susu Beruang',
         'amount' => 50000,
+        'type' => 'expense',
+        'source' => 'receipt_scan',
     ]);
 
     $response = $this->getJson("/api/transaction/batch/{$batch->id}");
@@ -44,6 +47,7 @@ test('returns batch details with correct resource structure', function () {
             'data' => [
                 'id',
                 'name',
+                'note',
                 'totalAmount',
                 'transactionAt',
                 'items' => [
@@ -66,15 +70,31 @@ test('returns batch details with correct resource structure', function () {
         ])
         ->assertJsonPath('data.id', $batch->id)
         ->assertJsonPath('data.name', 'Struk Indomaret')
+        ->assertJsonPath('data.note', 'Snacks')
         ->assertJsonPath('data.items.0.id', $transaction->id)
         ->assertJsonPath('data.items.0.category.id', $category->id);
+});
+
+test('returns batch details with empty items if no transactions exist', function () {
+    Sanctum::actingAs($this->user);
+
+    $batch = TransactionBatch::factory()->create([
+        'user_id' => $this->user->id,
+        'total_amount' => 0,
+    ]);
+
+    $response = $this->getJson("/api/transaction/batch/{$batch->id}");
+
+    $response->assertOk()
+        ->assertJsonPath('data.id', $batch->id)
+        ->assertJsonCount(0, 'data.items');
 });
 
 test('returns error when trying to access other users batch', function () {
     Sanctum::actingAs($this->user);
 
     $otherUser = User::factory()->create();
-    $otherBatch = TransactionBatch::factory()->expense()->create([
+    $otherBatch = TransactionBatch::factory()->create([
         'user_id' => $otherUser->id,
     ]);
 

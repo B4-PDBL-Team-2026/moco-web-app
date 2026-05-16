@@ -3,6 +3,7 @@
 namespace App\Domains\Transaction\Actions;
 
 use App\Domains\Transaction\DTOs\FilterTransactionData;
+use App\Domains\Transaction\Enums\TransactionFeedType;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +26,7 @@ class GetAllTransactionAction
                 't.note',
                 'c.name as category_name',
                 'c.icon as category_icon',
-                DB::raw("'transaction' as feed_type")
+                DB::raw("'".TransactionFeedType::SINGLE->value."' as feed_type")
             )
             ->where('t.user_id', '=', $userId)
             ->whereNull('t.transaction_batch_id')
@@ -33,9 +34,20 @@ class GetAllTransactionAction
 
         $this->applyCommonFilters($singleTransaction, $data, 't');
 
-        // apply category filters on single transaction
-        $singleTransaction
-            ->when($data->categoryId, fn (Builder $query) => $query->where('t.category_id', '=', $data->categoryId));
+        // apply category filters on single transaction records
+        $singleTransaction->when($data->categoryId, function (Builder $query) use ($data) {
+            $query->where('t.category_id', '=', $data->categoryId);
+        });
+
+        // apply type filters on single transaction records
+        $singleTransaction->when($data->transactionType, function (Builder $query) use ($data) {
+            $query->where('t.type', '=', $data->transactionType->value);
+        });
+
+        // exclude single record transaction when user request batch only query
+        $singleTransaction->when($data->transactionFeedType === TransactionFeedType::BATCH, function (Builder $query) {
+            $query->whereRaw('1 = 0');
+        });
 
         // batch transaction query
         $batchTransaction = DB::table('transaction_batches as tb')
@@ -44,19 +56,20 @@ class GetAllTransactionAction
                 'tb.name',
                 'tb.total_amount as amount',
                 'tb.transaction_at',
-                'tb.type',
+                DB::raw('NULL as type'),
                 DB::raw('NULL as category_id'),
                 DB::raw('NULL as category_name'),
                 DB::raw('NULL as category_icon'),
                 DB::raw('NULL as note'),
-                DB::raw("'receipt_scan' as source"),
-                DB::raw("'batch' as feed_type"),
+                DB::raw('NULL as source'),
+                DB::raw("'".TransactionFeedType::BATCH->value."' as feed_type"),
             )
             ->where('tb.user_id', $userId)
             ->whereNull('tb.deleted_at');
 
         $this->applyCommonFilters($batchTransaction, $data, 'tb');
 
+        // apply category filters on batch transaction records
         $batchTransaction->when($data->categoryId, function (Builder $query) use ($data) {
             $query->whereIn('tb.id', function (Builder $subQuery) use ($data) {
                 $subQuery->select('item.transaction_batch_id')
@@ -66,6 +79,23 @@ class GetAllTransactionAction
                     ->whereNotNull('item.transaction_batch_id');
             });
         });
+
+        // apply transaction type filters on batch transaction records
+        $batchTransaction->when($data->transactionType, function (Builder $query) use ($data) {
+            $query->whereIn('tb.id', function (Builder $subQuery) use ($data) {
+                $subQuery->select('item.transaction_batch_id')
+                    ->from('transactions as item')
+                    ->where('item.type', '=', $data->transactionType->value)
+                    ->whereNull('item.deleted_at')
+                    ->whereNotNull('item.transaction_batch_id');
+            });
+        });
+
+        // exclude batch record transaction when user request batch only query
+        $batchTransaction->when(
+            $data->transactionFeedType === TransactionFeedType::SINGLE, function (Builder $query) {
+                $query->whereRaw('1 = 0');
+            });
 
         return $singleTransaction
             ->union($batchTransaction)

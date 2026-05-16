@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->decimal('total_amount', 15, 2)->default(0);
-            $table->string('type');
+            $table->text('note')->nullable();
             $table->dateTime('transaction_at');
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->timestamps();

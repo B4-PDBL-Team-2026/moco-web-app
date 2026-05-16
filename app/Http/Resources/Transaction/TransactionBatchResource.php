@@ -17,6 +17,7 @@ class TransactionBatchResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'note' => $this->note,
             'totalAmount' => $this->total_amount,
             'transactionAt' => $this->transaction_at?->toIso8601String(),
             'items' => $this->whenLoaded('transactions', function () {

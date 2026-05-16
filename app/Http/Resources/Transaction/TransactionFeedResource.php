@@ -15,14 +15,12 @@ class TransactionFeedResource extends JsonResource
             'name' => $this->name,
             'amount' => $this->amount,
             'type' => $this->type,
-            'source' => $this->feed_type === 'transaction' ?
+            'note' => $this->note,
+            'transactionAt' => date('c', strtotime($this->transaction_at)),
+            'source' => $this->feed_type === 'single' ?
                 $this->source
                 : null,
-            'note' => $this->feed_type === 'transaction' ?
-                $this->note
-                : null,
-            'transactionAt' => date('c', strtotime($this->transaction_at)),
-            'category' => $this->feed_type === 'transaction' ? [
+            'category' => $this->feed_type === 'single' ? [
                 'id' => $this->category_id,
                 'name' => $this->category_name,
                 'icon' => $this->category_icon,

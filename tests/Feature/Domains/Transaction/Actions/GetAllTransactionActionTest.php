@@ -3,6 +3,8 @@
 use App\Domains\Category\Models\Category;
 use App\Domains\Transaction\Actions\GetAllTransactionAction;
 use App\Domains\Transaction\DTOs\FilterTransactionData;
+use App\Domains\Transaction\Enums\TransactionFeedType;
+use App\Domains\Transaction\Enums\TransactionType;
 use App\Domains\Transaction\Models\Transaction;
 use App\Domains\Transaction\Models\TransactionBatch;
 use App\Domains\User\Models\User;
@@ -20,6 +22,8 @@ if (! function_exists('txFilters')) {
             search: $overrides['search'] ?? null,
             categoryId: $overrides['categoryId'] ?? null,
             perPage: $overrides['perPage'] ?? 10,
+            transactionType: isset($overrides['transactionType']) ? TransactionType::tryFrom($overrides['transactionType']) : null,
+            transactionFeedType: isset($overrides['transactionFeedType']) ? TransactionFeedType::tryFrom($overrides['transactionFeedType']) : null,
         );
     }
 }
@@ -29,19 +33,20 @@ if (! function_exists('makeTx')) {
     {
         $cat = $category ?? Category::factory()->create(['user_id' => $user->id, 'type' => 'expense']);
 
-        return Transaction::factory()->expense()->create(array_merge([
+        return Transaction::factory()->create(array_merge([
             'user_id' => $user->id,
             'category_id' => $cat->id,
+            'type' => 'expense',
             'transaction_at' => '2026-03-15 10:00:00',
-            'transaction_batch_id' => null, // Pastikan ini single tx
+            'transaction_batch_id' => null,
         ], $overrides));
     }
 }
 
 if (! function_exists('makeBatchTx')) {
-    function makeBatchTx(User $user, array $overrides = [], array $itemCategories = []): TransactionBatch
+    function makeBatchTx(User $user, array $overrides = [], array $itemCategories = [], string $itemType = 'expense'): TransactionBatch
     {
-        $batch = TransactionBatch::factory()->expense()->create(array_merge([
+        $batch = TransactionBatch::factory()->create(array_merge([
             'user_id' => $user->id,
             'name' => 'Struk Belanja',
             'total_amount' => 50000,
@@ -53,7 +58,8 @@ if (! function_exists('makeBatchTx')) {
                 'user_id' => $user->id,
                 'transaction_batch_id' => $batch->id,
                 'category_id' => $catId,
-                'amount' => 10000, // Dummy
+                'type' => $itemType,
+                'amount' => 10000,
                 'transaction_at' => $batch->transaction_at,
             ]);
         }
@@ -80,9 +86,8 @@ it('returns a LengthAwarePaginator containing both single and batch transactions
     expect($result)->toBeInstanceOf(LengthAwarePaginator::class)
         ->and($result->total())->toBe(2);
 
-    // Pastikan property feed_type ter-mapping dengan benar
     $feedTypes = collect($result->items())->pluck('feed_type')->toArray();
-    expect($feedTypes)->toContain('transaction', 'batch');
+    expect($feedTypes)->toContain('single', 'batch');
 });
 
 it('returns transactions only for the given user', function () {
@@ -108,7 +113,7 @@ it('filters both feeds by month', function () {
 
     expect($result->total())->toBe(1)
         ->and(Carbon::parse($result->items()[0]->transaction_at)->format('m'))->toBe('03')
-        ->and($result->items()[0]->feed_type)->toBe('transaction');
+        ->and($result->items()[0]->feed_type)->toBe('single');
 });
 
 it('filters both feeds by year', function () {
@@ -151,13 +156,52 @@ it('filters batch transactions if ANY of its items match the categoryId', functi
     $otherCat = Category::factory()->create(['user_id' => $this->user->id]);
 
     makeBatchTx($this->user, ['name' => 'Batch Target'], [$otherCat->id, $targetCat->id]);
-
     makeBatchTx($this->user, ['name' => 'Batch Miss'], [$otherCat->id, $otherCat->id]);
 
     $result = $this->action->execute($this->user->id, txFilters(['categoryId' => $targetCat->id]));
 
     expect($result->total())->toBe(1)
         ->and($result->items()[0]->name)->toBe('Batch Target');
+});
+
+it('filters both feeds by transactionType', function () {
+    $expenseCat = Category::factory()->create(['user_id' => $this->user->id]);
+    $incomeCat = Category::factory()->create(['user_id' => $this->user->id]);
+
+    makeTx($this->user, ['type' => 'expense', 'name' => 'Expense Tx']);
+    makeTx($this->user, ['type' => 'income', 'name' => 'Income Tx']);
+
+    makeBatchTx($this->user, ['name' => 'Expense Batch'], [$expenseCat->id], 'expense');
+    makeBatchTx($this->user, ['name' => 'Income Batch'], [$incomeCat->id], 'income');
+
+    $result = $this->action->execute($this->user->id, txFilters(['transactionType' => 'expense']));
+
+    expect($result->total())->toBe(2);
+    $names = collect($result->items())->pluck('name')->toArray();
+    expect($names)->toContain('Expense Tx', 'Expense Batch')
+        ->not->toContain('Income Tx', 'Income Batch');
+});
+
+it('filters feeds by transactionFeedType single', function () {
+    makeTx($this->user, ['name' => 'Single Record']);
+    makeBatchTx($this->user, ['name' => 'Batch Record']);
+
+    $result = $this->action->execute($this->user->id, txFilters(['transactionFeedType' => 'single']));
+
+    expect($result->total())->toBe(1)
+        ->and($result->items()[0]->name)->toBe('Single Record')
+        ->and($result->items()[0]->feed_type)->toBe('single');
+});
+
+it('filters feeds by transactionFeedType batch', function () {
+    makeTx($this->user, ['name' => 'Single Record']);
+    makeBatchTx($this->user, ['name' => 'Batch Record']);
+
+    $result = $this->action->execute($this->user->id, txFilters(['transactionFeedType' => 'batch']));
+
+    expect($result->total())->toBe(1)
+        ->and($result->items()[0]->name)->toBe('Batch Record')
+        ->and($result->items()[0]->feed_type)->toBe('batch');
 });
 
 // EDGE CASES & SORTING
@@ -186,7 +230,6 @@ it('excludes soft-deleted records from both single and batch transactions', func
 });
 
 it('respects the perPage value for union queries', function () {
-    // Total 15 data: 10 tx, 5 batch
     for ($i = 0; $i < 10; $i++) {
         makeTx($this->user);
     }

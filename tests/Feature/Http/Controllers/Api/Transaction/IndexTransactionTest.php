@@ -51,13 +51,29 @@ test('validates categoryId parameter', function () {
 test('validates perPage parameter', function () {
     Sanctum::actingAs($this->user);
 
-    $this->getJson("{$this->endpoint}?perPage=101") // Max 100
+    $this->getJson("{$this->endpoint}?perPage=101")
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['perPage']);
 
-    $this->getJson("{$this->endpoint}?perPage=0") // Min 1
+    $this->getJson("{$this->endpoint}?perPage=0")
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['perPage']);
+});
+
+test('validates transactionType parameter', function () {
+    Sanctum::actingAs($this->user);
+
+    $this->getJson("{$this->endpoint}?transactionType=invalid_type")
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['transactionType']);
+});
+
+test('validates transactionFeedType parameter', function () {
+    Sanctum::actingAs($this->user);
+
+    $this->getJson("{$this->endpoint}?transactionFeedType=invalid_feed")
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['transactionFeedType']);
 });
 
 // STRUCTURAL & HAPPY PATH TESTS
@@ -73,10 +89,12 @@ test('returns paginated activity feed with correct mixed resource structure', fu
         'name' => 'Beli Cilok',
         'amount' => 15000,
         'type' => 'expense',
+        'source' => 'manual',
+        'note' => 'Cilok mang oleh',
         'transaction_at' => Carbon::now()->subHours(2)->toDateTimeString(),
     ]);
 
-    $batchTx = TransactionBatch::factory()->expense()->create([
+    $batchTx = TransactionBatch::factory()->create([
         'user_id' => $this->user->id,
         'name' => 'Belanja Superindo',
         'total_amount' => 150000,
@@ -95,6 +113,8 @@ test('returns paginated activity feed with correct mixed resource structure', fu
                     'name',
                     'amount',
                     'type',
+                    'note',
+                    'source',
                     'transactionAt',
                     'feedType',
                     'category',
@@ -113,11 +133,17 @@ test('returns paginated activity feed with correct mixed resource structure', fu
         ->assertJsonPath('data.0.feedType', 'batch')
         ->assertJsonPath('data.0.name', 'Belanja Superindo')
         ->assertJsonPath('data.0.amount', 150000)
+        ->assertJsonPath('data.0.type', null)
+        ->assertJsonPath('data.0.note', null)
+        ->assertJsonPath('data.0.source', null)
         ->assertJsonPath('data.0.category', null);
 
     $response->assertJsonPath('data.1.id', $singleTx->id)
-        ->assertJsonPath('data.1.feedType', 'transaction')
+        ->assertJsonPath('data.1.feedType', 'single')
         ->assertJsonPath('data.1.name', 'Beli Cilok')
+        ->assertJsonPath('data.1.type', 'expense')
+        ->assertJsonPath('data.1.source', 'manual')
+        ->assertJsonPath('data.1.note', 'Cilok mang oleh')
         ->assertJsonPath('data.1.category.id', $category->id)
         ->assertJsonPath('data.1.category.name', $category->name);
 });
@@ -130,7 +156,7 @@ test('applies search filter via query params correctly', function () {
         'name' => 'Bensin Pertamax',
     ]);
 
-    TransactionBatch::factory()->expense()->create([
+    TransactionBatch::factory()->create([
         'user_id' => $this->user->id,
         'name' => 'Tagihan Listrik',
     ]);
@@ -140,6 +166,50 @@ test('applies search filter via query params correctly', function () {
     $response->assertOk()
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.name', 'Tagihan Listrik')
+        ->assertJsonPath('data.0.feedType', 'batch');
+});
+
+test('applies transactionType filter via query params correctly', function () {
+    Sanctum::actingAs($this->user);
+
+    Transaction::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Expense Tx',
+        'type' => 'expense',
+    ]);
+
+    Transaction::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Income Tx',
+        'type' => 'income',
+    ]);
+
+    $response = $this->getJson("{$this->endpoint}?transactionType=income");
+
+    $response->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.name', 'Income Tx')
+        ->assertJsonPath('data.0.type', 'income');
+});
+
+test('applies transactionFeedType filter via query params correctly', function () {
+    Sanctum::actingAs($this->user);
+
+    Transaction::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Single Record',
+    ]);
+
+    TransactionBatch::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Batch Record',
+    ]);
+
+    $response = $this->getJson("{$this->endpoint}?transactionFeedType=batch");
+
+    $response->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.name', 'Batch Record')
         ->assertJsonPath('data.0.feedType', 'batch');
 });
 
