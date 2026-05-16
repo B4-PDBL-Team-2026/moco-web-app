@@ -42,6 +42,15 @@ function setupUserWithBudget(array $settingOverrides = [], string $initialTransa
         'transaction_at' => $initialTransactionDate,
     ]);
 
+    UserBudgetSnapshot::factory()->create([
+        'user_id' => $user->id,
+        'current_cycle_key' => '2026-03',
+        'cycle_start_date' => '2026-03-01',
+        'cycle_end_date' => '2026-03-31',
+        'remaining_days' => 10,
+        'current_balance' => $settings->initial_balance,
+    ]);
+
     return [$user, $category];
 }
 
