@@ -13,7 +13,7 @@ class SendFixedCostReminders extends Command
 
     public function handle(): void
     {
-        $items = FixedCostOccurrence::with(['user', 'template'])
+        $items = FixedCostOccurrence::with(['user'])
             ->where('due_date', '<=', Carbon::today())
             ->whereIn('status', ['pending', 'overdue'])
             ->whereNull('paid_at')
@@ -21,7 +21,7 @@ class SendFixedCostReminders extends Command
             ->get();
 
         foreach ($items as $item) {
-            $item->template->user->notify(new FixedCostOccurrenceNotification($item));
+            $item->user->notify(new FixedCostOccurrenceNotification($item));
         }
 
         $this->info('Fixed cost notifications sent successfully');
