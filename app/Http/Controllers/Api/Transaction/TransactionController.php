@@ -32,7 +32,8 @@ use Throwable;
 class TransactionController extends Controller
 {
     /**
-     * Retrieve a paginated and filtered list of user transactions.
+     * Retrieve a paginated and filtered list of user transaction.
+     * Return both single transaction and batch transaction records.
      *
      * @response array{
      *     success: bool,
@@ -62,7 +63,15 @@ class TransactionController extends Controller
     }
 
     /**
+     * Store a batch of transactions.
+     *
      * @throws Throwable
+     *
+     * @response array{
+     * success: bool,
+     * message: string,
+     * data: TransactionBatchResource
+     * }
      */
     public function storeBatch(StoreBatchTransactionRequest $request, CreateBatchTransactionAction $action): ApiResponse
     {
@@ -80,14 +89,14 @@ class TransactionController extends Controller
     }
 
     /**
-     * Create a batch of transactions from a scanned receipt.
+     * Store single transaction record.
      *
      * @throws Throwable
      *
      * @response array{
      * success: bool,
      * message: string,
-     * data: TransactionBatchResource
+     * data: TransactionResource
      * }
      */
     public function store(StoreTransactionRequest $request, CreateTransactionAction $action): ApiResponse
