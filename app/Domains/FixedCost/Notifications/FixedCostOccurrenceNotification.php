@@ -33,8 +33,8 @@ class FixedCostOccurrenceNotification extends Notification implements ShouldQueu
 
         return [
             'id' => $this->occurrence->id,
-            'title' => 'Pengingat Pembayaran: '.$this->occurrence->name,
-            'message' => 'Tagihan sebesar '.$formattedAmount.' akan segera jatuh tempo.',
+            'title' => 'Waktunya bayar '.$this->occurrence->name.' nih!',
+            'message' => 'Tagihan sebesar '.$formattedAmount.' udah mau jatuh tempo, jangan sampai lewat ya!',
             'code' => NotificationCode::FIXED_COST_REMINDER->value,
         ];
     }
@@ -46,12 +46,12 @@ class FixedCostOccurrenceNotification extends Notification implements ShouldQueu
 
         return new PushMessage(
             deviceToken: '',
-            title: "Pengingat Pembayaran: {$name}",
-            body: "Tagihan sebesar {$formattedAmount} akan segera jatuh tempo.",
+            title: 'Waktunya bayar '.$this->occurrence->name.' nih!',
+            body: 'Tagihan sebesar '.$formattedAmount.' udah mau jatuh tempo, jangan sampai lewat ya!',
             data: [
                 'id' => $this->id,
-                'title' => 'Pengingat Pembayaran: '.$this->occurrence->name,
-                'message' => 'Tagihan sebesar '.$formattedAmount.' akan segera jatuh tempo.',
+                'title' => 'Waktunya bayar '.$this->occurrence->name.' nih!',
+                'message' => 'Tagihan sebesar '.$formattedAmount.' udah mau jatuh tempo, jangan sampai lewat ya!',
                 'isRead' => 'false',
                 'readAt' => '',
                 'createdAt' => now()->toIso8601String(),
