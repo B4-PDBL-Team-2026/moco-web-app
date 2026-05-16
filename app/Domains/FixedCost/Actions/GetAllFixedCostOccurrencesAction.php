@@ -47,7 +47,10 @@ final readonly class GetAllFixedCostOccurrencesAction
                     $snapshot->cycle_end_date,
                 ])->orWhere(function (Builder $subQuery) use ($snapshot) {
                     $subQuery->where('due_date', '<', $snapshot->cycle_start_date)
-                        ->where('status', FixedCostOccurenceStatus::OVERDUE->value);
+                        ->whereIn('status', [
+                            FixedCostOccurenceStatus::OVERDUE->value,
+                            FixedCostOccurenceStatus::PENDING->value,
+                        ]);
                 });
             });
         }
