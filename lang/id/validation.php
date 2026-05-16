@@ -240,6 +240,8 @@ return [
         'month' => 'bulan',
         'year' => 'tahun',
         'search' => 'kata kunci pencarian',
+        'transactionType' => 'tipe transaksi',
+        'transactionFeedType' => 'jenis catatan transaksi',
         'transactionAt' => 'tanggal transaksi',
         'email' => 'alamat email',
         'password' => 'kata sandi',
@@ -249,6 +251,7 @@ return [
         'avatar_url' => 'link foto profil',
         'currency' => 'mata uang',
         'locale' => 'bahasa',
+        'source' => 'asal transaksi',
     ],
 
 ];
