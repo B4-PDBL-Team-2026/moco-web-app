@@ -3,7 +3,6 @@
 namespace App\Domains\Transaction\Actions;
 
 use App\Domains\Transaction\DTOs\CreateBatchTransactionData;
-use App\Domains\Transaction\Enums\TransactionSource;
 use App\Domains\Transaction\Models\TransactionBatch;
 use Illuminate\Support\Facades\DB;
 use Throwable;
