@@ -8,5 +8,5 @@ enum TransactionSource: string
     case MANUAL = 'manual';
     case FIXED_COST_PAYMENT = 'fixed_cost_payment';
 
-    case RECEIPT_SCAN = 'receipt_scan';
+    case BATCH = 'batch';
 }

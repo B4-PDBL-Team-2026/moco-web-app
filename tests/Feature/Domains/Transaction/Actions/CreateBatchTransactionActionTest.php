@@ -17,7 +17,7 @@ it('successfully stores a batch and its items with correct total amount', functi
         name: 'Belanja Indomaret',
         note: 'Beli bulanan',
         transactionAt: '2026-05-15 10:00:00',
-        source: TransactionSource::RECEIPT_SCAN,
+        source: TransactionSource::BATCH,
         items: [
             new CreateBatchTransactionItemData(name: 'Indomie Goreng', amount: '15000.50', categoryId: $category->id, type: TransactionType::EXPENSE),
             new CreateBatchTransactionItemData(name: 'Telur Ayam', amount: '25000.00', categoryId: $category->id, type: TransactionType::EXPENSE, note: 'Beli 1 Kg'),
@@ -47,7 +47,7 @@ it('successfully stores a batch and its items with correct total amount', functi
         'category_id' => $category->id,
         'name' => 'Indomie Goreng',
         'amount' => 15000.50,
-        'source' => 'receipt_scan',
+        'source' => TransactionSource::BATCH->value,
         'type' => 'expense',
     ]);
 
@@ -55,7 +55,7 @@ it('successfully stores a batch and its items with correct total amount', functi
         'transaction_batch_id' => $batch->id,
         'name' => 'Telur Ayam',
         'note' => 'Beli 1 Kg',
-        'source' => 'receipt_scan',
+        'source' => TransactionSource::BATCH->value,
         'type' => 'expense',
     ]);
 });
@@ -69,7 +69,7 @@ it('rolls back database if an item insertion fails', function () {
         name: 'Belanja Gagal',
         note: null,
         transactionAt: '2026-05-15 10:00:00',
-        source: TransactionSource::RECEIPT_SCAN,
+        source: TransactionSource::BATCH,
         items: [
             new CreateBatchTransactionItemData(name: 'Item 1', amount: '10000', categoryId: $invalidCategoryId, type: TransactionType::EXPENSE),
         ]

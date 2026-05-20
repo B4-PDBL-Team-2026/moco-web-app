@@ -17,9 +17,7 @@ class TransactionFeedResource extends JsonResource
             'type' => $this->type,
             'note' => $this->note,
             'transactionAt' => date('c', strtotime($this->transaction_at)),
-            'source' => $this->feed_type === 'single' ?
-                $this->source
-                : null,
+            'source' => $this->source,
             'category' => $this->feed_type === 'single' ? [
                 'id' => $this->category_id,
                 'name' => $this->category_name,

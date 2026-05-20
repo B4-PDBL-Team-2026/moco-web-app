@@ -76,7 +76,7 @@ it('successfully stores batch transaction and returns correct resource format', 
         'name' => 'Belanja Supermarket',
         'transactionAt' => '2026-04-15 12:00:00',
         'note' => 'Catatan batch',
-        'source' => TransactionSource::RECEIPT_SCAN->value,
+        'source' => TransactionSource::BATCH->value,
         'items' => [
             [
                 'name' => 'Sabun Mandi',
@@ -122,7 +122,7 @@ it('successfully stores batch transaction and returns correct resource format', 
         ->assertJsonCount(2, 'data.items')
         ->assertJsonPath('data.items.0.name', 'Sabun Mandi')
         ->assertJsonPath('data.items.0.type', 'expense')
-        ->assertJsonPath('data.items.0.source', 'receipt_scan');
+        ->assertJsonPath('data.items.0.source', TransactionSource::BATCH->value);
 });
 
 it('defaults source to manual if not provided', function () {

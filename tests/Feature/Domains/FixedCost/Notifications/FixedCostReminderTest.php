@@ -29,8 +29,8 @@ it('formats the database array correctly for In-App Notification', function () {
     $formattedNumber = Number::currency($occurrence->amount, 'IDR', 'id');
     expect($arrayData)->toMatchArray([
         'id' => 99,
-        'title' => 'Pengingat Pembayaran: Cicilan Motor',
-        'message' => 'Tagihan sebesar '.$formattedNumber.' akan segera jatuh tempo.',
+        'title' => 'Waktunya bayar '.$occurrence->name.' nih!',
+        'message' => 'Tagihan sebesar '.$formattedNumber.' udah mau jatuh tempo, jangan sampai lewat ya!',
         'code' => NotificationCode::FIXED_COST_REMINDER->value,
     ]);
 });
@@ -51,8 +51,8 @@ it('formats the fcm push message into a valid DTO', function () {
 
     expect($pushData)->toBeInstanceOf(PushMessage::class)
         ->and($pushData->deviceToken)->toBeEmpty()
-        ->and($pushData->title)->toBe('Pengingat Pembayaran: Uang Kos')
-        ->and($pushData->body)->toBe('Tagihan sebesar '.$formattedNumber.' akan segera jatuh tempo.')
+        ->and($pushData->title)->toBe('Waktunya bayar '.$occurrence->name.' nih!')
+        ->and($pushData->body)->toBe('Tagihan sebesar '.$formattedNumber.' udah mau jatuh tempo, jangan sampai lewat ya!')
         ->and($pushData->data['id'])->toBe($dummyId)
         ->and($pushData->data['isRead'])->toBe('false');
 });

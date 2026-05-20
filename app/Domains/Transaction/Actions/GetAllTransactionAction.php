@@ -4,6 +4,7 @@ namespace App\Domains\Transaction\Actions;
 
 use App\Domains\Transaction\DTOs\FilterTransactionData;
 use App\Domains\Transaction\Enums\TransactionFeedType;
+use App\Domains\Transaction\Enums\TransactionSource;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -56,12 +57,12 @@ class GetAllTransactionAction
                 'tb.name',
                 'tb.total_amount as amount',
                 'tb.transaction_at',
+                'tb.note',
                 DB::raw('NULL as type'),
                 DB::raw('NULL as category_id'),
                 DB::raw('NULL as category_name'),
                 DB::raw('NULL as category_icon'),
-                DB::raw('NULL as note'),
-                DB::raw('NULL as source'),
+                DB::raw("'".TransactionSource::BATCH->value."' as source"),
                 DB::raw("'".TransactionFeedType::BATCH->value."' as feed_type"),
             )
             ->where('tb.user_id', $userId)
