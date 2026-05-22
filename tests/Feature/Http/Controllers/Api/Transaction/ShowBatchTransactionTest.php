@@ -1,6 +1,7 @@
 <?php
 
 use App\Domains\Category\Models\Category;
+use App\Domains\Transaction\Enums\TransactionType;
 use App\Domains\Transaction\Models\Transaction;
 use App\Domains\Transaction\Models\TransactionBatch;
 use App\Domains\User\Models\User;
@@ -71,6 +72,7 @@ test('returns batch details with correct resource structure', function () {
         ->assertJsonPath('data.id', $batch->id)
         ->assertJsonPath('data.name', 'Struk Indomaret')
         ->assertJsonPath('data.note', 'Snacks')
+        ->assertJsonPath('data.type', TransactionType::EXPENSE->value)
         ->assertJsonPath('data.items.0.id', $transaction->id)
         ->assertJsonPath('data.items.0.category.id', $category->id);
 });
@@ -87,6 +89,8 @@ test('returns batch details with empty items if no transactions exist', function
 
     $response->assertOk()
         ->assertJsonPath('data.id', $batch->id)
+        ->assertJsonPath('data.amount', $batch->amount)
+        ->assertJsonPath('data.type', TransactionType::EXPENSE->value)
         ->assertJsonCount(0, 'data.items');
 });
 

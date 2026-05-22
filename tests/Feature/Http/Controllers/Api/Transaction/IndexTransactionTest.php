@@ -1,6 +1,7 @@
 <?php
 
 use App\Domains\Category\Models\Category;
+use App\Domains\Transaction\Enums\TransactionFeedType;
 use App\Domains\Transaction\Models\Transaction;
 use App\Domains\Transaction\Models\TransactionBatch;
 use App\Domains\User\Models\User;
@@ -133,9 +134,9 @@ test('returns paginated activity feed with correct mixed resource structure', fu
         ->assertJsonPath('data.0.feedType', 'batch')
         ->assertJsonPath('data.0.name', 'Belanja Superindo')
         ->assertJsonPath('data.0.amount', 150000)
-        ->assertJsonPath('data.0.type', null)
+        ->assertJsonPath('data.0.type', 'expense')
         ->assertJsonPath('data.0.note', null)
-        ->assertJsonPath('data.0.source', null)
+        ->assertJsonPath('data.0.source', TransactionFeedType::BATCH->value)
         ->assertJsonPath('data.0.category', null);
 
     $response->assertJsonPath('data.1.id', $singleTx->id)

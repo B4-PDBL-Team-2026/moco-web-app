@@ -23,8 +23,8 @@ class GetAllTransactionAction
                 't.transaction_at',
                 't.type',
                 't.source',
-                't.category_id',
                 't.note',
+                't.category_id',
                 'c.name as category_name',
                 'c.icon as category_icon',
                 DB::raw("'".TransactionFeedType::SINGLE->value."' as feed_type")
@@ -57,12 +57,21 @@ class GetAllTransactionAction
                 'tb.name',
                 'tb.total_amount as amount',
                 'tb.transaction_at',
+                DB::raw("(
+                    SELECT CASE
+                        WHEN COALESCE(
+                            SUM(CASE WHEN item.type = 'income' THEN item.amount ELSE -item.amount END), 0
+                        ) <= 0 THEN 'expense'
+                        ELSE 'income'
+                        END
+                        FROM transactions AS item WHERE item.transaction_batch_id = tb.id
+                        AND item.deleted_at IS NULL
+                ) as type"),
+                DB::raw("'".TransactionSource::BATCH->value."' as source"),
                 'tb.note',
-                DB::raw('NULL as type'),
                 DB::raw('NULL as category_id'),
                 DB::raw('NULL as category_name'),
                 DB::raw('NULL as category_icon'),
-                DB::raw("'".TransactionSource::BATCH->value."' as source"),
                 DB::raw("'".TransactionFeedType::BATCH->value."' as feed_type"),
             )
             ->where('tb.user_id', $userId)

@@ -2,8 +2,10 @@
 
 namespace App\Domains\Transaction\Models;
 
+use App\Domains\Transaction\Enums\TransactionType;
 use App\Domains\User\Models\User;
 use Database\Factories\TransactionBatchFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -41,5 +43,27 @@ class TransactionBatch extends Model
     protected static function newFactory(): Factory
     {
         return TransactionBatchFactory::new();
+    }
+
+    protected function type(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                if (! $this->relationLoaded('transactions')) {
+                    return null;
+                }
+
+                $total = $this->transactions->reduce(function (float $total, Transaction $transaction) {
+                    $amount = (float) $transaction->amount;
+
+                    return $transaction->type === TransactionType::INCOME
+                        ? $total + $amount
+                        : $total - $amount;
+                }, 0.0);
+
+                return $total <= 0 ? TransactionType::EXPENSE->value : TransactionType::INCOME->value;
+            },
+            set: fn ($value) => $value,
+        );
     }
 }

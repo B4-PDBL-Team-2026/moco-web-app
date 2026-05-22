@@ -108,6 +108,7 @@ it('successfully stores batch transaction and returns correct resource format', 
                 'totalAmount',
                 'transactionAt',
                 'note',
+                'type',
                 'items' => [
                     '*' => [
                         'id', 'name', 'amount', 'type', 'source', 'note', 'transactionAt',
@@ -119,6 +120,7 @@ it('successfully stores batch transaction and returns correct resource format', 
         ->assertJsonPath('data.name', 'Belanja Supermarket')
         ->assertJsonPath('data.note', 'Catatan batch')
         ->assertJsonPath('data.totalAmount', '55000.00')
+        ->assertJsonPath('data.type', 'expense')
         ->assertJsonCount(2, 'data.items')
         ->assertJsonPath('data.items.0.name', 'Sabun Mandi')
         ->assertJsonPath('data.items.0.type', 'expense')
