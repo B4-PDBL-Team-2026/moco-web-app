@@ -96,7 +96,7 @@ test('expense-only batch can always be deleted regardless of balance', function 
 
     Sanctum::actingAs($poorUser);
 
-    $this->deleteJson("/api/transaction/batch/{$batch->id}")->dump()
+    $this->deleteJson("/api/transaction/batch/{$batch->id}")
         ->assertNoContent();
 
     $this->assertSoftDeleted('transaction_batches', ['id' => $batch->id]);
