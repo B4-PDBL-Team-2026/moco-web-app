@@ -48,7 +48,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return match (true) {
                 $throwable instanceof AuthenticationException => ApiResponse::error(
-                    message: 'Unauthenticated',
+                    message: __('errors.authorization.not_authenticated'),
                     status: 401,
                 ),
                 $throwable instanceof ValidationException => ApiResponse::error(
@@ -62,15 +62,15 @@ return Application::configure(basePath: dirname(__DIR__))
                     status: $throwable->getHttpStatus()
                 ),
                 $throwable instanceof NotFoundHttpException => ApiResponse::error(
-                    message: 'Resource not found.',
+                    message: __('errors.notfound'),
                     status: 404
                 ),
                 $throwable instanceof HttpException => ApiResponse::error(
-                    message: $throwable->getMessage() ?: 'HTTP error.',
+                    message: $throwable->getMessage() ?: __('errors.server_error'),
                     status: $throwable->getStatusCode()
                 ),
                 default => ApiResponse::error(
-                    message: app()->hasDebugModeEnabled() ? $throwable->getMessage() : 'Something went wrong.',
+                    message: app()->hasDebugModeEnabled() ? $throwable->getMessage() : __('errors.server_error'),
                 ),
             };
         });
