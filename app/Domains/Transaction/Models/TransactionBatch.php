@@ -37,7 +37,7 @@ class TransactionBatch extends Model
 
     public function transactions(): HasMany
     {
-        return $this->hasMany(Transaction::class);
+        return $this->hasMany(Transaction::class, 'transaction_batch_id');
     }
 
     protected static function newFactory(): Factory

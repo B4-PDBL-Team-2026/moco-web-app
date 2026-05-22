@@ -8,12 +8,14 @@ use App\Domains\Transaction\Actions\DeleteTransactionAction;
 use App\Domains\Transaction\Actions\GetAllTransactionAction;
 use App\Domains\Transaction\Actions\GetBatchTransactionDetailAction;
 use App\Domains\Transaction\Actions\GetTransactionDetailAction;
+use App\Domains\Transaction\Actions\UpdateBatchTransactionAction;
 use App\Domains\Transaction\Actions\UpdateTransactionAction;
 use App\Domains\Transaction\Models\Transaction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Transaction\IndexTransactionRequest;
 use App\Http\Requests\Transaction\StoreBatchTransactionRequest;
 use App\Http\Requests\Transaction\StoreTransactionRequest;
+use App\Http\Requests\Transaction\UpdateBatchTransactionRequest;
 use App\Http\Requests\Transaction\UpdateTransactionRequest;
 use App\Http\Resources\Transaction\TransactionBatchResource;
 use App\Http\Resources\Transaction\TransactionFeedResource;
@@ -172,6 +174,25 @@ class TransactionController extends Controller
         return $this->successResponse(
             TransactionResource::make($result),
             'Transaction updated successfully.'
+        );
+    }
+
+    /**
+     * Update an existing batch transaction and replace its items.
+     *
+     * @throws Throwable
+     */
+    public function updateBatch(UpdateBatchTransactionRequest $request, int $batchId, UpdateBatchTransactionAction $action): ApiResponse
+    {
+        $updatedBatch = $action->execute(
+            userId: $request->user()->id,
+            transactionBatchId: $batchId,
+            data: $request->toDTO()
+        );
+
+        return $this->successResponse(
+            data: TransactionBatchResource::make($updatedBatch),
+            message: 'Batch transactions updated successfully.'
         );
     }
 

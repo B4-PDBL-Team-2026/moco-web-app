@@ -95,6 +95,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::prefix('/batch')->group(function () {
                 Route::get('/{batchId}', 'showBatch');
                 Route::post('/', 'storeBatch');
+                Route::put('/{batchId}', 'updateBatch');
             });
             Route::get('/{transaction}', 'show');
             Route::put('/{transaction}', 'update');
