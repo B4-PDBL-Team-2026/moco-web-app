@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Transaction;
 
 use App\Domains\Transaction\Actions\CreateBatchTransactionAction;
 use App\Domains\Transaction\Actions\CreateTransactionAction;
+use App\Domains\Transaction\Actions\DeleteBatchTransactionAction;
 use App\Domains\Transaction\Actions\DeleteTransactionAction;
 use App\Domains\Transaction\Actions\GetAllTransactionAction;
 use App\Domains\Transaction\Actions\GetBatchTransactionDetailAction;
@@ -214,6 +215,29 @@ class TransactionController extends Controller
 
         return $this->successResponse(
             message: 'Transaction deleted successfully.',
+            status: 204
+        );
+    }
+
+    /**
+     * Delete an existing batch transaction along with all its items.
+     *
+     * @throws Throwable
+     *
+     * @response array{
+     *     success: bool,
+     *     message: string
+     * }
+     */
+    public function destroyBatch(int $batchId, DeleteBatchTransactionAction $action): ApiResponse
+    {
+        $action->execute(
+            userId: auth()->id(),
+            transactionBatchId: $batchId,
+        );
+
+        return $this->successResponse(
+            message: 'Batch transaction deleted successfully.',
             status: 204
         );
     }
