@@ -1,7 +1,10 @@
 <?php
 
 return [
+    'notfound' => 'Waduh, data yang dicari nggak ketemu nih. Coba cek lagi ya!',
+    'server_error' => 'Waduh, server Moco lagi batuk. Tim kita lagi otw benerin, ditunggu yak!',
     'authorization' => [
+        'not_authenticated' => 'Sesi abis atau belum login nih. Login dulu yak!',
         'not_authorized' => 'Eits, fitur ini bukan buat kamu. Cek akses akunmu lagi, yuk!',
     ],
     'budgeting' => [
