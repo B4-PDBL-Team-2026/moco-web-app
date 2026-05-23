@@ -18,17 +18,27 @@ class EnsureOnboardingIsCompleted
     {
         $user = $request->user();
 
-        if ($user?->hasOnboarded) {
-            return $next($request);
+        // handle web
+        if (! $request->expectsJson()) {
+            if ($user?->has_onboarded) {
+                return redirect()->route('dashboard');
+            }
+
+            return redirect()->route('onboarding-show');
         }
 
-        return (new ApiResponse(
-            errors: [
-                'requiresOnboarding' => true,
-            ],
-            message: __('errors.validation.onboarding'),
-            status: Response::HTTP_FORBIDDEN,
-            success: false
-        ))->toResponse($request);
+        // handle api
+        if (! $user?->has_onboarded) {
+            return (new ApiResponse(
+                errors: [
+                    'requiresOnboarding' => true,
+                ],
+                message: __('errors.validation.not_onboarded'),
+                status: Response::HTTP_FORBIDDEN,
+                success: false
+            ))->toResponse($request);
+        }
+
+        return $next($request);
     }
 }
