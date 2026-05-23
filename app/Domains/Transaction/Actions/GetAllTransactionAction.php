@@ -55,7 +55,16 @@ class GetAllTransactionAction
             ->select(
                 'tb.id',
                 'tb.name',
-                'tb.total_amount as amount',
+                DB::raw("(
+                    SELECT ABS(
+                        COALESCE(
+                            SUM(CASE WHEN item.type = 'income' THEN item.amount ELSE -item.amount END), 0
+                        )
+                    )
+                    FROM transactions AS item
+                    WHERE item.transaction_batch_id = tb.id
+                    AND item.deleted_at IS NULL
+                ) as amount"),
                 'tb.transaction_at',
                 DB::raw("(
                     SELECT CASE

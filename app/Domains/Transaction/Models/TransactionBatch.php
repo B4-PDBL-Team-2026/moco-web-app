@@ -20,7 +20,6 @@ class TransactionBatch extends Model
     protected $fillable = [
         'user_id',
         'name',
-        'total_amount',
         'note',
         'transaction_at',
     ];
@@ -64,6 +63,28 @@ class TransactionBatch extends Model
                 return $total <= 0 ? TransactionType::EXPENSE->value : TransactionType::INCOME->value;
             },
             set: fn ($value) => $value,
+        );
+    }
+
+    protected function amount(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                if (! $this->relationLoaded('transactions')) {
+                    return null;
+                }
+
+                return number_format(
+                    abs(
+                        $this->transactions->reduce(function (float $total, Transaction $transaction) {
+                            $amount = (float) $transaction->amount;
+
+                            return $transaction->type === TransactionType::INCOME
+                                ? $total + $amount
+                                : $total - $amount;
+                        }, 0.0)
+                    ), 2, '.', '');
+            }
         );
     }
 }

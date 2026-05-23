@@ -30,7 +30,7 @@ it('successfully stores a batch and its items with correct total amount', functi
     expect($batch)->toBeInstanceOf(TransactionBatch::class)
         ->and($batch->relationLoaded('transactions'))->toBeTrue()
         ->and($batch->transactions)->toHaveCount(2)
-        ->and((float) $batch->total_amount)->toBe(40000.50)
+        ->and((float) $batch->amount)->toBe(40000.50)
         ->and($batch->name)->toBe('Belanja Indomaret')
         ->and($batch->note)->toBe('Beli bulanan')
         ->and($batch->type)->toBe('expense');
@@ -38,7 +38,6 @@ it('successfully stores a batch and its items with correct total amount', functi
     $this->assertDatabaseHas('transaction_batches', [
         'id' => $batch->id,
         'user_id' => $user->id,
-        'total_amount' => 40000.50,
         'note' => 'Beli bulanan',
     ]);
 
@@ -83,7 +82,7 @@ it('return correct batch type based on items grand total', function () {
     expect($batch)->toBeInstanceOf(TransactionBatch::class)
         ->and($batch->relationLoaded('transactions'))->toBeTrue()
         ->and($batch->transactions)->toHaveCount(2)
-        ->and((float) $batch->total_amount)->toBe(4999.50)
+        ->and((float) $batch->amount)->toBe(4999.50)
         ->and($batch->name)->toBe('Belanja Indomaret')
         ->and($batch->note)->toBe('Beli bulanan')
         ->and($batch->type)->toBe('income');
@@ -91,7 +90,6 @@ it('return correct batch type based on items grand total', function () {
     $this->assertDatabaseHas('transaction_batches', [
         'id' => $batch->id,
         'user_id' => $user->id,
-        'total_amount' => 4999.50,
         'note' => 'Beli bulanan',
     ]);
 
@@ -157,7 +155,7 @@ it('handles mixed income and expense types in a single batch', function () {
     $action = app(CreateBatchTransactionAction::class);
     $batch = $action->execute($user->id, $data);
 
-    expect((float) $batch->total_amount)->toBe(40000.00);
+    expect((float) $batch->amount)->toBe(40000.00);
 
     $this->assertDatabaseHas('transactions', [
         'transaction_batch_id' => $batch->id,

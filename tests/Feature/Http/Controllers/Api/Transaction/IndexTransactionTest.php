@@ -98,8 +98,19 @@ test('returns paginated activity feed with correct mixed resource structure', fu
     $batchTx = TransactionBatch::factory()->create([
         'user_id' => $this->user->id,
         'name' => 'Belanja Superindo',
-        'total_amount' => 150000,
         'transaction_at' => Carbon::now()->toDateTimeString(),
+    ]);
+
+    Transaction::factory()->create([
+        'user_id' => $this->user->id,
+        'category_id' => $category->id,
+        'name' => 'Beli Cilok',
+        'amount' => 150000,
+        'type' => 'expense',
+        'source' => 'manual',
+        'note' => 'Cilok mang oleh',
+        'transaction_at' => Carbon::now()->subHours(2)->toDateTimeString(),
+        'transaction_batch_id' => $batchTx->id,
     ]);
 
     $response = $this->getJson($this->endpoint);

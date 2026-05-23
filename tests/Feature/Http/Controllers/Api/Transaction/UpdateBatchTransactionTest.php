@@ -167,7 +167,6 @@ test('successfully updates batch and returns correct resource structure', functi
     $this->assertDatabaseHas('transaction_batches', [
         'id' => $this->batch->id,
         'name' => 'Updated Weekend Groceries',
-        'total_amount' => 25.00,
     ]);
 
     $this->assertDatabaseHas('transactions', [

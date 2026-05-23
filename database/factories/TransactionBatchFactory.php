@@ -15,7 +15,6 @@ class TransactionBatchFactory extends Factory
         return [
             'user_id' => User::factory(),
             'name' => $this->faker->words(3, true),
-            'total_amount' => $this->faker->randomFloat(2, 1000, 1000000),
             'transaction_at' => $this->faker->date('now', 'utc'),
             'created_at' => $this->faker->dateTimeBetween('-1 year', 'now'),
             'updated_at' => $this->faker->dateTimeBetween('-1 year', 'now'),

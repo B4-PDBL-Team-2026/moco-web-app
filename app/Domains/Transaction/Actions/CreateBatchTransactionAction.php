@@ -3,8 +3,6 @@
 namespace App\Domains\Transaction\Actions;
 
 use App\Domains\Transaction\DTOs\CreateBatchTransactionData;
-use App\Domains\Transaction\Enums\TransactionType;
-use App\Domains\Transaction\Models\Transaction;
 use App\Domains\Transaction\Models\TransactionBatch;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -22,20 +20,10 @@ class CreateBatchTransactionAction
     public function execute(int $userId, CreateBatchTransactionData $data): TransactionBatch
     {
         return DB::transaction(function () use ($userId, $data) {
-            // Calculate total amount dynamically from items
-            $totalAmount = collect($data->items)->reduce(function ($total, $item) {
-                $amount = (float) $item->amount;
-
-                return $item->type === TransactionType::INCOME
-                    ? $total + $amount
-                    : $total - $amount;
-            }, 0.0);
-
             // Create the parent Batch record
             $batch = TransactionBatch::query()->create([
                 'user_id' => $userId,
                 'name' => $data->name,
-                'total_amount' => abs($totalAmount),
                 'transaction_at' => $data->transactionAt,
                 'note' => $data->note,
             ]);

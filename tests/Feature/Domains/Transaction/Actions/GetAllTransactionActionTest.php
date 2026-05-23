@@ -49,7 +49,6 @@ if (! function_exists('makeBatchTx')) {
         $batch = TransactionBatch::factory()->create(array_merge([
             'user_id' => $user->id,
             'name' => 'Struk Belanja',
-            'total_amount' => 50000,
             'transaction_at' => '2026-03-15 10:00:00',
         ], $overrides));
 

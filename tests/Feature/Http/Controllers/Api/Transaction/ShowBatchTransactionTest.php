@@ -24,7 +24,6 @@ test('returns batch details with correct resource structure', function () {
         'user_id' => $this->user->id,
         'name' => 'Struk Indomaret',
         'note' => 'Snacks',
-        'total_amount' => 50000,
     ]);
 
     $transaction = Transaction::factory()->create([
@@ -82,7 +81,6 @@ test('returns batch details with empty items if no transactions exist', function
 
     $batch = TransactionBatch::factory()->create([
         'user_id' => $this->user->id,
-        'total_amount' => 0,
     ]);
 
     $response = $this->getJson("/api/transaction/batch/{$batch->id}");

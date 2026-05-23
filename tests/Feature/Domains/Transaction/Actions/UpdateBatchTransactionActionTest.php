@@ -21,7 +21,6 @@ it('successfully updates batch and replaces items completely', function () {
     $batch = TransactionBatch::factory()->create([
         'user_id' => $user->id,
         'name' => 'Old Grocery',
-        'total_amount' => 100.00,
     ]);
 
     Transaction::factory()->create([
@@ -60,7 +59,7 @@ it('successfully updates batch and replaces items completely', function () {
 
     expect($updatedBatch->name)->toBe('New Grocery')
         ->and($updatedBatch->note)->toBe('Updated notes')
-        ->and((float) $updatedBatch->total_amount)->toBe(200.00)
+        ->and((float) $updatedBatch->amount)->toBe(200.00)
         ->and($updatedBatch->transactions)->toHaveCount(2);
 
     $this->assertDatabaseHas('transactions', [
@@ -75,7 +74,6 @@ it('calculates total amount correctly when mixing income and expense items', fun
 
     $batch = TransactionBatch::factory()->create([
         'user_id' => $user->id,
-        'total_amount' => 0.00,
     ]);
 
     $dto = new UpdateBatchTransactionData(
@@ -92,7 +90,7 @@ it('calculates total amount correctly when mixing income and expense items', fun
     $updatedBatch = $this->action->execute($user->id, $batch->id, $dto);
 
     // -500 + 200 = -300 -> abs(-300) = 300
-    expect((float) $updatedBatch->total_amount)->toBe(300.00);
+    expect((float) $updatedBatch->amount)->toBe(300.00);
 });
 
 it('throws BusinessRuleException when update causes negative balance', function () {
@@ -144,5 +142,5 @@ it('succeeds when update increases net balance', function () {
 
     $updatedBatch = $this->action->execute($user->id, $batch->id, $dto);
 
-    expect((float) $updatedBatch->total_amount)->toBe(200.00);
+    expect((float) $updatedBatch->amount)->toBe(200.00);
 });
