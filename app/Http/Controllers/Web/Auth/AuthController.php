@@ -31,7 +31,7 @@ class AuthController extends Controller
 
         auth()->login($result['user']);
 
-        if ($result['requiredOnboarding']) {
+        if ($result['requiresOnboarding']) {
             return redirect()->route('onboarding-show');
         }
 
@@ -49,7 +49,7 @@ class AuthController extends Controller
 
         auth()->login($result['user']);
 
-        if ($result['requiredOnboarding']) {
+        if ($result['requiresOnboarding']) {
             return redirect()->route('onboarding-show');
         }
 
