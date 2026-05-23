@@ -2,23 +2,28 @@
 
 namespace App\Http\Controllers\Web\FixedCost;
 
+use App\Domains\Category\Models\Category;
 use App\Domains\FixedCost\Actions\CancelFixedCostPaymentAction;
 use App\Domains\FixedCost\Actions\ConfirmFixedCostPaymentAction;
 use App\Domains\FixedCost\Actions\CreateFixedCostTemplateAction;
 use App\Domains\FixedCost\Actions\DeleteFixedCostTemplateAction;
 use App\Domains\FixedCost\Actions\GetAllFixedCostOccurrencesAction;
+use App\Domains\FixedCost\Actions\GetAllFixedCostTemplatesAction;
 use App\Domains\FixedCost\Actions\UpdateFixedCostOccurrenceAmountAction;
 use App\Domains\FixedCost\Actions\UpdateFixedCostOccurrenceMetadataAction;
 use App\Domains\FixedCost\Actions\UpdateFixedCostTemplateAction;
 use App\Domains\FixedCost\DTOs\FilterFixedCostOccurrenceData;
 use App\Domains\FixedCost\Enums\FixedCostOccurenceStatus;
 use App\Domains\FixedCost\Models\FixedCostOccurrence;
+use App\Domains\Transaction\Enums\TransactionType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\FixedCost\IndexFixedCostOccurrenceRequest;
+use App\Http\Requests\FixedCost\IndexFixedCostTemplateRequest;
 use App\Http\Requests\FixedCost\StoreFixedCostTemplateRequest;
 use App\Http\Requests\FixedCost\UpdateFixedCostOccurrenceAmountRequest;
 use App\Http\Requests\FixedCost\UpdateFixedCostOccurrenceMetadataRequest;
 use App\Http\Requests\FixedCost\UpdateFixedCostTemplateRequest;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -28,11 +33,60 @@ use Throwable;
 class FixedCostController extends Controller
 {
     /**
+     * Show the template management page
+     * Lists all templates for the user + categories for the form picker.
+     */
+    public function index(
+        IndexFixedCostTemplateRequest $request,
+        GetAllFixedCostTemplatesAction $action,
+    ): Response {
+        $templates = $action->execute(
+            userId: auth()->id(),
+            filters: $request->toDTO(),
+        );
+
+        $categories = Category::query()
+            ->where(function (Builder $query) {
+                $query->whereNull('user_id')
+                    ->orWhere('user_id', auth()->id());
+            })
+            ->where('is_system', true)
+            ->where('type', TransactionType::EXPENSE)
+            ->orderBy('name')
+            ->get(['id', 'name', 'icon', 'type']);
+
+        $snapshot = auth()->user()->budgetSnapshot;
+
+        $mapped = collect($templates->items())->map(fn ($t) => [
+            'id' => $t->id,
+            'name' => $t->name,
+            'amount' => $t->amount,
+            'cycleType' => $t->cycle_type->value,
+            'dueDay' => $t->due_day,
+            'categoryId' => $t->category_id,
+            'categoryName' => $t->category?->name,
+            'categoryIcon' => $t->category?->icon,
+            'isActive' => $t->is_active,
+        ]);
+
+        return Inertia::render('FixedCost/FixedCostTemplateManagement', [
+            'templates' => $mapped,
+            'categories' => $categories->map(fn ($c) => [
+                'id' => $c->id,
+                'name' => $c->name,
+                'icon' => $c->icon,
+                'type' => $c->type instanceof \BackedEnum ? $c->type->value : $c->type,
+            ]),
+            'status' => $snapshot?->financial_condition,
+        ]);
+    }
+
+    /**
      * Show the fixed cost occurrences page.
      * Reuses IndexFixedCostOccurrenceRequest for validation.
      * Tab filter overrides the status field from the request.
      */
-    public function index(
+    public function indexOccurrence(
         IndexFixedCostOccurrenceRequest $request,
         GetAllFixedCostOccurrencesAction $action,
     ): Response {
@@ -87,7 +141,7 @@ class FixedCostController extends Controller
             'note' => $occurrence->note ?? null,
         ]);
 
-        return Inertia::render('FixedCost/FixedCostIndex', [
+        return Inertia::render('FixedCost/FixedCostOccurrenceManagement', [
             'occurrences' => $mapped,
             'counts' => $counts,
             'filters' => [

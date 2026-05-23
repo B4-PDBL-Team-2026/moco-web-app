@@ -1,4 +1,5 @@
 import { Head, router } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { Pencil, Loader2, Search, X } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import FilterTabs from '@/components/FilterTabs';
@@ -70,7 +71,7 @@ function EmptyState({ tab }: { tab: OccurrenceTab }) {
     );
 }
 
-export default function FixedCostIndex({ occurrences, status, filters, counts }: Props) {
+export default function FixedCostOccurrenceManagement({ occurrences, status, filters, counts }: Props) {
     const [loadingId, setLoadingId] = useState<number | null>(null);
     const [activeTab, setActiveTab] = useState<OccurrenceTab>(filters.tab ?? 'pending');
 
@@ -158,14 +159,14 @@ export default function FixedCostIndex({ occurrences, status, filters, counts }:
                     <h1 className="text-2xl font-bold text-primary lg:text-3xl">
                         Biaya Tetap
                     </h1>
-                    <a
-                        href="/fixed-costs/manage"
+                    <Link
+                        href="/fixed-costs/templates"
                         className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90"
                     >
                         <Pencil size={15} strokeWidth={2.5} />
                         <span className="hidden sm:inline">Kelola Biaya Tetap</span>
                         <span className="sm:hidden">Kelola</span>
-                    </a>
+                    </Link>
                 </div>
 
                 {/* Section title */}

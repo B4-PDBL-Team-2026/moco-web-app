@@ -1,5 +1,6 @@
-import { CalendarDays, FileText, CheckCircle2, SkipForward } from 'lucide-react';
+import { CalendarDays, CheckCircle2, SkipForward } from 'lucide-react';
 import type { OccurrenceTab } from '@/components/FilterTabs';
+import { CategoryPhosphorIcon } from '@/utils/phosphorIconMap';
 
 export interface Occurrence {
     id: number;
@@ -73,29 +74,6 @@ const THEME: Record<OccurrenceTab, CardTheme> = {
         calendarColor: 'text-gray-300',
     },
 };
-
-function CategoryIcon({
-                          icon,
-                          bg,
-                          color,
-                      }: {
-    icon?: string;
-    bg: string;
-    color: string;
-}) {
-    return (
-        <div
-            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${bg}`}
-        >
-            {icon ? (
-                <span className="text-xl">{icon}</span>
-            ) : (
-                <FileText size={20} className={color} />
-            )}
-        </div>
-    );
-}
-
 // Status badge (top-right of card)
 
 function StatusBadge({ tab }: { tab: OccurrenceTab }) {
@@ -179,10 +157,8 @@ export default function OccurrenceCard({
         >
             {/* Top row */}
             <div className="flex items-start gap-3">
-                <CategoryIcon
-                    icon={occurrence.categoryIcon}
-                    bg={theme.iconBg}
-                    color={theme.iconColor}
+                <CategoryPhosphorIcon
+                    iconName={occurrence.categoryIcon}
                 />
 
                 <div className="min-w-0 flex-1">
