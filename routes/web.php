@@ -1,9 +1,9 @@
 <?php
 
-use App\Http\Controllers\Web\FixedCost\FixedCostController;
 use App\Http\Controllers\Web\Auth\AuthController;
 use App\Http\Controllers\Web\Budgeting\DashboardController;
 use App\Http\Controllers\Web\Budgeting\OnboardingController;
+use App\Http\Controllers\Web\FixedCost\FixedCostController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
