@@ -2,15 +2,52 @@
 
 namespace App\Http\Controllers\Web\Auth;
 
+use App\Domains\User\Actions\Auth\ForgotPasswordAction;
+use App\Domains\User\Actions\Auth\LoginUserAction;
+use App\Domains\User\Actions\Auth\RegisterUserAction;
+use App\Domains\User\Actions\Auth\ResetPasswordAction;
 use App\Domains\User\Actions\Auth\VerifyEmailAction;
 use App\Domains\User\Models\User;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\Auth\ForgotPasswordRequest;
+use App\Http\Requests\User\Auth\LoginRequest;
+use App\Http\Requests\User\Auth\RegisterRequest;
+use App\Http\Requests\User\Auth\ResetPasswordRequest;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class AuthController extends Controller
 {
+    public function showRegister(): Response
+    {
+        return Inertia::render('Auth/Register');
+    }
+
+    public function handleRegister(RegisterRequest $request, RegisterUserAction $action): RedirectResponse
+    {
+        $result = $action->execute($request->toDTO());
+
+        auth()->login($result['user']);
+
+        return redirect('/dashboard');
+    }
+
+    public function showLogin(): Response
+    {
+        return Inertia::render('Auth/Login');
+    }
+
+    public function handleLogin(LoginRequest $request, LoginUserAction $action): RedirectResponse
+    {
+        $result = $action->execute($request->toDTO());
+
+        auth()->login($result['user']);
+
+        return redirect('/dashboard');
+    }
+
     /**
      * Verify the user's email address using the signed route hash.
      */
@@ -45,5 +82,40 @@ class AuthController extends Controller
     public function showDeleteInfo(): Response
     {
         return Inertia::render('Auth/DeleteAccountInformation');
+    }
+
+    public function showForgetPassword(): Response
+    {
+        return Inertia::render('Auth/ForgetPassword');
+    }
+
+    public function showResetForm(Request $request, string $token): Response
+    {
+        return Inertia::render('Auth/ResetPassword', [
+            'token' => $token,
+            'email' => $request->query('email'),
+        ]);
+    }
+
+    public function forgotPassword(ForgotPasswordRequest $request, ForgotPasswordAction $action): Response|RedirectResponse
+    {
+        $result = $action->execute($request->validated('email'));
+
+        if ($result['status'] === 'error') {
+            return back()->withErrors(['email' => $result['message']]);
+        }
+
+        return back()->with('success', $result['message']);
+    }
+
+    public function resetPassword(ResetPasswordRequest $request, ResetPasswordAction $action): Response|RedirectResponse
+    {
+        $result = $action->execute($request->toDTO());
+
+        if ($result['status'] === 'error') {
+            return back()->withErrors(['email' => $result['message']]);
+        }
+
+        return back()->with('success', $result['message']);
     }
 }

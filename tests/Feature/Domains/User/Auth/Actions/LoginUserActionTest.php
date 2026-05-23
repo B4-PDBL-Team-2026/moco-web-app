@@ -11,6 +11,7 @@ test('it logs in a user successfully with correct credentials', function () {
     $user = User::factory()->create([
         'email' => 'testlogin@example.com',
         'password' => Hash::make('CorrectPassword123!'),
+        'has_onboarded' => false,
     ]);
 
     $action = new LoginUserAction;

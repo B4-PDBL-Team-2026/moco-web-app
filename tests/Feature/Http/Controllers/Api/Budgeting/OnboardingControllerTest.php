@@ -8,6 +8,9 @@ use function Pest\Laravel\assertDatabaseHas;
 
 beforeEach(function () {
     $this->seed(DatabaseSeeder::class);
+    $this->user = User::factory()->create([
+        'has_onboarded' => false,
+    ]);
 });
 
 test('unauthenticated user cannot access onboarding endpoint', function () {
@@ -24,17 +27,13 @@ test('unauthenticated user cannot access onboarding endpoint', function () {
 });
 
 test('user onboarding fails when required payload is missing', function () {
-    $user = User::factory()->create();
-
-    $this->actingAs($user, 'sanctum')
+    $this->actingAs($this->user, 'sanctum')
         ->postJson('/api/onboarding', [])
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['budgetCycle', 'initialBalance', 'fixedCosts', 'ceilingLimit', 'flooringLimit']);
 });
 
 test('user onboarding fails when budget cycle enum is invalid', function () {
-    $user = User::factory()->create();
-
     $payload = [
         'budgetCycle' => 'yearly',
         'initialBalance' => 1000,
@@ -43,14 +42,13 @@ test('user onboarding fails when budget cycle enum is invalid', function () {
         'timezone' => 'Asia/Jakarta',
     ];
 
-    $this->actingAs($user, 'sanctum')
+    $this->actingAs($this->user, 'sanctum')
         ->postJson('/api/onboarding', $payload)
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['budgetCycle']);
 });
 
 test('user should be able to complete onboarding with fixed costs', function () {
-    $user = User::factory()->create();
     $category = Category::factory()->expense()->create();
 
     $payload = [
@@ -77,20 +75,19 @@ test('user should be able to complete onboarding with fixed costs', function () 
         ],
     ];
 
-    $this->actingAs($user, 'sanctum')
+    $this->actingAs($this->user, 'sanctum')
         ->postJson('/api/onboarding', $payload)
         ->assertOk()
         ->assertJsonPath('data.fixedCostsCount', 2)
         ->assertJsonPath('data.currentBalance', '5000000.00');
 
     assertDatabaseHas('users', [
-        'id' => $user->id,
+        'id' => $this->user->id,
         'has_onboarded' => true,
     ]);
 });
 
 test('user onboarding fails when budget cycle and fixed cost cycle are incompatible', function () {
-    $user = User::factory()->create();
     $category = Category::factory()->expense()->create();
 
     $payload = [
@@ -110,7 +107,7 @@ test('user onboarding fails when budget cycle and fixed cost cycle are incompati
         ],
     ];
 
-    $response = $this->actingAs($user, 'sanctum')
+    $response = $this->actingAs($this->user, 'sanctum')
         ->postJson('/api/onboarding', $payload);
 
     $response->assertStatus(422)
@@ -118,8 +115,6 @@ test('user onboarding fails when budget cycle and fixed cost cycle are incompati
 });
 
 test('user should be able to stores onboarding and get final onboarding result', function () {
-    $user = User::factory()->create();
-
     $payload = [
         'budgetCycle' => 'monthly',
         'initialBalance' => 1000,
@@ -129,7 +124,7 @@ test('user should be able to stores onboarding and get final onboarding result',
         'fixedCosts' => [],
     ];
 
-    $this->actingAs($user, 'sanctum')
+    $this->actingAs($this->user, 'sanctum')
         ->postJson('/api/onboarding', $payload)
         ->assertOk()
         ->assertJsonPath('message', 'Onboarding completed successfully.')
@@ -152,8 +147,6 @@ test('user should be able to stores onboarding and get final onboarding result',
 });
 
 test('user onboarding fails when weekly due day is invalid', function () {
-    $user = User::factory()->create();
-
     $payload = [
         'budgetCycle' => 'monthly',
         'initialBalance' => 1000,
@@ -170,7 +163,7 @@ test('user onboarding fails when weekly due day is invalid', function () {
         ],
     ];
 
-    $this->actingAs($user, 'sanctum')
+    $this->actingAs($this->user, 'sanctum')
         ->postJson('/api/onboarding', $payload)
         ->assertUnprocessable();
 });
