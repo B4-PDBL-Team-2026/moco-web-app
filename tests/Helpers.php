@@ -16,7 +16,9 @@ use App\Domains\User\Models\User;
  */
 function setupUserWithBudget(array $settingOverrides = [], string $initialTransactionDate = '2026-03-01'): array
 {
-    $user = User::factory()->create();
+    $user = User::factory()->create([
+        'has_onboarded' => true,
+    ]);
     $category = Category::factory()->income()->create();
 
     // Support both 'initial_balance' and 'balance' keys
