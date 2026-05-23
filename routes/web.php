@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Web\FixedCost\FixedCostController;
 use App\Http\Controllers\Web\Auth\AuthController;
 use App\Http\Controllers\Web\Budgeting\DashboardController;
 use App\Http\Controllers\Web\Budgeting\OnboardingController;
@@ -35,4 +36,16 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // fixed costs domain endpoints
+    Route::prefix('/fixed-costs')->controller(FixedCostController::class)->group(function () {
+        Route::prefix('/occurrences')->group(function () {
+            Route::get('/', 'index')
+                ->name('fixed-costs.occurrences.index');
+            Route::post('/{occurrenceId}/confirm-payment', 'confirmPayment')
+                ->name('fixed-costs.occurrences.confirm-payment');
+            Route::post('/{occurrenceId}/cancel-payment', 'cancelPayment')
+                ->name('fixed-costs.occurrences.cancel-payment');
+            Route::post('/{occurrenceId}/skip', 'skipOccurrence')
+                ->name('fixed-costs.occurrences.skip');
+        });
+    });
 });

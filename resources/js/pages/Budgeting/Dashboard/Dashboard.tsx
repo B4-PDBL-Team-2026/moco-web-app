@@ -1,3 +1,13 @@
-export default function Dashboard() {
-    return <h1>You've logged in, here is ur dashboard</h1>
+import AppLayout from '@/layouts/AppLayout';
+
+interface Props {
+    status?: 'stabil' | 'defisit' | 'kritis' | 'surplus';
+}
+
+export default function Dashboard({ status }: Props ) {
+    return (
+        <AppLayout status={status}>
+            <h1>This should be dashboard of user</h1>
+        </AppLayout>
+    )
 }

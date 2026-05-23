@@ -31,6 +31,10 @@ class AuthController extends Controller
 
         auth()->login($result['user']);
 
+        if ($result['requiredOnboarding']) {
+            return redirect()->route('onboarding-show');
+        }
+
         return redirect('/dashboard');
     }
 
@@ -44,6 +48,10 @@ class AuthController extends Controller
         $result = $action->execute($request->toDTO());
 
         auth()->login($result['user']);
+
+        if ($result['requiredOnboarding']) {
+            return redirect()->route('onboarding-show');
+        }
 
         return redirect('/dashboard');
     }
