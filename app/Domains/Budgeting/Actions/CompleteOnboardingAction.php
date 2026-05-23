@@ -58,7 +58,7 @@ final readonly class CompleteOnboardingAction
                 $this->bulkCreateFixedCostTemplateAction->execute($userId, $data->fixedCosts);
             }
 
-            $snapshot = $this->recalculateBudgetSnapshotAction->execute($userId);
+            $snapshot = $this->recalculateBudgetSnapshotAction->execute($userId, forceUpdateLimit: true);
 
             $user->forceFill([
                 'has_onboarded' => true,
