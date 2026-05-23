@@ -21,7 +21,8 @@ return [
         'cannot_modify_system' => 'Kayaknya kamu salah ngubah kategori deh, coba cek lagi ya!',
     ],
     'validation' => [
-        'onboarding' => 'Beresin dulu step onboarding yuk!',
+        'not_onboarded' => 'Beresin dulu step onboarding yuk!',
+        'onboarded' => 'Kamu udah beresin step ini, ngga perlu ngulang lagi ya.',
     ],
     'fixed_cost' => [
         'name_empty' => 'Nama tagihannya jangan dikosongin dong, nanti kamu lupa ini tagihan apa.',
