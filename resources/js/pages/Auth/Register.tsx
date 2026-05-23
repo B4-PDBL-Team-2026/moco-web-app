@@ -141,7 +141,7 @@ export default function Register() {
                             <input
                                 type={showPassword ? 'text' : 'password'}
                                 placeholder="Password"
-                                value={data.password}
+                                value={data.password_confirmation}
                                 onChange={(e) =>
                                     setData(
                                         'password_confirmation',
