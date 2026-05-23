@@ -12,9 +12,11 @@ class EnsureOnboardingIsNotCompleted
 {
     public function handle(Request $request, Closure $next): RedirectResponse|Response
     {
+        $isInertia = $request->header('X-Inertia');
+
         if ($request->user()?->has_onboarded) {
             // handle web
-            if (! $request->expectsJson()) {
+            if ($isInertia) {
                 return redirect()->route('dashboard');
             }
 

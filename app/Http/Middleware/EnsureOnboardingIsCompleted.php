@@ -18,10 +18,12 @@ class EnsureOnboardingIsCompleted
     {
         $user = $request->user();
 
+        $isInertia = $request->header('X-Inertia');
+
         // handle web
-        if (! $request->expectsJson()) {
+        if ($isInertia) {
             if ($user?->has_onboarded) {
-                return redirect()->route('dashboard');
+                return $next($request);
             }
 
             return redirect()->route('onboarding-show');
