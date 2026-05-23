@@ -18,7 +18,7 @@ const NAV_ITEMS = [
         routeName: 'dashboard',
     },
     {
-        label: 'Riwayat',
+        label: 'Riwayat Transaksi',
         href: '/history',
         icon: ScrollText,
         routeName: 'history',
@@ -28,12 +28,6 @@ const NAV_ITEMS = [
         href: '/fixed-costs/occurrences',
         icon: CalendarClock,
         routeName: 'fixed-costs',
-    },
-    {
-        label: 'Notifikasi',
-        href: '/notifications',
-        icon: Bell,
-        routeName: 'notifications',
     },
 ];
 
