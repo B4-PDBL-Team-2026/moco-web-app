@@ -4,7 +4,6 @@ import {
     LayoutDashboard,
     ScrollText,
     CalendarClock,
-    Bell,
     Settings,
     LogOut,
     X,
