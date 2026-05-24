@@ -35,7 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'hasOnboarded' => EnsureOnboardingIsCompleted::class,
             'notOnboarded' => EnsureOnboardingIsNotCompleted::class,
             'hasRecaculatedToday' => CheckDailyBudgetRecalculation::class,
-            'notAuthenticated' => EnsureNotAuthenticated::class
+            'notAuthenticated' => EnsureNotAuthenticated::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
