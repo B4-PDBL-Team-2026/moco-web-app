@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\User;
 
 use App\Domains\User\Actions\Auth\DeleteUserAction;
 use App\Domains\User\Actions\Auth\ForgotPasswordAction;
+use App\Domains\User\Actions\Auth\HandleGoogleLoginUserAction;
 use App\Domains\User\Actions\Auth\LoginUserAction;
 use App\Domains\User\Actions\Auth\LogoutUserAction;
 use App\Domains\User\Actions\Auth\RegisterUserAction;
@@ -13,11 +14,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\User\Auth\ConfirmDeleteUserRequest;
 use App\Http\Requests\User\Auth\ForgotPasswordRequest;
 use App\Http\Requests\User\Auth\LoginRequest;
+use App\Http\Requests\User\Auth\LoginWithGoogleRequest;
 use App\Http\Requests\User\Auth\RegisterRequest;
 use App\Http\Requests\User\Auth\ResetPasswordRequest;
 use App\Http\Resources\Auth\AuthResource;
 use App\Http\Responses\ApiResponse;
 use Illuminate\Http\Request;
+use Laravel\Socialite\Facades\Socialite;
 use Throwable;
 
 /**
@@ -55,6 +58,28 @@ class AuthController extends Controller
         return $this->successResponse(
             data: AuthResource::make($result),
             message: 'Logged in successfully.',
+        );
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function loginWithGoogle(LoginWithGoogleRequest $request, HandleGoogleLoginUserAction $action): ApiResponse
+    {
+        $providerUser = Socialite::driver('google')
+            ->stateless()
+            ->userFromToken($request->google_token);
+
+        $user = $action->execute($providerUser);
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return $this->successResponse(
+            data: AuthResource::make([
+                'user' => $user,
+                'token' => $token,
+                'requiresOnboarding' => ! $user->has_onboarded,
+            ]),
         );
     }
 
