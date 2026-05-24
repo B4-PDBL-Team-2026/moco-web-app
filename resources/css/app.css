@@ -22,7 +22,7 @@
 
 @layer components {
     .btn {
-        @apply text-base inline-flex gap-3 px-6 py-3 justify-center cursor-pointer border-2 border-gray-200 text-center rounded-2xl;
+        @apply text-base inline-flex gap-3 px-6 py-3 justify-center cursor-pointer text-center rounded-2xl;
     }
 
     .input-field {
