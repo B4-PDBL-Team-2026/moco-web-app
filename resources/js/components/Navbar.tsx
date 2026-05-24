@@ -9,9 +9,9 @@ export default function Navbar() {
             {/* Logo */}
             <div className="flex items-center gap-2">
                 <img src="/logo.png" alt="moco" className="h-12" />
-                <div className="flex flex-col text-primary">
-                    <h1 className="text-3xl font-black">moco</h1>
-                    <p className="text-xs font-bold">Money Control</p>
+                <div className="flex flex-col justify-start text-primary">
+                    <h1 className="text-3xl font-black">MOCO</h1>
+                    <p className="text-sm font-bold">Money Control</p>
                 </div>
             </div>
 
