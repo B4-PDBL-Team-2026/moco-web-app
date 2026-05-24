@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { usePage } from "@inertiajs/react";
+import { usePage } from '@inertiajs/react';
 
 export default function Navbar() {
     const { auth } = usePage().props as any;
@@ -16,7 +16,7 @@ export default function Navbar() {
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-4">
+            <div className="hidden items-center gap-4 md:flex">
                 {!auth.user ? (
                     <>
                         <Link
