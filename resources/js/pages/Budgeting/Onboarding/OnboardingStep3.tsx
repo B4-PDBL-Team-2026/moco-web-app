@@ -1,8 +1,18 @@
 import {
-    BowlFoodIcon, TaxiIcon, InvoiceIcon, StudentIcon, FilmReelIcon,
-    ShoppingBagIcon, HeartbeatIcon, HandHeartIcon, TagIcon, MoneyIcon, WalletIcon, QuestionIcon
-} from "@phosphor-icons/react";
-import { useState } from 'react';
+    BowlFoodIcon,
+    TaxiIcon,
+    InvoiceIcon,
+    StudentIcon,
+    FilmReelIcon,
+    ShoppingBagIcon,
+    HeartbeatIcon,
+    HandHeartIcon,
+    TagIcon,
+    MoneyIcon,
+    WalletIcon,
+    QuestionIcon,
+} from '@phosphor-icons/react';
+import React, { useState } from 'react';
 import ProgressBar from '@/components/ProgressBar';
 
 const CYCLE_OPTIONS = [
@@ -29,15 +39,26 @@ const CYCLE_LABEL: Record<string, string> = {
     weekly: 'Mingguan',
 };
 
+function FieldError({ message }: { message?: string }) {
+    if (!message) return null;
+    return <p className="mt-1 text-xs text-red-500">{message}</p>;
+}
+
+function inputClass(hasError: boolean) {
+    return `w-full rounded-xl border px-4 py-2.5 text-sm text-gray-700 placeholder-gray-300 outline-none transition ${
+        hasError
+            ? 'border-red-400 focus:border-red-400 focus:ring-2 focus:ring-red-200'
+            : 'border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20'
+    }`;
+}
+
 function EmptyState() {
     return (
         <div className="flex flex-col items-center justify-center rounded-xl bg-gray-50 py-10">
-            {/* Receipt-like icon */}
             <svg
                 className="mb-3 h-12 w-12 text-gray-300"
                 viewBox="0 0 48 48"
                 fill="none"
-                xmlns="http://www.w3.org/2000/svg"
             >
                 <rect
                     x="10"
@@ -98,15 +119,15 @@ function CategoryDropdown({
     value,
     onChange,
     categories,
+    hasError,
 }: {
     value: number | string;
     onChange: (val: number) => void;
     categories: any[];
+    hasError: boolean;
 }) {
     const [isOpen, setIsOpen] = useState(false);
-
     const selectedCat = categories.find((cat) => cat.id === value);
-
     const SelectedIcon =
         selectedCat?.icon && phosphorMap[selectedCat.icon]
             ? phosphorMap[selectedCat.icon]
@@ -117,7 +138,11 @@ function CategoryDropdown({
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex w-full items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className={`flex w-full items-center justify-between rounded-xl border bg-white px-4 py-2.5 text-sm transition outline-none ${
+                    hasError
+                        ? 'border-red-400'
+                        : 'border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20'
+                }`}
             >
                 <div className="flex items-center gap-2">
                     {selectedCat ? (
@@ -129,17 +154,17 @@ function CategoryDropdown({
                                     className="text-primary"
                                 />
                             )}
-                            <span>{selectedCat.name}</span>
+                            <span className="text-gray-700">
+                                {selectedCat.name}
+                            </span>
                         </>
                     ) : (
                         <span className="text-gray-400">Pilih Kategori</span>
                     )}
                 </div>
-                {/* Panah Dropdown */}
                 <span className="text-xs text-gray-400">▼</span>
             </button>
 
-            {/* Menu List */}
             {isOpen && (
                 <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-gray-200 bg-white p-1 shadow-lg">
                     {categories.map((cat: any) => {
@@ -181,8 +206,23 @@ function CategoryDropdown({
     );
 }
 
+export default function OnboardingStep3({
+    form,
+    prev,
+    submit,
+    categories,
+}: any) {
+    // Helper: get error for a specific fixedCost field
+    // Laravel sends errors like "fixedCosts.0.name"
+    const fixedCostError = (
+        index: number,
+        field: string,
+    ): string | undefined => {
+        return (form.errors as Record<string, string>)[
+            `fixedCosts.${index}.${field}`
+        ];
+    };
 
-export default function OnboardingStep3({ form, prev, submit, categories }: any) {
     const addCost = () => {
         form.setData('fixedCosts', [
             ...form.data.fixedCosts,
@@ -201,13 +241,15 @@ export default function OnboardingStep3({ form, prev, submit, categories }: any)
         const updated = [...form.data.fixedCosts];
         updated[index][field] = value;
         form.setData('fixedCosts', updated);
+        // Clear the specific field error when user edits
+        form.clearErrors(`fixedCosts.${index}.${field}` as any);
     };
 
     const removeCost = (index: number) => {
-        const updated = form.data.fixedCosts.filter(
-            (_: any, i: number) => i !== index,
+        form.setData(
+            'fixedCosts',
+            form.data.fixedCosts.filter((_: any, i: number) => i !== index),
         );
-        form.setData('fixedCosts', updated);
     };
 
     const cycleLabel = CYCLE_LABEL[form.data.budgetCycle] ?? 'Bulanan';
@@ -250,10 +292,15 @@ export default function OnboardingStep3({ form, prev, submit, categories }: any)
                 Tambah Fixed Cost
             </button>
 
-            {/* Empty state */}
+            {/* Top-level fixedCosts array error (e.g. wrong overall format) */}
+            {(form.errors as any)['fixedCosts'] && (
+                <p className="mb-3 text-xs text-red-500">
+                    {(form.errors as any)['fixedCosts']}
+                </p>
+            )}
+
             {form.data.fixedCosts.length === 0 && <EmptyState />}
 
-            {/* Fixed cost list */}
             {form.data.fixedCosts.map((cost: any, i: number) => {
                 const maxDay = cost.cycleType === 'weekly' ? 7 : 31;
 
@@ -262,7 +309,7 @@ export default function OnboardingStep3({ form, prev, submit, categories }: any)
                         key={i}
                         className="mb-4 space-y-3 rounded-xl border border-gray-200 bg-white p-4"
                     >
-                        {/* Header row */}
+                        {/* Header */}
                         <div className="flex items-center justify-between">
                             <span className="text-sm font-semibold text-gray-700">
                                 Fixed Cost #{i + 1}
@@ -277,60 +324,90 @@ export default function OnboardingStep3({ form, prev, submit, categories }: any)
                         </div>
 
                         {/* Name */}
-                        <input
-                            placeholder="Nama biaya rutin"
-                            className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-700 placeholder-gray-300 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                            value={cost.name}
-                            onChange={(e) =>
-                                updateCost(i, 'name', e.target.value)
-                            }
-                        />
+                        <div>
+                            <input
+                                placeholder="Nama biaya rutin"
+                                className={inputClass(
+                                    !!fixedCostError(i, 'name'),
+                                )}
+                                value={cost.name}
+                                onChange={(e) =>
+                                    updateCost(i, 'name', e.target.value)
+                                }
+                            />
+                            <FieldError message={fixedCostError(i, 'name')} />
+                        </div>
 
                         {/* Amount */}
-                        <input
-                            placeholder="Rp. 0"
-                            type="number"
-                            className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-700 placeholder-gray-300 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                            value={cost.amount}
-                            onChange={(e) =>
-                                updateCost(i, 'amount', e.target.value)
-                            }
-                        />
+                        <div>
+                            <input
+                                placeholder="Rp. 0"
+                                type="number"
+                                className={inputClass(
+                                    !!fixedCostError(i, 'amount'),
+                                )}
+                                value={cost.amount}
+                                onChange={(e) =>
+                                    updateCost(i, 'amount', e.target.value)
+                                }
+                            />
+                            <FieldError message={fixedCostError(i, 'amount')} />
+                        </div>
 
                         {/* Cycle Type */}
-                        <select
-                            className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                            value={cost.cycleType}
-                            onChange={(e) =>
-                                updateCost(i, 'cycleType', e.target.value)
-                            }
-                        >
-                            {CYCLE_OPTIONS.map((opt) => (
-                                <option key={opt.value} value={opt.value}>
-                                    {opt.label}
-                                </option>
-                            ))}
-                        </select>
+                        <div>
+                            <select
+                                className={inputClass(
+                                    !!fixedCostError(i, 'cycleType'),
+                                )}
+                                value={cost.cycleType}
+                                onChange={(e) =>
+                                    updateCost(i, 'cycleType', e.target.value)
+                                }
+                            >
+                                {CYCLE_OPTIONS.map((opt) => (
+                                    <option key={opt.value} value={opt.value}>
+                                        {opt.label}
+                                    </option>
+                                ))}
+                            </select>
+                            <FieldError
+                                message={fixedCostError(i, 'cycleType')}
+                            />
+                        </div>
 
                         {/* Due Day */}
-                        <input
-                            type="number"
-                            placeholder={`Hari jatuh tempo (1–${maxDay})`}
-                            className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-700 placeholder-gray-300 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                            value={cost.dueDay}
-                            onChange={(e) =>
-                                updateCost(i, 'dueDay', e.target.value)
-                            }
-                            min={1}
-                            max={maxDay}
-                        />
+                        <div>
+                            <input
+                                type="number"
+                                placeholder={`Hari jatuh tempo (1–${maxDay})`}
+                                className={inputClass(
+                                    !!fixedCostError(i, 'dueDay'),
+                                )}
+                                value={cost.dueDay}
+                                onChange={(e) =>
+                                    updateCost(i, 'dueDay', e.target.value)
+                                }
+                                min={1}
+                                max={maxDay}
+                            />
+                            <FieldError message={fixedCostError(i, 'dueDay')} />
+                        </div>
 
                         {/* Category */}
-                        <CategoryDropdown
-                            categories={categories}
-                            value={cost.categoryId}
-                            onChange={(val) => updateCost(i, 'categoryId', val)}
-                        />
+                        <div>
+                            <CategoryDropdown
+                                categories={categories}
+                                value={cost.categoryId}
+                                onChange={(val) =>
+                                    updateCost(i, 'categoryId', val)
+                                }
+                                hasError={!!fixedCostError(i, 'categoryId')}
+                            />
+                            <FieldError
+                                message={fixedCostError(i, 'categoryId')}
+                            />
+                        </div>
 
                         {/* Active toggle */}
                         <label className="flex items-center gap-2.5 text-sm text-gray-600">

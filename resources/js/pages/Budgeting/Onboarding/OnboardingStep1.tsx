@@ -24,17 +24,28 @@ export default function OnboardingStep1({ form, next, prev }: any) {
             </div>
 
             {/* Input */}
-            <div className="relative mb-6">
+            <div className="relative mb-1">
                 <input
                     type="number"
                     placeholder="Rp. 0"
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-center text-base text-gray-700 placeholder-gray-300 outline-none ring-0 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className={`w-full rounded-xl border bg-white px-4 py-3 text-center text-base text-gray-700 placeholder-gray-300 ring-0 transition outline-none ${
+                        form.errors.initialBalance
+                            ? 'border-red-400 focus:border-red-400 focus:ring-2 focus:ring-red-200'
+                            : 'border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20'
+                    }`}
                     value={form.data.initialBalance}
-                    onChange={(e) =>
-                        form.setData('initialBalance', e.target.value)
-                    }
+                    onChange={(e) => {
+                        form.setData('initialBalance', e.target.value);
+                        form.clearErrors('initialBalance');
+                    }}
                 />
             </div>
+            {form.errors.initialBalance && (
+                <p className="mb-4 text-xs text-red-500">
+                    {form.errors.initialBalance}
+                </p>
+            )}
+            {!form.errors.initialBalance && <div className="mb-6" />}
 
             {/* Actions */}
             <div className="flex justify-between gap-3">

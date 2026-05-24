@@ -33,21 +33,22 @@ export default function Onboarding({
 
     /**
      * STEP 3 → STEP 4 (PREVIEW)
+     * On validation error, jump back to the step that owns the failing field.
      */
     const previewSubmit = () => {
         setGlobalError(null);
 
-        form.setData({
-            ...form.data,
-            initialBalance: Number(form.data.initialBalance) as any,
-            flooringLimit: Number(form.data.flooringLimit) as any,
-            ceilingLimit: Number(form.data.ceilingLimit) as any,
-            fixedCosts: form.data.fixedCosts.map((c: any) => ({
+        form.transform((data) => ({
+            ...data,
+            initialBalance: Number(data.initialBalance),
+            flooringLimit: Number(data.flooringLimit),
+            ceilingLimit: Number(data.ceilingLimit),
+            fixedCosts: data.fixedCosts.map((c: any) => ({
                 ...c,
                 amount: Number(c.amount),
                 dueDay: Number(c.dueDay),
             })),
-        });
+        }));
 
         form.post('/onboarding/preview', {
             preserveScroll: true,
@@ -56,8 +57,23 @@ export default function Onboarding({
                 setStep(4);
             },
             onError: (errors) => {
-                console.log(errors);
-                setGlobalError(errors.message || 'Terjadi kesalahan');
+                setGlobalError(
+                    'Data onboardingnya ada yang ngga valid nih, coba benerin dulu ya',
+                );
+
+                // Jump to the earliest step that has an error
+                const keys = Object.keys(errors);
+                const hasStep1 = keys.some((k) => k === 'initialBalance');
+                const hasStep2 = keys.some(
+                    (k) => k === 'flooringLimit' || k === 'ceilingLimit',
+                );
+                const hasStep3 = keys.some(
+                    (k) => k === 'budgetCycle' || k.startsWith('fixedCosts'),
+                );
+
+                if (hasStep1) setStep(1);
+                else if (hasStep2) setStep(2);
+                else if (hasStep3) setStep(3);
             },
         });
     };
@@ -66,9 +82,24 @@ export default function Onboarding({
      * FINAL SUBMIT
      */
     const submit = () => {
+        form.transform((data) => ({
+            ...data,
+            initialBalance: Number(data.initialBalance),
+            flooringLimit: Number(data.flooringLimit),
+            ceilingLimit: Number(data.ceilingLimit),
+            fixedCosts: data.fixedCosts.map((c: any) => ({
+                ...c,
+                amount: Number(c.amount),
+                dueDay: Number(c.dueDay),
+            })),
+        }));
+
         form.post('/onboarding', {
-            onError: (errors) => {
-                setGlobalError(errors.message || 'Gagal menyimpan');
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            onError: (_errors: Record<string, string>) => {
+                setGlobalError(
+                    'Data onboardingnya ada yang ngga valid nih, coba benerin dulu ya',
+                );
                 setStep(3);
             },
         });
@@ -86,7 +117,9 @@ export default function Onboarding({
                     </div>
                 )}
 
-                {step === 1 && <OnboardingStep1 form={form} next={next} />}
+                {step === 1 && (
+                    <OnboardingStep1 form={form} next={next} prev={prev} />
+                )}
 
                 {step === 2 && (
                     <OnboardingStep2 form={form} next={next} prev={prev} />

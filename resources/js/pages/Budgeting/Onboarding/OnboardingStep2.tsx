@@ -8,6 +8,19 @@ function InfoIcon() {
     );
 }
 
+function FieldError({ message }: { message?: string }) {
+    if (!message) return null;
+    return <p className="mt-1 text-xs text-red-500">{message}</p>;
+}
+
+function inputClass(hasError: boolean) {
+    return `w-full rounded-xl border bg-white px-4 py-3 text-center text-base text-gray-700 placeholder-gray-300 outline-none transition ${
+        hasError
+            ? 'border-red-400 focus:border-red-400 focus:ring-2 focus:ring-red-200'
+            : 'border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20'
+    }`;
+}
+
 export default function OnboardingStep2({ form, next, prev }: any) {
     return (
         <>
@@ -31,12 +44,14 @@ export default function OnboardingStep2({ form, next, prev }: any) {
                 <input
                     type="number"
                     placeholder="Rp. 0"
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-center text-base text-gray-700 placeholder-gray-300 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className={inputClass(!!form.errors.ceilingLimit)}
                     value={form.data.ceilingLimit}
-                    onChange={(e) =>
-                        form.setData('ceilingLimit', e.target.value)
-                    }
+                    onChange={(e) => {
+                        form.setData('ceilingLimit', e.target.value);
+                        form.clearErrors('ceilingLimit');
+                    }}
                 />
+                <FieldError message={form.errors.ceilingLimit} />
             </div>
 
             {/* Flooring / Minimal */}
@@ -50,12 +65,14 @@ export default function OnboardingStep2({ form, next, prev }: any) {
                 <input
                     type="number"
                     placeholder="Rp. 0"
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-center text-base text-gray-700 placeholder-gray-300 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className={inputClass(!!form.errors.flooringLimit)}
                     value={form.data.flooringLimit}
-                    onChange={(e) =>
-                        form.setData('flooringLimit', e.target.value)
-                    }
+                    onChange={(e) => {
+                        form.setData('flooringLimit', e.target.value);
+                        form.clearErrors('flooringLimit');
+                    }}
                 />
+                <FieldError message={form.errors.flooringLimit} />
             </div>
 
             {/* Actions */}
