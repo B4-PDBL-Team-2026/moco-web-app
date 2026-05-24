@@ -28,6 +28,7 @@ Route::get('/send-test-email', function () {
 Route::prefix('auth')->controller(AuthController::class)->group(function () {
     Route::post('/register', 'register');
     Route::post('/login', 'login');
+    Route::post('/login/google', 'loginWithGoogle');
     Route::post('/password/email', 'forgotPassword');
     Route::post('/password/reset', 'resetPassword');
 
