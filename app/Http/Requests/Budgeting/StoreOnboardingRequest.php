@@ -21,7 +21,7 @@ class StoreOnboardingRequest extends FormRequest
     {
         return [
             'budgetCycle' => ['required', Rule::enum(CycleType::class)],
-            'initialBalance' => ['required', 'numeric', 'min:0'],
+            'initialBalance' => ['required', 'numeric', 'min:1'],
             'flooringLimit' => ['required', 'numeric', 'min:0'],
             'ceilingLimit' => ['required', 'numeric', 'gte:flooringLimit'],
             'timezone' => ['sometimes', 'required', 'string', 'timezone'],
