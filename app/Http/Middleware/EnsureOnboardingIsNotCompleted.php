@@ -12,15 +12,14 @@ class EnsureOnboardingIsNotCompleted
 {
     public function handle(Request $request, Closure $next): RedirectResponse|Response
     {
-        $isInertia = $request->header('X-Inertia');
+        $user = $request->user();
 
-        if ($request->user()?->has_onboarded) {
-            // handle web
-            if ($isInertia) {
-                return redirect()->route('dashboard');
-            }
+        if (! $user?->has_onboarded) {
+            return $next($request);
+        }
 
-            // handle api
+        // deny onboarding action
+        if ($request->expectsJson() || $request->is('api/*')) {
             return (new ApiResponse(
                 errors: [
                     'requiresOnboarding' => false,
@@ -31,6 +30,6 @@ class EnsureOnboardingIsNotCompleted
             ))->toResponse($request);
         }
 
-        return $next($request);
+        return redirect()->route('dashboard');
     }
 }

@@ -18,19 +18,12 @@ class EnsureOnboardingIsCompleted
     {
         $user = $request->user();
 
-        $isInertia = $request->header('X-Inertia');
-
-        // handle web
-        if ($isInertia) {
-            if ($user?->has_onboarded) {
-                return $next($request);
-            }
-
-            return redirect()->route('onboarding-show');
+        if ($user?->has_onboarded) {
+            return $next($request);
         }
 
-        // handle api
-        if (! $user?->has_onboarded) {
+        // redirect user to onboarding
+        if ($request->expectsJson() || $request->is('api/*')) {
             return (new ApiResponse(
                 errors: [
                     'requiresOnboarding' => true,
@@ -41,6 +34,6 @@ class EnsureOnboardingIsCompleted
             ))->toResponse($request);
         }
 
-        return $next($request);
+        return redirect()->route('onboarding-show');
     }
 }
