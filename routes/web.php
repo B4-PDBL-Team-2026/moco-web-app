@@ -8,11 +8,15 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
     Route::controller(AuthController::class)->group(function () {
-        Route::get('/account/delete', 'showDeleteInfo');
         Route::get('/register', 'showRegister');
         Route::post('/register', 'handleRegister');
         Route::get('/login', 'showLogin')->name('login');
         Route::post('/login', 'handleLogin');
+        Route::prefix('/oauth/google')->group(function () {
+            Route::get('/redirect', 'redirectToGoogle');
+            Route::get('/callback', 'callback');
+        });
+        Route::get('/account/delete', 'showDeleteInfo');
         Route::get('/forget-password', 'showForgetPassword');
         Route::post('/forget-password', 'forgotPassword');
         Route::get('/reset-password/{token}', 'showResetForm')->name('password.reset');
@@ -20,7 +24,6 @@ Route::prefix('auth')->group(function () {
             ->middleware(['signed'])
             ->name('verification.verify');
     });
-
 });
 
 Route::middleware(['auth'])->group(function () {

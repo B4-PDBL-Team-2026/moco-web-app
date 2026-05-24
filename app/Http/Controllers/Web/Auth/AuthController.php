@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web\Auth;
 
 use App\Domains\User\Actions\Auth\ForgotPasswordAction;
+use App\Domains\User\Actions\Auth\HandleGoogleLoginUserAction;
 use App\Domains\User\Actions\Auth\LoginUserAction;
 use App\Domains\User\Actions\Auth\RegisterUserAction;
 use App\Domains\User\Actions\Auth\ResetPasswordAction;
@@ -15,8 +16,12 @@ use App\Http\Requests\User\Auth\RegisterRequest;
 use App\Http\Requests\User\Auth\ResetPasswordRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
+use Laravel\Socialite\Contracts\User as ProviderUser;
+use Socialite;
+use Throwable;
 
 class AuthController extends Controller
 {
@@ -125,5 +130,27 @@ class AuthController extends Controller
         }
 
         return back()->with('success', $result['message']);
+    }
+
+    public function redirectToGoogle(): RedirectResponse
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function callback(HandleGoogleLoginUserAction $action)
+    {
+        try {
+            $providerUser = Socialite::driver('google')->user();
+
+            $user = $action->execute($providerUser);
+
+            Auth::login($user);
+
+            return redirect()->route('dashboard');
+        } catch (Throwable $error) {
+            \Log::error('[WEB] Auth Controller: SSO attempt fails '.$error->getMessage());
+
+            return redirect()->route('login')->with('error', 'Gagal login pake google, coba ulang lagi ya.');
+        }
     }
 }
