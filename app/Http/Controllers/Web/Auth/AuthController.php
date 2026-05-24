@@ -153,4 +153,14 @@ class AuthController extends Controller
             return redirect()->route('login')->with('error', 'Gagal login pake google, coba ulang lagi ya.');
         }
     }
+
+    public function logout(Request $request): RedirectResponse
+    {
+        Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login');
+    }
 }

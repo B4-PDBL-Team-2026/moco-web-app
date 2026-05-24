@@ -25,6 +25,7 @@ Route::prefix('auth')->group(function () {
         Route::get('/verify-email/{id}/{hash}', 'verifyEmail')
             ->middleware(['signed'])
             ->name('verification.verify');
+        Route::delete('/logout', 'logout')->middleware('auth');
     });
 });
 

@@ -39,10 +39,10 @@ const BOTTOM_ITEMS = [
     },
     {
         label: 'Keluar',
-        href: '/logout',
+        href: '/auth/logout',
         icon: LogOut,
         routeName: null,
-        method: 'post' as const,
+        method: 'delete' as const,
     },
 ];
 
@@ -137,12 +137,12 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                         const Icon = item.icon;
                         const isActive = item.href && url.startsWith(item.href);
 
-                        if (item.method === 'post') {
+                        if (item.method === 'delete') {
                             return (
                                 <Link
                                     key={item.href}
                                     href={item.href}
-                                    method="post"
+                                    method={item.method}
                                     as="button"
                                     className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-gray-500 transition hover:bg-red-50 hover:text-red-500"
                                 >
