@@ -3,6 +3,7 @@
 use App\Commons\Exceptions\BusinessRuleException;
 use App\Console\Commands\SendFixedCostReminders;
 use App\Http\Middleware\CheckDailyBudgetRecalculation;
+use App\Http\Middleware\EnsureNotAuthenticated;
 use App\Http\Middleware\EnsureOnboardingIsCompleted;
 use App\Http\Middleware\EnsureOnboardingIsNotCompleted;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -34,6 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'hasOnboarded' => EnsureOnboardingIsCompleted::class,
             'notOnboarded' => EnsureOnboardingIsNotCompleted::class,
             'hasRecaculatedToday' => CheckDailyBudgetRecalculation::class,
+            'notAuthenticated' => EnsureNotAuthenticated::class
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
