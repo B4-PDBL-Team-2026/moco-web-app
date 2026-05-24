@@ -22,6 +22,7 @@ Route::prefix('auth')->group(function () {
         Route::get('/forget-password', 'showForgetPassword');
         Route::post('/forget-password', 'forgotPassword');
         Route::get('/reset-password/{token}', 'showResetForm')->name('password.reset');
+        Route::post('/reset-password', 'resetPassword');
         Route::get('/verify-email/{id}/{hash}', 'verifyEmail')
             ->middleware(['signed'])
             ->name('verification.verify');
