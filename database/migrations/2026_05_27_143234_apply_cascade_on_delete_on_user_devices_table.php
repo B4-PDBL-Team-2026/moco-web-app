@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('user_devices', function (Blueprint $table) {
-            $table->dropForeign('user_id_foreign');
+            $table->dropForeign('user_devices_user_id_foreign');
 
             $table->foreign('user_id')
                 ->references('id')
@@ -27,7 +27,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('user_devices', function (Blueprint $table) {
-            $table->dropForeign('user_id');
+            $table->dropForeign('user_devices_user_id_foreign');
 
             $table->foreign('user_id')
                 ->references('id')
