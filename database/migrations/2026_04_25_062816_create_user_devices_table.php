@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('user_devices', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained('users');
             $table->string('device_id')->unique();
             $table->text('fcm_token');
 
