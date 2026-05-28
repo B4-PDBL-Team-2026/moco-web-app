@@ -12,12 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('user_devices', function (Blueprint $table) {
-            $table->dropForeign('user_devices_user_id_foreign');
+            Schema::table('user_devices', function (Blueprint $table) {
+                if (DB::getDriverName() !== 'sqlite') {
+                    $table->dropForeign('user_devices_user_id_foreign');
+                } else {
+                    $table->dropForeign(['user_id']);
+                }
 
-            $table->foreign('user_id')
-                ->references('id')
-                ->on('users')
-                ->cascadeOnDelete();
+                $table->foreign('user_id')
+                    ->references('id')
+                    ->on('users')
+                    ->cascadeOnDelete();
+            });
         });
     }
 
@@ -27,7 +33,11 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('user_devices', function (Blueprint $table) {
-            $table->dropForeign('user_devices_user_id_foreign');
+            if (DB::getDriverName() !== 'sqlite') {
+                $table->dropForeign('user_devices_user_id_foreign');
+            } else {
+                $table->dropForeign(['user_id']);
+            }
 
             $table->foreign('user_id')
                 ->references('id')
