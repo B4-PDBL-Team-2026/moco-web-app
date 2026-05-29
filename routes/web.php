@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Web\Admin\AdminUsersController;
 use App\Http\Controllers\Web\Auth\AuthController;
 use App\Http\Controllers\Web\Budgeting\DashboardController;
 use App\Http\Controllers\Web\Budgeting\OnboardingController;
@@ -71,5 +72,6 @@ Route::middleware(['auth'])->group(function () {
     // admin domain endpoints
     Route::prefix('/admin')->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+        Route::get('/users', [AdminUsersController::class, 'index'])->name('admin.users');
     });
 });
