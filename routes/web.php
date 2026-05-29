@@ -4,6 +4,7 @@ use App\Http\Controllers\Web\Auth\AuthController;
 use App\Http\Controllers\Web\Budgeting\DashboardController;
 use App\Http\Controllers\Web\Budgeting\OnboardingController;
 use App\Http\Controllers\Web\FixedCost\FixedCostController;
+use App\Http\Controllers\Web\Admin\DashboardController as AdminDashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -65,5 +66,10 @@ Route::middleware(['auth'])->group(function () {
             Route::patch('/{templateId}', 'update')->name('fixed-costs.update');
             Route::delete('/{templateId}', 'destroy')->name('fixed-costs.destroy');
         });
+    });
+
+    // admin domain endpoints
+    Route::prefix('/admin')->group(function () {
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
     });
 });
