@@ -76,7 +76,7 @@ export default function UserStatsChart({ data, filter }: UserStatsChartProps) {
             </div>
 
             {/* Chart Body */}
-            <div className="min-h-[280px] w-full flex-1">
+            <div className="min-h-60 w-full flex-1">
                 <ResponsiveContainer width="100%" height="100%">
                     <LineChart
                         key={filter} // Re-renders the component to trigger new animation when filter changes
