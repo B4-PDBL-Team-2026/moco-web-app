@@ -4,6 +4,7 @@ import {
     LayoutDashboard,
     ScrollText,
     CalendarClock,
+    Tag,
     Settings,
     LogOut,
     X,
@@ -27,6 +28,12 @@ const NAV_ITEMS = [
         href: '/fixed-costs/occurrences',
         icon: CalendarClock,
         routeName: 'fixed-costs',
+    },
+    {
+        label: 'Kategori',
+        href: '/categories',
+        icon: Tag,
+        routeName: 'categories',
     },
 ];
 

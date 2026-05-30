@@ -4,6 +4,7 @@ use App\Http\Controllers\Web\Auth\AuthController;
 use App\Http\Controllers\Web\Budgeting\DashboardController;
 use App\Http\Controllers\Web\Budgeting\OnboardingController;
 use App\Http\Controllers\Web\FixedCost\FixedCostController;
+use App\Http\Controllers\Web\Category\CategoryController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -65,5 +66,13 @@ Route::middleware(['auth'])->group(function () {
             Route::patch('/{templateId}', 'update')->name('fixed-costs.update');
             Route::delete('/{templateId}', 'destroy')->name('fixed-costs.destroy');
         });
+    });
+
+    // categories domain endpoints
+    Route::prefix('/categories')->controller(CategoryController::class)->group(function () {
+        Route::get('/', 'index')->name('categories.index');
+        Route::post('/', 'store')->name('categories.store');
+        Route::patch('/{categoryId}', 'update')->name('categories.update');
+        Route::delete('/{categoryId}', 'destroy')->name('categories.destroy');
     });
 });
