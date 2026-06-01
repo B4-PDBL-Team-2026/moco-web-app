@@ -1,11 +1,12 @@
 <?php
 
+use App\Http\Controllers\LandingPageAnalyticController;
 use App\Http\Controllers\Web\Admin\AdminUsersController;
+use App\Http\Controllers\Web\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Web\Auth\AuthController;
 use App\Http\Controllers\Web\Budgeting\DashboardController;
 use App\Http\Controllers\Web\Budgeting\OnboardingController;
 use App\Http\Controllers\Web\FixedCost\FixedCostController;
-use App\Http\Controllers\Web\Admin\DashboardController as AdminDashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -74,4 +75,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
         Route::get('/users', [AdminUsersController::class, 'index'])->name('admin.users');
     });
+});
+
+Route::middleware('throttle:analytics')->controller(LandingPageAnalyticController::class)->group(function () {
+    Route::post('/analytics/visit', 'trackVisit');
+    Route::post('/analytics/scroll', 'trackScroll');
 });
