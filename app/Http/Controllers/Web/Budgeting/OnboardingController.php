@@ -22,7 +22,6 @@ class OnboardingController extends Controller
                 $query->whereNull('user_id')
                     ->orWhere('user_id', auth()->id());
             })
-            ->where('is_system', true)
             ->where('type', TransactionType::EXPENSE)
             ->orderBy('name')
             ->get(['id', 'name', 'icon', 'type']);
