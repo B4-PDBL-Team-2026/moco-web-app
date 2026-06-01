@@ -15,13 +15,13 @@ use Illuminate\Support\Facades\Route;
 Route::get('/send-test-email', function () {
     try {
         Mail::raw('smtp server successfully configure', function ($message) {
-            $message->to('some.user@gmail.com')
-                ->subject('Test SMTP Laravel Sukses!');
+            $message->to(config('services.accounts.email_trap'))
+                ->subject('Test SMTP Server Success');
         });
 
-        return 'Test email berhasil dikirim! Coba cek inbox lo.';
+        return 'email successfully sent';
     } catch (Exception $e) {
-        return 'Gagal ngirim email. Error-nya: '.$e->getMessage();
+        return 'Failed to send email: '.$e->getMessage();
     }
 });
 
