@@ -45,4 +45,10 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'accounts' => [
+        'email_trap' => env('TESTABLE_EMAIL_TRAP'),
+        'admin_mail' => env('ADMIN_EMAIL'),
+        'admin_pass' => env('ADMIN_PASS'),
+    ],
+
 ];

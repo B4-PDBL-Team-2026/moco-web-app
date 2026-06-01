@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { Menu, Bell, User } from 'lucide-react';
+import { Menu, User } from 'lucide-react';
 
 type BudgetStatus = 'stabil' | 'defisit' | 'kritis' | 'surplus';
 
@@ -56,13 +56,6 @@ export default function Topbar({ onMenuClick, status }: TopbarProps) {
                         {statusConfig.label}
                     </span>
                 )}
-
-                <Link
-                    href="/notifications"
-                    className="relative flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition hover:bg-gray-50"
-                >
-                    <Bell size={18} />
-                </Link>
 
                 <Link
                     href="/profile"

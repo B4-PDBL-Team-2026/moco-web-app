@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\LandingPageAnalyticController;
+use App\Http\Controllers\Web\Admin\AdminUsersController;
+use App\Http\Controllers\Web\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Web\Auth\AuthController;
 use App\Http\Controllers\Web\Budgeting\DashboardController;
 use App\Http\Controllers\Web\Budgeting\OnboardingController;
@@ -35,35 +38,54 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::middleware(['auth'])->group(function () {
-    // budgeting domain endpoints
-    Route::prefix('/onboarding')->middleware(['notOnboarded'])->controller(OnboardingController::class)->group(function () {
-        Route::get('/', 'showOnboarding')->name('onboarding-show');
-        Route::post('/', 'completeOnboarding');
-        Route::post('/preview', 'handleOnboarding');
-    });
-
-    Route::middleware(['hasOnboarded'])->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'showDashboard'])->name('dashboard');
-    });
-
-    // fixed costs domain endpoints
-    Route::prefix('/fixed-costs')->controller(FixedCostController::class)->group(function () {
-        Route::prefix('/occurrences')->group(function () {
-            Route::get('/', 'indexOccurrence')
-                ->name('fixed-costs.occurrences.index');
-            Route::post('/{occurrenceId}/confirm-payment', 'confirmPayment')
-                ->name('fixed-costs.occurrences.confirm-payment');
-            Route::post('/{occurrenceId}/cancel-payment', 'cancelPayment')
-                ->name('fixed-costs.occurrences.cancel-payment');
-            Route::post('/{occurrenceId}/skip', 'skipOccurrence')
-                ->name('fixed-costs.occurrences.skip');
+    Route::middleware('isUser')->group(function () {
+        // budgeting domain endpoints
+        Route::prefix('/onboarding')->middleware(['notOnboarded'])->controller(OnboardingController::class)->group(function () {
+            Route::get('/', 'showOnboarding')->name('onboarding-show');
+            Route::post('/', 'completeOnboarding');
+            Route::post('/preview', 'handleOnboarding');
         });
 
-        Route::prefix('/templates')->group(function () {
-            Route::get('/', 'index')->name('fixed-costs.index');
-            Route::post('/', 'store')->name('fixed-costs.store');
-            Route::patch('/{templateId}', 'update')->name('fixed-costs.update');
-            Route::delete('/{templateId}', 'destroy')->name('fixed-costs.destroy');
+        Route::middleware(['hasOnboarded'])->group(function () {
+            Route::get('/dashboard', [DashboardController::class, 'showDashboard'])->name('dashboard');
+        });
+
+        // fixed costs domain endpoints
+        Route::prefix('/fixed-costs')->controller(FixedCostController::class)->group(function () {
+            Route::prefix('/occurrences')->group(function () {
+                Route::get('/', 'indexOccurrence')
+                    ->name('fixed-costs.occurrences.index');
+                Route::post('/{occurrenceId}/confirm-payment', 'confirmPayment')
+                    ->name('fixed-costs.occurrences.confirm-payment');
+                Route::post('/{occurrenceId}/cancel-payment', 'cancelPayment')
+                    ->name('fixed-costs.occurrences.cancel-payment');
+                Route::post('/{occurrenceId}/skip', 'skipOccurrence')
+                    ->name('fixed-costs.occurrences.skip');
+            });
+
+            Route::prefix('/templates')->group(function () {
+                Route::get('/', 'index')->name('fixed-costs.index');
+                Route::post('/', 'store')->name('fixed-costs.store');
+                Route::patch('/{templateId}', 'update')->name('fixed-costs.update');
+                Route::delete('/{templateId}', 'destroy')->name('fixed-costs.destroy');
+            });
         });
     });
+
+    // admin domain endpoints
+    Route::prefix('/admin')->middleware(['isAdmin'])->group(function () {
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+
+        Route::prefix('/users')->controller(AdminUsersController::class)->group(function () {
+            Route::get('/', 'index')->name('admin.users.index');
+            Route::put('/{user}', 'update')->name('admin.users.update');
+            Route::post('/{user}/force-logout', 'forceLogout')->name('admin.users.force-logout');
+            Route::delete('/{user}', 'destroy')->name('admin.users.destroy');
+        });
+    });
+});
+
+Route::middleware('throttle:analytics')->controller(LandingPageAnalyticController::class)->group(function () {
+    Route::post('/analytics/visit', 'trackVisit');
+    Route::post('/analytics/scroll', 'trackScroll');
 });
