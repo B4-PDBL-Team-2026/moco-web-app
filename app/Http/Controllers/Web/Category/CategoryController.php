@@ -7,10 +7,11 @@ use App\Domains\Category\Actions\DeleteCustomCategoryAction;
 use App\Domains\Category\Actions\GetAllCustomCategoriesAction;
 use App\Domains\Category\Actions\GetAllSystemCategoriesAction;
 use App\Domains\Category\Actions\UpdateCustomCategoryAction;
-use App\Domains\Category\Models\Category;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Category\StoreCustomCategoryRequest;
 use App\Http\Requests\Category\UpdateCustomCategoryRequest;
+use BackedEnum;
+use DB;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -27,18 +28,18 @@ class CategoryController extends Controller
         $systemCategories = $systemAction->execute();
         $customCategories = $customAction->execute($userId);
 
-        $transactionCounts = \DB::table('transactions')
+        $transactionCounts = DB::table('transactions')
             ->whereNull('deleted_at')
             ->where('user_id', $userId)
             ->groupBy('category_id')
-            ->select('category_id', \DB::raw('count(*) as aggregate'))
+            ->select('category_id', DB::raw('count(*) as aggregate'))
             ->pluck('aggregate', 'category_id');
 
-        $fixedCostCounts = \DB::table('fixed_cost_templates')
+        $fixedCostCounts = DB::table('fixed_cost_templates')
             ->whereNull('deleted_at')
             ->where('user_id', $userId)
             ->groupBy('category_id')
-            ->select('category_id', \DB::raw('count(*) as aggregate'))
+            ->select('category_id', DB::raw('count(*) as aggregate'))
             ->pluck('aggregate', 'category_id');
 
         $snapshot = auth()->user()->budgetSnapshot;
@@ -48,7 +49,7 @@ class CategoryController extends Controller
                 'id' => $c->id,
                 'name' => $c->name,
                 'icon' => $c->icon,
-                'type' => $c->type instanceof \BackedEnum ? $c->type->value : $c->type,
+                'type' => $c->type instanceof BackedEnum ? $c->type->value : $c->type,
                 'isSystem' => true,
                 'transactionsCount' => $transactionCounts->get($c->id, 0),
                 'fixedCostsCount' => $fixedCostCounts->get($c->id, 0),
@@ -57,7 +58,7 @@ class CategoryController extends Controller
                 'id' => $c->id,
                 'name' => $c->name,
                 'icon' => $c->icon,
-                'type' => $c->type instanceof \BackedEnum ? $c->type->value : $c->type,
+                'type' => $c->type instanceof BackedEnum ? $c->type->value : $c->type,
                 'isSystem' => false,
                 'transactionsCount' => $transactionCounts->get($c->id, 0),
                 'fixedCostsCount' => $fixedCostCounts->get($c->id, 0),

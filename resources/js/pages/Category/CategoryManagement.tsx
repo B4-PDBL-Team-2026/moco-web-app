@@ -6,18 +6,17 @@ import {
     ShieldCheck,
     Tag,
     Search,
-    Sparkles,
     TrendingDown,
     TrendingUp,
     Layers,
     X,
 } from 'lucide-react';
 import { useState } from 'react';
-import AppLayout from '@/layouts/AppLayout';
-import { CategoryPhosphorIcon } from '@/utils/phosphorIconMap';
 import CategoryFormDrawer from '@/components/CategoryFormDrawer';
 import type { Category } from '@/components/CategoryFormDrawer';
+import AppLayout from '@/layouts/AppLayout';
 import { getIconColorTheme } from '@/utils/categoryColors';
+import { CategoryPhosphorIcon } from '@/utils/phosphorIconMap';
 
 interface Props {
     systemCategories: Category[];
@@ -231,7 +230,7 @@ export default function CategoryManagement({
                                         className="group relative flex items-center gap-4 rounded-2xl border bg-white p-4 shadow-sm transition-all duration-250 hover:shadow-md hover:border-gray-200 border-gray-100"
                                     >
                                         {/* Soft vertical border */}
-                                        <div className={`absolute left-0 top-3 bottom-3 w-1 rounded-r bg-gradient-to-b ${colors.gradient} opacity-80`} />
+                                        <div className={`absolute left-0 top-3 bottom-3 w-1 rounded-r bg-linear-to-b ${colors.gradient} opacity-80`} />
 
                                         {/* Icon Container */}
                                         <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${colors.bgLight} transition-all duration-200 shadow-sm`}>
@@ -323,7 +322,6 @@ export default function CategoryManagement({
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {filteredSystem.map((cat) => {
-                            const colors = getIconColorTheme(cat.icon);
                             return (
                                 <div
                                     key={cat.id}
