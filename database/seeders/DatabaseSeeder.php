@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Administrator',
             'email' => config('services.accounts.admin_mail'),
             'password' => bcrypt(config('services.accounts.admin_pass')),
+            'role' => 'admin',
         ]);
         $this->call(CategorySeeder::class);
     }

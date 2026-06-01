@@ -71,9 +71,15 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // admin domain endpoints
-    Route::prefix('/admin')->group(function () {
+    Route::prefix('/admin')->middleware(['isAdmin'])->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
-        Route::get('/users', [AdminUsersController::class, 'index'])->name('admin.users');
+
+        Route::prefix('/users')->controller(AdminUsersController::class)->group(function () {
+            Route::get('/', 'index')->name('admin.users.index');
+            Route::put('/{user}', 'update')->name('admin.users.update');
+            Route::post('/{user}/force-logout', 'forceLogout')->name('admin.users.force-logout');
+            Route::delete('/{user}', 'destroy')->name('admin.users.destroy');
+        });
     });
 });
 

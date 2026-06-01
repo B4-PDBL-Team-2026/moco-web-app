@@ -1,5 +1,6 @@
+import { router } from '@inertiajs/react';
 import { PencilLine, Power, Search, Trash, Verified } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
 import type { User } from '@/components/EditUserDrawer';
@@ -7,118 +8,22 @@ import EditUserDrawer from '@/components/EditUserDrawer';
 import ForceLogoutDialog from '@/components/ForceLogoutDialog';
 import AdminLayout from '@/layouts/AdminLayout';
 
-const INITIAL_USERS: User[] = [
-    {
-        id: 1,
-        name: 'Alice Johnson',
-        email: 'alice.j@example.com',
-        joinedAt: '12 Jan 2026',
-        status: 'active',
-        isLoggedIn: true,
-        avatarInitials: 'AJ',
-        emailVerified: true,
-    },
-    {
-        id: 2,
-        name: 'Budi Santoso',
-        email: 'budi.s@example.com',
-        joinedAt: '18 Jan 2026',
-        status: 'active',
-        isLoggedIn: false,
-        avatarInitials: 'BS',
-        emailVerified: true,
-    },
-    {
-        id: 3,
-        name: 'Charlie Brown',
-        email: 'charlie.b@example.com',
-        joinedAt: '03 Feb 2026',
-        status: 'active',
-        isLoggedIn: false,
-        avatarInitials: 'CB',
-        emailVerified: false,
-    },
-    {
-        id: 4,
-        name: 'Dewi Lestari',
-        email: 'dewi.l@example.com',
-        joinedAt: '15 Feb 2026',
-        status: 'active',
-        isLoggedIn: true,
-        avatarInitials: 'DL',
-        emailVerified: true,
-    },
-    {
-        id: 5,
-        name: 'Eko Prasetyo',
-        email: 'eko.p@example.com',
-        joinedAt: '22 Feb 2026',
-        status: 'active',
-        isLoggedIn: false,
-        avatarInitials: 'EP',
-        emailVerified: true,
-    },
-    {
-        id: 6,
-        name: 'Farida Aulia',
-        email: 'farida.a@example.com',
-        joinedAt: '01 Mar 2026',
-        status: 'active',
-        isLoggedIn: true,
-        avatarInitials: 'FA',
-        emailVerified: true,
-    },
-    {
-        id: 7,
-        name: 'Guntur Wijaya',
-        email: 'guntur.w@example.com',
-        joinedAt: '10 Mar 2026',
-        status: 'banned',
-        isLoggedIn: false,
-        avatarInitials: 'GW',
-        banDuration: '3 hari',
-        emailVerified: true,
-    },
-    {
-        id: 8,
-        name: 'Hana Putri',
-        email: 'hana.p@example.com',
-        joinedAt: '14 Mar 2026',
-        status: 'active',
-        isLoggedIn: true,
-        avatarInitials: 'HP',
-        emailVerified: false,
-    },
-    {
-        id: 9,
-        name: 'Indra Kusuma',
-        email: 'indra.k@example.com',
-        joinedAt: '20 Mar 2026',
-        status: 'active',
-        isLoggedIn: false,
-        avatarInitials: 'IK',
-        emailVerified: true,
-    },
-    {
-        id: 10,
-        name: 'Joko Widodo',
-        email: 'joko.w@example.com',
-        joinedAt: '29 Mar 2026',
-        status: 'active',
-        isLoggedIn: false,
-        avatarInitials: 'JW',
-        emailVerified: true,
-    },
-];
+interface PaginatedData {
+    data: User[];
+    current_page: number;
+    last_page: number;
+    total: number;
+    from: number;
+    to: number;
+}
 
-const PAGE_SIZE = 5; // Simulates easily configurable page sizes
+interface UsersPageProps {
+    users: PaginatedData;
+    filters: { search?: string };
+}
 
-export default function Users() {
-    const [users, setUsers] = useState<User[]>(INITIAL_USERS);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
-
-    // Selected user for actions
+export default function Users({ users, filters }: UsersPageProps) {
+    const [searchQuery, setSearchQuery] = useState(filters.search || '');
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
     // Dialog state controllers
@@ -126,93 +31,82 @@ export default function Users() {
     const [isForceLogoutOpen, setIsForceLogoutOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-    // Client-side search filtering
-    const filteredUsers = users.filter((user) => {
-        const query = searchQuery.toLowerCase().trim();
-        return (
-            user.name.toLowerCase().includes(query) ||
-            user.email.toLowerCase().includes(query)
-        );
-    });
+    // Effect: Debounce search every 1 char typed
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            if (searchQuery !== filters.search) {
+                router.get(
+                    '/admin/users',
+                    { search: searchQuery },
+                    {
+                        preserveState: true,
+                        preserveScroll: true,
+                        replace: true,
+                    },
+                );
+            }
+        }, 300);
 
-    // Reset pagination to first page when filtering changes
-    const handleSearchChange = (val: string) => {
-        setSearchQuery(val);
-        setCurrentPage(1);
-    };
+        return () => clearTimeout(timeout);
+    }, [searchQuery, filters.search]);
 
-    // Pagination calculations
-    const totalItems = filteredUsers.length;
-    const totalPages = Math.ceil(totalItems / PAGE_SIZE) || 1;
-    const startIndex = (currentPage - 1) * PAGE_SIZE;
-    const endIndex = Math.min(startIndex + PAGE_SIZE, totalItems);
-    const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
-
-    // Handle Edit profile saving
+    // Handle Edit profile saving via Inertia
     const handleSaveUser = (
         id: number,
         name: string,
         status: 'active' | 'banned',
         banDuration?: string,
     ) => {
-        setUsers((prev) =>
-            prev.map((user) => {
-                if (user.id === id) {
-                    // If marked banned, also force log out
-                    const isLoggedIn =
-                        status === 'banned' ? false : user.isLoggedIn;
-                    // Re-calculate initials
-                    const initials = name
-                        .split(' ')
-                        .map((n) => n[0])
-                        .slice(0, 2)
-                        .join('')
-                        .toUpperCase();
-                    return {
-                        ...user,
-                        name,
-                        status,
-                        banDuration,
-                        isLoggedIn,
-                        avatarInitials: initials || user.avatarInitials,
-                    };
-                }
-                return user;
-            }),
+        router.put(
+            `/admin/users/${id}`,
+            { name, status, banDuration },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setIsEditOpen(false);
+                    setSelectedUser(null);
+                },
+            },
         );
     };
 
-    // Handle Force logout action
+    // Handle Force logout via Inertia
     const handleForceLogout = () => {
         if (selectedUser) {
-            setUsers((prev) =>
-                prev.map((user) =>
-                    user.id === selectedUser.id
-                        ? { ...user, isLoggedIn: false }
-                        : user,
-                ),
+            router.post(
+                `/admin/users/${selectedUser.id}/force-logout`,
+                {},
+                {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        setIsForceLogoutOpen(false);
+                        setSelectedUser(null);
+                    },
+                },
             );
-            setIsForceLogoutOpen(false);
-            setSelectedUser(null);
         }
     };
 
-    // Handle Delete user action
+    // Handle Delete user via Inertia
     const handleDeleteUser = () => {
         if (selectedUser) {
-            setUsers((prev) =>
-                prev.filter((user) => user.id !== selectedUser.id),
-            );
-            setIsDeleteOpen(false);
-            setSelectedUser(null);
-
-            // Adjust pagination page if page becomes empty
-            const remainingCount = filteredUsers.length - 1;
-            const maxPage = Math.ceil(remainingCount / PAGE_SIZE) || 1;
-            if (currentPage > maxPage) {
-                setCurrentPage(maxPage);
-            }
+            router.delete(`/admin/users/${selectedUser.id}`, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setIsDeleteOpen(false);
+                    setSelectedUser(null);
+                },
+            });
         }
+    };
+
+    // Helper navigasi halaman
+    const changePage = (page: number) => {
+        router.get(
+            '/admin/users',
+            { search: searchQuery, page },
+            { preserveState: true, preserveScroll: true },
+        );
     };
 
     return (
@@ -239,7 +133,7 @@ export default function Users() {
                             type="text"
                             placeholder="Cari nama atau email..."
                             value={searchQuery}
-                            onChange={(e) => handleSearchChange(e.target.value)}
+                            onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full rounded-2xl border border-gray-200 bg-white py-3 pr-4 pl-10 text-sm text-gray-800 placeholder-gray-400 transition outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
                         />
                     </div>
@@ -264,21 +158,18 @@ export default function Users() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
-                                {paginatedUsers.length > 0 ? (
-                                    paginatedUsers.map((user, idx) => {
-                                        const globalIndex =
-                                            startIndex + idx + 1;
+                                {users.data.length > 0 ? (
+                                    users.data.map((user, idx) => {
+                                        // Pake 'from' dari server buat nomor urut
+                                        const globalIndex = users.from + idx;
                                         return (
                                             <tr
                                                 key={user.id}
                                                 className="transition hover:bg-gray-50/50"
                                             >
-                                                {/* Index Column */}
                                                 <td className="px-6 py-5 text-center font-semibold text-gray-400">
                                                     {globalIndex}
                                                 </td>
-
-                                                {/* Profile Details Column */}
                                                 <td className="px-6 py-5">
                                                     <div className="flex items-center gap-3">
                                                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-light font-bold text-primary">
@@ -311,13 +202,9 @@ export default function Users() {
                                                         </div>
                                                     </div>
                                                 </td>
-
-                                                {/* Date Registered Column */}
                                                 <td className="px-6 py-5 font-medium text-gray-500">
                                                     {user.joinedAt}
                                                 </td>
-
-                                                {/* Status Badge Column */}
                                                 <td className="px-6 py-5">
                                                     {user.status ===
                                                     'active' ? (
@@ -333,8 +220,6 @@ export default function Users() {
                                                         </span>
                                                     )}
                                                 </td>
-
-                                                {/* Session Badge Column */}
                                                 <td className="px-6 py-5 text-center">
                                                     {user.isLoggedIn ? (
                                                         <span className="inline-flex items-center gap-1 rounded-full bg-primary-light px-2.5 py-1 text-xs font-bold text-primary">
@@ -347,11 +232,8 @@ export default function Users() {
                                                         </span>
                                                     )}
                                                 </td>
-
-                                                {/* Action Buttons Column */}
                                                 <td className="px-6 py-5">
                                                     <div className="flex items-center justify-center gap-1.5">
-                                                        {/* Edit Button */}
                                                         <button
                                                             title="Edit Profil"
                                                             onClick={() => {
@@ -368,8 +250,6 @@ export default function Users() {
                                                                 size={18}
                                                             />
                                                         </button>
-
-                                                        {/* Force Logout Button */}
                                                         <button
                                                             title="Paksa Logout"
                                                             disabled={
@@ -391,8 +271,6 @@ export default function Users() {
                                                         >
                                                             <Power size={18} />
                                                         </button>
-
-                                                        {/* Delete Button */}
                                                         <button
                                                             title="Hapus Pengguna"
                                                             onClick={() => {
@@ -427,37 +305,32 @@ export default function Users() {
                         </table>
                     </div>
 
-                    {/* Pagination Bar */}
-                    {totalItems > 0 && (
+                    {/* Pagination Bar bawaan Laravel/Inertia */}
+                    {users.total > 0 && (
                         <div className="flex flex-col gap-4 border-t border-gray-50 bg-white px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-                            {/* Summary Text */}
                             <p className="text-xs font-semibold text-gray-400">
                                 Menampilkan{' '}
                                 <span className="font-bold text-gray-700">
-                                    {startIndex + 1}
+                                    {users.from}
                                 </span>{' '}
                                 hingga{' '}
                                 <span className="font-bold text-gray-700">
-                                    {endIndex}
+                                    {users.to}
                                 </span>{' '}
                                 dari{' '}
                                 <span className="font-bold text-gray-700">
-                                    {totalItems}
+                                    {users.total}
                                 </span>{' '}
                                 pengguna
                             </p>
-
-                            {/* Navigation Buttons */}
                             <div className="flex gap-2">
                                 <button
-                                    disabled={currentPage === 1}
+                                    disabled={users.current_page === 1}
                                     onClick={() =>
-                                        setCurrentPage((c) =>
-                                            Math.max(c - 1, 1),
-                                        )
+                                        changePage(users.current_page - 1)
                                     }
                                     className={`rounded-xl border px-4 py-2.5 text-xs font-bold transition ${
-                                        currentPage === 1
+                                        users.current_page === 1
                                             ? 'cursor-not-allowed border-gray-100 text-gray-300'
                                             : 'border-gray-200 text-gray-500 hover:bg-gray-50'
                                     }`}
@@ -465,14 +338,14 @@ export default function Users() {
                                     Sebelumnya
                                 </button>
                                 <button
-                                    disabled={currentPage === totalPages}
+                                    disabled={
+                                        users.current_page === users.last_page
+                                    }
                                     onClick={() =>
-                                        setCurrentPage((c) =>
-                                            Math.min(c + 1, totalPages),
-                                        )
+                                        changePage(users.current_page + 1)
                                     }
                                     className={`rounded-xl border px-4 py-2.5 text-xs font-bold transition ${
-                                        currentPage === totalPages
+                                        users.current_page === users.last_page
                                             ? 'cursor-not-allowed border-gray-100 text-gray-300'
                                             : 'border-gray-200 text-gray-500 hover:bg-gray-50'
                                     }`}
@@ -485,7 +358,6 @@ export default function Users() {
                 </div>
             </div>
 
-            {/* Actions: Slide-out drawer for Edit */}
             <EditUserDrawer
                 open={isEditOpen}
                 user={selectedUser}
@@ -496,7 +368,6 @@ export default function Users() {
                 onSave={handleSaveUser}
             />
 
-            {/* Actions: Modal for Force Logout */}
             <ForceLogoutDialog
                 open={isForceLogoutOpen}
                 userName={selectedUser?.name}
@@ -507,7 +378,6 @@ export default function Users() {
                 }}
             />
 
-            {/* Actions: Modal for Delete */}
             <DeleteConfirmDialog
                 open={isDeleteOpen}
                 title="Hapus Pengguna?"
