@@ -1,6 +1,5 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import {
-    ArrowLeft,
     Plus,
     Pencil,
     ShieldCheck,
@@ -75,13 +74,6 @@ export default function CategoryManagement({
                 {/* Page header */}
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-gray-100 pb-6">
                     <div className="flex items-center gap-3">
-                        <Link
-                            href="/fixed-costs/occurrences"
-                            className="flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100"
-                            title="Kembali"
-                        >
-                            <ArrowLeft size={20} />
-                        </Link>
                         <div>
                             <h1 className="text-xl font-bold text-gray-800 lg:text-2xl">
                                 Kelola Kategori
