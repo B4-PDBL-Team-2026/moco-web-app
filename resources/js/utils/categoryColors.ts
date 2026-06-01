@@ -10,7 +10,7 @@ export interface ColorTheme {
     glowColor: string;
 }
 
-export function getIconColorTheme(iconName?: string | null): ColorTheme {
+export function getIconColorTheme(): ColorTheme {
     return {
         bgLight: 'bg-primary-light/50',
         bgHover: 'hover:bg-primary-light',
