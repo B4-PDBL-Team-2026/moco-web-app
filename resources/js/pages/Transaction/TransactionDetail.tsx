@@ -1,16 +1,10 @@
 import { Head, Link, router } from '@inertiajs/react';
-import {
-    ArrowLeft,
-    CalendarDays,
-    FileText,
-    PencilLine,
-    Layers,
-} from 'lucide-react';
+import { ArrowLeft, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import type { ReactNode } from 'react';
 import AppLayout from '@/layouts/AppLayout';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
 import { api } from '@/lib/api';
+import { CategoryPhosphorIcon } from '@/utils/phosphorIconMap';
 
 interface TransactionCategory {
     id: number;
@@ -69,29 +63,6 @@ function formatSource(src: string) {
     }
 }
 
-/* ── InfoRow ─────────────────────────────────────────────── */
-function InfoRow({
-    icon,
-    label,
-    value,
-}: {
-    icon: ReactNode;
-    label: string;
-    value: string;
-}) {
-    return (
-        <div className="flex items-center gap-4 bg-white rounded-2xl px-5 py-4 shadow-sm border border-gray-100">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#EEF3FF] text-[#2F5FBF]">
-                {icon}
-            </div>
-            <div className="min-w-0">
-                <p className="text-xs font-semibold text-gray-400">{label}</p>
-                <p className="mt-0.5 text-sm font-bold text-gray-800 truncate">{value}</p>
-            </div>
-        </div>
-    );
-}
-
 /* ── Component ───────────────────────────────────────────── */
 export default function TransactionDetail({ transaction, categories }: Props) {
     const [showDelete, setShowDelete] = useState(false);
@@ -111,120 +82,157 @@ export default function TransactionDetail({ transaction, categories }: Props) {
         }
     };
 
+    const isExpense = transaction.type === 'expense';
+
     return (
         <AppLayout>
             <Head title="Detail Transaksi" />
 
-            <div className="mx-auto w-full max-w-md pb-12">
-                {/* Header */}
-                <div className="flex items-center gap-3 py-5 px-1 shrink-0">
-                    <Link
-                        href="/history"
-                        className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-sm hover:bg-gray-50 hover:text-primary transition active:scale-95 cursor-pointer"
-                    >
-                        <ArrowLeft size={16} strokeWidth={2.5} />
-                    </Link>
-                    <div>
-                        <h2 className="text-base font-black text-gray-900">
-                            Detail Transaksi
-                        </h2>
-                        <p className="text-xs font-semibold text-gray-400">
-                            Rincian detail catatan transaksi keuangan Anda.
-                        </p>
-                    </div>
-                </div>
-
-                {/* Hero Card */}
-                <div className="relative mb-6 overflow-hidden rounded-3xl bg-[#2F5FBF] p-6 text-white shadow-lg shadow-blue-500/10">
-                    {/* Background decorations */}
-                    <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-white/5" />
-                    <div className="absolute -left-8 -bottom-8 h-28 w-28 rounded-full bg-white/5" />
-
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <span className="text-[10px] font-black uppercase tracking-wider text-white/60">
-                                Total Nominal
-                            </span>
-                            <h1 className="mt-1 text-2xl font-black tracking-tight">
-                                {formatRp(transaction.amount)}
-                            </h1>
-                        </div>
-
-                        {/* Type Badge */}
-                        <div className={`rounded-xl px-3 py-1.5 text-xs font-black uppercase tracking-wider ${
-                            transaction.type === 'expense'
-                                ? 'bg-red-500/20 text-red-200'
-                                : 'bg-emerald-500/20 text-emerald-200'
-                        }`}>
-                            {transaction.type === 'expense' ? 'Pengeluaran' : 'Pemasukan'}
-                        </div>
-                    </div>
-
-                    {transaction.category && (
-                        <div className="mt-5 flex items-center gap-2 border-t border-white/10 pt-4">
-                            <span className="text-[10px] font-black uppercase tracking-wider text-white/50">
-                                Kategori
-                            </span>
-                            <span className="rounded-lg bg-white/10 px-2.5 py-1 text-xs font-bold text-white">
-                                {transaction.category.name}
-                            </span>
-                        </div>
-                    )}
-                </div>
-
-                {/* Info rows */}
-                <div className="space-y-3">
-                    <InfoRow
-                        icon={<PencilLine size={18} />}
-                        label="Judul / Nama Transaksi"
-                        value={transaction.name}
-                    />
-                    <InfoRow
-                        icon={<Layers size={18} />}
-                        label="Sumber"
-                        value={formatSource(transaction.source)}
-                    />
-                    <InfoRow
-                        icon={<CalendarDays size={18} />}
-                        label="Tanggal"
-                        value={formatDate(transaction.transactionAt)}
-                    />
-                    <InfoRow
-                        icon={<FileText size={18} />}
-                        label="Catatan"
-                        value={transaction.note ?? '—'}
-                    />
-                </div>
-
-                {/* Aksi Section */}
-                <div className="mt-6 rounded-3xl bg-white border border-gray-100 p-5 shadow-sm space-y-4">
-                    <div className="flex items-center justify-between border-b border-gray-50 pb-3">
-                        <h3 className="text-xs font-black uppercase tracking-wider text-gray-400">
-                            Aksi Transaksi
-                        </h3>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <button
-                            type="button"
-                            onClick={() => setShowDelete(true)}
-                            className="rounded-2xl border border-red-500 py-3.5 text-xs font-black uppercase tracking-wider text-red-500 transition hover:bg-red-50 active:scale-98 cursor-pointer"
+            <div className="px-4 py-6 lg:px-8 lg:py-8 mx-auto max-w-4xl space-y-6">
+                {/* Header — matching TransactionCreate */}
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-gray-100 pb-6">
+                    <div className="flex items-center gap-3">
+                        <Link
+                            href="/history"
+                            className="flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100 cursor-pointer"
                         >
-                            Hapus
-                        </button>
+                            <ArrowLeft size={20} />
+                        </Link>
+                        <div>
+                            <h1 className="text-xl font-bold text-gray-800 lg:text-2xl">
+                                Detail Transaksi
+                            </h1>
+                            <p className="text-sm text-gray-500">
+                                Rincian detail catatan transaksi keuangan Anda
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Delete button in header */}
+                    <button
+                        type="button"
+                        onClick={() => setShowDelete(true)}
+                        className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-xs font-bold text-red-500 transition hover:bg-red-100 active:scale-98 cursor-pointer"
+                    >
+                        <Trash2 size={14} strokeWidth={2.5} />
+                        <span>Hapus Transaksi</span>
+                    </button>
+                </div>
+
+                {/* Main Card Container — same structure as TransactionCreate */}
+                <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm space-y-6">
+                    {/* Type Display */}
+                    <div>
+                        <label className="mb-2 block text-[10px] font-black uppercase tracking-wider text-gray-400">
+                            Tipe Transaksi
+                        </label>
+                        <div className="grid grid-cols-2 gap-3 bg-gray-50 p-1.5 rounded-xl border border-gray-100">
+                            <div
+                                className={`rounded-lg py-3 text-xs font-bold text-center transition-all duration-200 ${
+                                    isExpense
+                                        ? 'bg-red-500 text-white shadow-md shadow-red-500/20'
+                                        : 'text-gray-400'
+                                }`}
+                            >
+                                Pengeluaran
+                            </div>
+                            <div
+                                className={`rounded-lg py-3 text-xs font-bold text-center transition-all duration-200 ${
+                                    !isExpense
+                                        ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20'
+                                        : 'text-gray-400'
+                                }`}
+                            >
+                                Pemasukan
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Nominal */}
+                    <div>
+                        <label className="mb-1.5 block text-[10px] font-black uppercase tracking-wider text-gray-400">
+                            Nominal Transaksi
+                        </label>
+                        <div className="flex items-center rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3">
+                            <span className="mr-2 text-sm font-black text-gray-400">Rp</span>
+                            <span className={`text-base font-bold ${isExpense ? 'text-red-500' : 'text-emerald-600'}`}>
+                                {isExpense ? '- ' : '+ '}{formatRp(transaction.amount).replace('Rp ', '')}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Nama / Judul */}
+                    <div>
+                        <label className="mb-1.5 block text-[10px] font-black uppercase tracking-wider text-gray-400">
+                            Judul / Nama Transaksi
+                        </label>
+                        <div className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold text-gray-800">
+                            {transaction.name}
+                        </div>
+                    </div>
+
+                    {/* Kategori */}
+                    <div>
+                        <label className="mb-2.5 block text-[10px] font-black uppercase tracking-wider text-gray-400">
+                            Kategori
+                        </label>
+                        {transaction.category ? (
+                            <div className="inline-flex items-center gap-3 rounded-xl border border-primary bg-primary-light/20 p-2.5 ring-2 ring-primary ring-offset-1">
+                                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-white shadow-sm">
+                                    <CategoryPhosphorIcon iconName={transaction.category.icon} size={16} />
+                                </div>
+                                <span className="text-xs font-bold text-gray-700 pr-2">
+                                    {transaction.category.name}
+                                </span>
+                            </div>
+                        ) : (
+                            <div className="rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm text-gray-400 italic">
+                                Tidak ada kategori
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Tanggal */}
+                    <div>
+                        <label className="mb-1.5 block text-[10px] font-black uppercase tracking-wider text-gray-400">
+                            Tanggal Transaksi
+                        </label>
+                        <div className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold text-gray-800">
+                            {formatDate(transaction.transactionAt) || '—'}
+                        </div>
+                    </div>
+
+                    {/* Sumber */}
+                    <div>
+                        <label className="mb-1.5 block text-[10px] font-black uppercase tracking-wider text-gray-400">
+                            Sumber Transaksi
+                        </label>
+                        <div className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold text-gray-800">
+                            {formatSource(transaction.source)}
+                        </div>
+                    </div>
+
+                    {/* Catatan */}
+                    <div>
+                        <label className="mb-1.5 block text-[10px] font-black uppercase tracking-wider text-gray-400">
+                            Catatan
+                        </label>
+                        <div className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold text-gray-800 min-h-[80px] whitespace-pre-wrap">
+                            {transaction.note || '—'}
+                        </div>
+                    </div>
+
+                    {/* Action Button — Update */}
+                    <div className="pt-2">
                         <Link
                             href={`/transaction/${transaction.id}/edit`}
-                            className="rounded-2xl bg-[#FF9800] py-3.5 text-xs font-black uppercase tracking-wider text-white shadow-md shadow-orange-500/10 transition hover:bg-orange-600 active:scale-98 cursor-pointer flex justify-center items-center"
+                            className="flex w-full justify-center rounded-xl bg-[#FF9800] py-3.5 text-xs font-black uppercase tracking-wider text-white shadow-sm shadow-orange-500/10 transition hover:bg-orange-600 active:scale-98 cursor-pointer"
                         >
-                            Update
+                            Update Transaksi
                         </Link>
                     </div>
-                    <p className="text-[10px] font-semibold text-gray-400 text-center leading-normal">
-                        Semua perubahan data akan langsung terupdate secara real-time pada dashboard dan laporan bulanan Anda.
-                    </p>
                 </div>
             </div>
-
-
 
             {/* Delete confirm */}
             <DeleteConfirmDialog
