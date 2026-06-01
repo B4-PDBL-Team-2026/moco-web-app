@@ -38,35 +38,37 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::middleware(['auth'])->group(function () {
-    // budgeting domain endpoints
-    Route::prefix('/onboarding')->middleware(['notOnboarded'])->controller(OnboardingController::class)->group(function () {
-        Route::get('/', 'showOnboarding')->name('onboarding-show');
-        Route::post('/', 'completeOnboarding');
-        Route::post('/preview', 'handleOnboarding');
-    });
-
-    Route::middleware(['hasOnboarded'])->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'showDashboard'])->name('dashboard');
-    });
-
-    // fixed costs domain endpoints
-    Route::prefix('/fixed-costs')->controller(FixedCostController::class)->group(function () {
-        Route::prefix('/occurrences')->group(function () {
-            Route::get('/', 'indexOccurrence')
-                ->name('fixed-costs.occurrences.index');
-            Route::post('/{occurrenceId}/confirm-payment', 'confirmPayment')
-                ->name('fixed-costs.occurrences.confirm-payment');
-            Route::post('/{occurrenceId}/cancel-payment', 'cancelPayment')
-                ->name('fixed-costs.occurrences.cancel-payment');
-            Route::post('/{occurrenceId}/skip', 'skipOccurrence')
-                ->name('fixed-costs.occurrences.skip');
+    Route::middleware('isUser')->group(function () {
+        // budgeting domain endpoints
+        Route::prefix('/onboarding')->middleware(['notOnboarded'])->controller(OnboardingController::class)->group(function () {
+            Route::get('/', 'showOnboarding')->name('onboarding-show');
+            Route::post('/', 'completeOnboarding');
+            Route::post('/preview', 'handleOnboarding');
         });
 
-        Route::prefix('/templates')->group(function () {
-            Route::get('/', 'index')->name('fixed-costs.index');
-            Route::post('/', 'store')->name('fixed-costs.store');
-            Route::patch('/{templateId}', 'update')->name('fixed-costs.update');
-            Route::delete('/{templateId}', 'destroy')->name('fixed-costs.destroy');
+        Route::middleware(['hasOnboarded'])->group(function () {
+            Route::get('/dashboard', [DashboardController::class, 'showDashboard'])->name('dashboard');
+        });
+
+        // fixed costs domain endpoints
+        Route::prefix('/fixed-costs')->controller(FixedCostController::class)->group(function () {
+            Route::prefix('/occurrences')->group(function () {
+                Route::get('/', 'indexOccurrence')
+                    ->name('fixed-costs.occurrences.index');
+                Route::post('/{occurrenceId}/confirm-payment', 'confirmPayment')
+                    ->name('fixed-costs.occurrences.confirm-payment');
+                Route::post('/{occurrenceId}/cancel-payment', 'cancelPayment')
+                    ->name('fixed-costs.occurrences.cancel-payment');
+                Route::post('/{occurrenceId}/skip', 'skipOccurrence')
+                    ->name('fixed-costs.occurrences.skip');
+            });
+
+            Route::prefix('/templates')->group(function () {
+                Route::get('/', 'index')->name('fixed-costs.index');
+                Route::post('/', 'store')->name('fixed-costs.store');
+                Route::patch('/{templateId}', 'update')->name('fixed-costs.update');
+                Route::delete('/{templateId}', 'destroy')->name('fixed-costs.destroy');
+            });
         });
     });
 

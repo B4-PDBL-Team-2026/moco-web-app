@@ -7,6 +7,7 @@ use App\Http\Middleware\EnsureNotAuthenticated;
 use App\Http\Middleware\EnsureOnboardingIsCompleted;
 use App\Http\Middleware\EnsureOnboardingIsNotCompleted;
 use App\Http\Middleware\EnsureValidAdminAccess;
+use App\Http\Middleware\EnsureValidUserAccess;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Responses\ApiResponse;
 use Illuminate\Auth\AuthenticationException;
@@ -38,6 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'hasRecaculatedToday' => CheckDailyBudgetRecalculation::class,
             'notAuthenticated' => EnsureNotAuthenticated::class,
             'isAdmin' => EnsureValidAdminAccess::class,
+            'isUser' => EnsureValidUserAccess::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
