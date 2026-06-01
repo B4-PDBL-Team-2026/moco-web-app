@@ -341,7 +341,7 @@ export default function OnboardingStep3({
                         {/* Amount */}
                         <div>
                             <input
-                                placeholder="Rp. 0"
+                                placeholder="Rp 0"
                                 type="number"
                                 className={inputClass(
                                     !!fixedCostError(i, 'amount'),

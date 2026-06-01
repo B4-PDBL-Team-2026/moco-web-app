@@ -27,7 +27,7 @@ export default function OnboardingStep1({ form, next, prev }: any) {
             <div className="relative mb-1">
                 <input
                     type="number"
-                    placeholder="Rp. 0"
+                    placeholder="Rp 0"
                     className={`w-full rounded-xl border bg-white px-4 py-3 text-center text-base text-gray-700 placeholder-gray-300 ring-0 transition outline-none ${
                         form.errors.initialBalance
                             ? 'border-red-400 focus:border-red-400 focus:ring-2 focus:ring-red-200'

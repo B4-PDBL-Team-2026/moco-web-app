@@ -6,6 +6,7 @@ use App\Http\Controllers\Web\Admin\DashboardController as AdminDashboardControll
 use App\Http\Controllers\Web\Auth\AuthController;
 use App\Http\Controllers\Web\Budgeting\DashboardController;
 use App\Http\Controllers\Web\Budgeting\OnboardingController;
+use App\Http\Controllers\Web\Budgeting\TransactionController;
 use App\Http\Controllers\Web\Category\CategoryController;
 use App\Http\Controllers\Web\FixedCost\FixedCostController;
 use Illuminate\Support\Facades\Route;
@@ -49,6 +50,10 @@ Route::middleware(['auth'])->group(function () {
 
         Route::middleware(['hasOnboarded'])->group(function () {
             Route::get('/dashboard', [DashboardController::class, 'showDashboard'])->name('dashboard');
+            Route::get('/history', [TransactionController::class, 'index'])->name('transactions.index');
+            Route::get('/transaction/create', [TransactionController::class, 'create'])->name('transactions.create');
+            Route::get('/transaction/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
+            Route::get('/transaction/{transaction}/edit', [TransactionController::class, 'edit'])->name('transactions.edit');
         });
 
         // fixed costs domain endpoints

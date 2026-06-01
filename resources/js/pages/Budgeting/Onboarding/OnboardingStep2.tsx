@@ -43,7 +43,7 @@ export default function OnboardingStep2({ form, next, prev }: any) {
                 </div>
                 <input
                     type="number"
-                    placeholder="Rp. 0"
+                    placeholder="Rp 0"
                     className={inputClass(!!form.errors.ceilingLimit)}
                     value={form.data.ceilingLimit}
                     onChange={(e) => {
@@ -64,7 +64,7 @@ export default function OnboardingStep2({ form, next, prev }: any) {
                 </div>
                 <input
                     type="number"
-                    placeholder="Rp. 0"
+                    placeholder="Rp 0"
                     className={inputClass(!!form.errors.flooringLimit)}
                     value={form.data.flooringLimit}
                     onChange={(e) => {

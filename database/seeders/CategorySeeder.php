@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Domains\Category\Actions\GetAllSystemCategoriesAction;
 use App\Domains\Category\Models\Category;
 use App\Domains\Transaction\Enums\TransactionType;
 use Illuminate\Database\Seeder;
@@ -15,23 +16,33 @@ class CategorySeeder extends Seeder
     {
         $expenses = config('constants.expenseCategories');
         foreach ($expenses as $name => $icon) {
-            Category::query()->create([
-                'name' => $name,
-                'type' => TransactionType::EXPENSE->value,
-                'icon' => $icon,
-                'is_system' => true,
-            ]);
+            Category::query()->updateOrCreate(
+                [
+                    'name' => $name,
+                    'type' => TransactionType::EXPENSE->value,
+                    'is_system' => true,
+                ],
+                [
+                    'icon' => $icon,
+                ]
+            );
         }
 
         $incomes = config('constants.incomeCategories');
 
         foreach ($incomes as $name => $icon) {
-            Category::query()->create([
-                'name' => $name,
-                'type' => TransactionType::INCOME->value,
-                'icon' => $icon,
-                'is_system' => true,
-            ]);
+            Category::query()->updateOrCreate(
+                [
+                    'name' => $name,
+                    'type' => TransactionType::INCOME->value,
+                    'is_system' => true,
+                ],
+                [
+                    'icon' => $icon,
+                ]
+            );
         }
+
+        GetAllSystemCategoriesAction::clearCache();
     }
 }
