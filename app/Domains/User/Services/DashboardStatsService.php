@@ -39,10 +39,10 @@ class DashboardStatsService
                 $trendLabel = 'yesterday',
             ],
             'weekly' => [
-                $currentStart = $now->copy()->startOfWeek(Carbon::MONDAY),
-                $currentEnd = $now->copy()->endOfWeek(Carbon::SUNDAY),
-                $previousStart = $now->copy()->subWeek()->startOfWeek(Carbon::MONDAY),
-                $previousEnd = $now->copy()->subWeek()->endOfWeek(Carbon::SUNDAY),
+                $currentStart = $now->copy()->startOfWeek(UnitValue::MONDAY),
+                $currentEnd = $now->copy()->endOfWeek(UnitValue::SUNDAY),
+                $previousStart = $now->copy()->subWeek()->startOfWeek(UnitValue::MONDAY),
+                $previousEnd = $now->copy()->subWeek()->endOfWeek(UnitValue::SUNDAY),
                 $trendLabel = 'last week',
             ],
             'monthly' => [
@@ -54,9 +54,17 @@ class DashboardStatsService
             ]
         };
 
-        // registered users
-        $currentRegistered = User::query()->whereBetween('created_at', [$currentStart, $currentEnd])->count();
-        $previousRegistered = User::query()->whereBetween('created_at', [$previousStart, $previousEnd])->count();
+        // EXCLUDE ADMIN: registered users
+        $currentRegistered = User::query()
+            ->where('role', '!=', 'admin')
+            ->whereBetween('created_at', [$currentStart, $currentEnd])
+            ->count();
+
+        $previousRegistered = User::query()
+            ->where('role', '!=', 'admin')
+            ->whereBetween('created_at', [$previousStart, $previousEnd])
+            ->count();
+
         $registeredChange = $this->calculatePercentageChange($currentRegistered, $previousRegistered);
 
         // active users
@@ -68,14 +76,14 @@ class DashboardStatsService
             'activeUsers' => [
                 'value' => number_format($currentActive, 0, ',', '.'),
                 'change' => [
-                    'value' => "{$activeChange['percentage']}% {$trendLabel}",
+                    'value' => "{$activeChange['percentage']}% $trendLabel",
                     'trend' => $activeChange['trend'],
                 ],
             ],
             'registeredUsers' => [
                 'value' => number_format($currentRegistered, 0, ',', '.'),
                 'change' => [
-                    'value' => "{$registeredChange['percentage']}% {$trendLabel}",
+                    'value' => "{$registeredChange['percentage']}% $trendLabel",
                     'trend' => $registeredChange['trend'],
                 ],
             ],
@@ -95,7 +103,10 @@ class DashboardStatsService
             $data[] = [
                 'label' => $dayName,
                 'activeUsers' => $this->countActiveUsers($dayStart, $dayEnd),
-                'registeredUsers' => User::query()->whereBetween('created_at', [$dayStart, $dayEnd])->count(),
+                'registeredUsers' => User::query()
+                    ->where('role', '!=', 'admin')
+                    ->whereBetween('created_at', [$dayStart, $dayEnd])
+                    ->count(),
             ];
         }
 
@@ -118,7 +129,10 @@ class DashboardStatsService
             $data[] = [
                 'label' => 'Week '.($i + 1),
                 'activeUsers' => $this->countActiveUsers($weekStart, $weekEnd),
-                'registeredUsers' => User::query()->whereBetween('created_at', [$weekStart, $weekEnd])->count(),
+                'registeredUsers' => User::query()
+                    ->where('role', '!=', 'admin')
+                    ->whereBetween('created_at', [$weekStart, $weekEnd])
+                    ->count(),
             ];
         }
 
@@ -138,7 +152,10 @@ class DashboardStatsService
             $data[] = [
                 'label' => $monthName,
                 'activeUsers' => $this->countActiveUsers($monthStart, $monthEnd),
-                'registeredUsers' => User::query()->whereBetween('created_at', [$monthStart, $monthEnd])->count(),
+                'registeredUsers' => User::query()
+                    ->where('role', '!=', 'admin')
+                    ->whereBetween('created_at', [$monthStart, $monthEnd])
+                    ->count(),
             ];
         }
 
@@ -164,16 +181,22 @@ class DashboardStatsService
         $endUnix = $end->timestamp;
 
         // Query 1: Web Users (sessions)
+        // Kita join ke table users biar bisa nge-filter role admin
         $sessionsQuery = DB::table('sessions')
-            ->select('user_id')
-            ->whereNotNull('user_id')
-            ->whereBetween('last_activity', [$startUnix, $endUnix]);
+            ->select('sessions.user_id')
+            ->join('users', 'sessions.user_id', '=', 'users.id')
+            ->where('users.role', '!=', 'admin')
+            ->whereNotNull('sessions.user_id')
+            ->whereBetween('sessions.last_activity', [$startUnix, $endUnix]);
 
         // Query 2: Mobile Users (Sanctum)
+        // Sama, join ke table users juga
         $tokensQuery = DB::table('personal_access_tokens')
-            ->select('tokenable_id as user_id')
-            ->where('tokenable_type', User::class)
-            ->whereBetween('last_used_at', [$start, $end]);
+            ->select('personal_access_tokens.tokenable_id as user_id')
+            ->join('users', 'personal_access_tokens.tokenable_id', '=', 'users.id')
+            ->where('personal_access_tokens.tokenable_type', User::class)
+            ->where('users.role', '!=', 'admin') // EXCLUDE ADMIN
+            ->whereBetween('personal_access_tokens.last_used_at', [$start, $end]);
 
         // Union operation
         return DB::table($sessionsQuery->union($tokensQuery), 'combined_active_users')
