@@ -1,9 +1,8 @@
+import { Link } from '@inertiajs/react';
 import {
     CalendarClock,
-    Mic,
     Pencil,
     Plus,
-    ScanLine,
     TrendingDown,
     TrendingUp,
     Wallet,
@@ -11,7 +10,6 @@ import {
 
 import { useState } from 'react';
 
-import { Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/AppLayout';
 
 interface UnpaidFixedCost {
@@ -59,7 +57,6 @@ export default function Dashboard({
     safetyFlooring,
     budgetCycle,
     unpaidFixedCosts,
-    categories,
 }: Props) {
     const spendPercent =
         todayLimit > 0

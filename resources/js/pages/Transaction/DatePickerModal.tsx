@@ -1,166 +1,152 @@
-import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
 
 interface Props {
-  open: boolean;
-  value: string; // ISO format or YYYY-MM-DD
-  onConfirm: (date: string) => void;
-  onClose: () => void;
+    open: boolean;
+    value: string; // ISO format or YYYY-MM-DD
+    onConfirm: (date: string) => void;
+    onClose: () => void;
 }
 
 const MONTH_ID = [
-  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
 ];
 
 const DAY_SHORT = ['S', 'S', 'R', 'K', 'J', 'S', 'M']; // Sen, Sel, Rab, Kam, Jum, Sab, Min
 
 function getDaysInMonth(year: number, month: number) {
-  return new Date(year, month + 1, 0).getDate();
+    return new Date(year, month + 1, 0).getDate();
 }
 
 function getFirstDayOfMonth(year: number, month: number) {
-  // adjust getDay() to make Monday = 0, Sunday = 6
-  const day = new Date(year, month, 1).getDay();
-  return day === 0 ? 6 : day - 1;
+    // adjust getDay() to make Monday = 0, Sunday = 6
+    const day = new Date(year, month, 1).getDay();
+    return day === 0 ? 6 : day - 1;
 }
 
-export default function DatePickerModal({
-  open,
-  value,
-  onConfirm,
-  onClose,
-}: Props) {
-  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
-  const [selectedDate, setSelectedDate] = useState<string>('');
+// 1. PISAHKAN ISI KALENDER KE KOMPONEN TERSENDIRI
+function DatePickerContent({
+                               value,
+                               onConfirm,
+                               onClose,
+                           }: Omit<Props, 'open'>) {
+    // Karena komponen ini cuma di-render pas modal kebuka,
+    // kita bisa langsung jadiin prop value sebagai nilai awal state!
+    const initialDate = value || new Date().toISOString().split('T')[0];
+    const [initialY, initialM] = initialDate.split('-').map(Number);
 
-  // Sync state on open
-  useEffect(() => {
-    if (!open) return;
-    
-    let initialDate = value;
-    if (!initialDate) {
-      initialDate = new Date().toISOString().split('T')[0];
+    const [currentYear, setCurrentYear] = useState(!isNaN(initialY) ? initialY : new Date().getFullYear());
+    const [currentMonth, setCurrentMonth] = useState(!isNaN(initialM) ? initialM - 1 : new Date().getMonth());
+    const [selectedDate, setSelectedDate] = useState<string>(initialDate);
+
+    const daysCount = getDaysInMonth(currentYear, currentMonth);
+    const firstDayOffset = getFirstDayOfMonth(currentYear, currentMonth);
+
+    const handlePrevMonth = () => {
+        setCurrentMonth((m) => {
+            if (m === 0) {
+                setCurrentYear((y) => y - 1);
+                return 11;
+            }
+            return m - 1;
+        });
+    };
+
+    const handleNextMonth = () => {
+        setCurrentMonth((m) => {
+            if (m === 11) {
+                setCurrentYear((y) => y + 1);
+                return 0;
+            }
+            return m + 1;
+        });
+    };
+
+    const selectDay = (day: number) => {
+        const mm = String(currentMonth + 1).padStart(2, '0');
+        const dd = String(day).padStart(2, '0');
+        setSelectedDate(`${currentYear}-${mm}-${dd}`);
+    };
+
+    const handleConfirm = () => {
+        if (selectedDate) {
+            onConfirm(selectedDate);
+        }
+    };
+
+    // Generate date cells
+    const cells: (number | null)[] = [];
+    for (let i = 0; i < firstDayOffset; i++) {
+        cells.push(null);
     }
-    
-    setSelectedDate(initialDate);
-    
-    const [y, m] = initialDate.split('-').map(Number);
-    if (!isNaN(y) && !isNaN(m)) {
-      setCurrentYear(y);
-      setCurrentMonth(m - 1);
+    for (let d = 1; d <= daysCount; d++) {
+        cells.push(d);
     }
-  }, [open, value]);
 
-  if (!open) return null;
+    return (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="w-[380px] rounded-[32px] bg-white p-6 shadow-xl">
+                <h2 className="mb-4 text-xl font-black text-gray-900">
+                    Pilih Tanggal
+                </h2>
 
-  const daysCount = getDaysInMonth(currentYear, currentMonth);
-  const firstDayOffset = getFirstDayOfMonth(currentYear, currentMonth);
-
-  const handlePrevMonth = () => {
-    setCurrentMonth((m) => {
-      if (m === 0) {
-        setCurrentYear((y) => y - 1);
-        return 11;
-      }
-      return m - 1;
-    });
-  };
-
-  const handleNextMonth = () => {
-    setCurrentMonth((m) => {
-      if (m === 11) {
-        setCurrentYear((y) => y + 1);
-        return 0;
-      }
-      return m + 1;
-    });
-  };
-
-  const selectDay = (day: number) => {
-    const mm = String(currentMonth + 1).padStart(2, '0');
-    const dd = String(day).padStart(2, '0');
-    setSelectedDate(`${currentYear}-${mm}-${dd}`);
-  };
-
-  const handleConfirm = () => {
-    if (selectedDate) {
-      onConfirm(selectedDate);
-    }
-  };
-
-  // Generate date cells
-  const cells: (number | null)[] = [];
-  for (let i = 0; i < firstDayOffset; i++) {
-    cells.push(null);
-  }
-  for (let d = 1; d <= daysCount; d++) {
-    cells.push(d);
-  }
-
-  return (
-    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="w-[380px] rounded-[32px] bg-white p-6 shadow-xl">
-        <h2 className="mb-4 text-xl font-black text-gray-900">
-          Pilih Tanggal
-        </h2>
-
-        {/* Month Navigation */}
-        <div className="mb-4 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={handlePrevMonth}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-100 hover:bg-gray-50 active:scale-95 cursor-pointer text-gray-600"
-          >
-            <ChevronLeft size={16} strokeWidth={2.5} />
-          </button>
-          <span className="text-sm font-black text-gray-800">
+                {/* Month Navigation */}
+                <div className="mb-4 flex items-center justify-between">
+                    <button
+                        type="button"
+                        onClick={handlePrevMonth}
+                        className="cursor-pointer flex h-8 w-8 items-center justify-center rounded-full border border-gray-100 text-gray-600 hover:bg-gray-50 active:scale-95"
+                    >
+                        <ChevronLeft size={16} strokeWidth={2.5} />
+                    </button>
+                    <span className="text-sm font-black text-gray-800">
             {MONTH_ID[currentMonth]} {currentYear}
           </span>
-          <button
-            type="button"
-            onClick={handleNextMonth}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-100 hover:bg-gray-50 active:scale-95 cursor-pointer text-gray-600"
-          >
-            <ChevronRight size={16} strokeWidth={2.5} />
-          </button>
-        </div>
+                    <button
+                        type="button"
+                        onClick={handleNextMonth}
+                        className="cursor-pointer flex h-8 w-8 items-center justify-center rounded-full border border-gray-100 text-gray-600 hover:bg-gray-50 active:scale-95"
+                    >
+                        <ChevronRight size={16} strokeWidth={2.5} />
+                    </button>
+                </div>
 
-        {/* Calendar Grid */}
-        <div className="rounded-2xl border border-gray-100 p-4 bg-gray-50/30">
-          <div className="mb-3 grid grid-cols-7 gap-2 text-center">
-            {DAY_SHORT.map((day, idx) => (
-              <div
-                key={idx}
-                className="text-[10px] font-black text-gray-400 uppercase tracking-wider"
-              >
-                {day}
-              </div>
-            ))}
-          </div>
+                {/* Calendar Grid */}
+                <div className="rounded-2xl border border-gray-100 bg-gray-50/30 p-4">
+                    <div className="mb-3 grid grid-cols-7 gap-2 text-center">
+                        {DAY_SHORT.map((day, idx) => (
+                            <div
+                                key={idx}
+                                className="text-[10px] font-black tracking-wider text-gray-400 uppercase"
+                            >
+                                {day}
+                            </div>
+                        ))}
+                    </div>
 
-          <div className="grid grid-cols-7 gap-2 text-center">
-            {cells.map((day, idx) => {
-              if (day === null) {
-                return <div key={`empty-${idx}`} />;
-              }
+                    <div className="grid grid-cols-7 gap-2 text-center">
+                        {cells.map((day, idx) => {
+                            if (day === null) {
+                                return <div key={`empty-${idx}`} />;
+                            }
 
-              const mm = String(currentMonth + 1).padStart(2, '0');
-              const dd = String(day).padStart(2, '0');
-              const cellDateStr = `${currentYear}-${mm}-${dd}`;
-              const isSelected = cellDateStr === selectedDate;
+                            const mm = String(currentMonth + 1).padStart(2, '0');
+                            const dd = String(day).padStart(2, '0');
+                            const cellDateStr = `${currentYear}-${mm}-${dd}`;
+                            const isSelected = cellDateStr === selectedDate;
 
-              return (
-                <button
-                  key={`day-${day}`}
-                  type="button"
-                  onClick={() => selectDay(day)}
-                  className={`
-                    h-9
-                    w-9
+                            return (
+                                <button
+                                    key={`day-${day}`}
+                                    type="button"
+                                    onClick={() => selectDay(day)}
+                                    className={`
                     mx-auto
                     flex
+                    h-9
+                    w-9
+                    cursor-pointer
                     items-center
                     justify-center
                     rounded-xl
@@ -168,28 +154,28 @@ export default function DatePickerModal({
                     font-bold
                     transition-all
                     duration-150
-                    cursor-pointer
                     ${
-                      isSelected
-                        ? "bg-[#355EB7] text-white shadow-md shadow-blue-500/20 scale-105"
-                        : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                    }
+                                        isSelected
+                                            ? 'scale-105 bg-[#355EB7] text-white shadow-md shadow-blue-500/20'
+                                            : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                                    }
                   `}
-                >
-                  {day}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+                                >
+                                    {day}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
 
-        {/* Action Buttons */}
-        <div className="mt-6 flex gap-4">
-          <button
-            type="button"
-            onClick={onClose}
-            className="
+                {/* Action Buttons */}
+                <div className="mt-6 flex gap-4">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="
               flex-1
+              cursor-pointer
               rounded-full
               border
               border-red-500
@@ -197,39 +183,47 @@ export default function DatePickerModal({
               text-sm
               font-bold
               text-red-500
+              transition-all
               hover:bg-red-50
               active:scale-98
-              transition-all
-              cursor-pointer
             "
-          >
-            Batal
-          </button>
+                    >
+                        Batal
+                    </button>
 
-          <button
-            type="button"
-            onClick={handleConfirm}
-            disabled={!selectedDate}
-            className="
+                    <button
+                        type="button"
+                        onClick={handleConfirm}
+                        disabled={!selectedDate}
+                        className="
               flex-1
+              cursor-pointer
               rounded-full
               bg-[#FF9800]
               py-3
               text-sm
               font-bold
               text-white
-              hover:bg-orange-600
-              active:scale-98
               transition-all
-              disabled:opacity-50
+              hover:bg-orange-600
               disabled:pointer-events-none
-              cursor-pointer
+              disabled:opacity-50
+              active:scale-98
             "
-          >
-            Pilih
-          </button>
+                    >
+                        Pilih
+                    </button>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
+}
+
+// 2. MODAL WRAPPER UTAMA
+export default function DatePickerModal({ open, ...props }: Props) {
+    // Kalau modal ketutup, render null (otomatis menghapus semua isi & state kalender dari memori)
+    if (!open) return null;
+
+    // Kalau kebuka, render kalendernya dan bawa semua props-nya
+    return <DatePickerContent {...props} />;
 }

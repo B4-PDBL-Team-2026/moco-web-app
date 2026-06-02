@@ -1,15 +1,14 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import {
   Calendar,
   LayoutGrid,
   Search,
   ChevronDown,
   TrendingDown,
-  TrendingUp,
 } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import AppLayout from '@/layouts/AppLayout';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
+import AppLayout from '@/layouts/AppLayout';
 import { api } from '@/lib/api';
 import { CategoryPhosphorIcon } from '@/utils/phosphorIconMap';
 

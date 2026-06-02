@@ -1,5 +1,5 @@
 declare module '@phosphor-icons/react' {
-  import * as React from 'react';
+  import type * as React from 'react';
   
   export interface IconProps extends React.SVGProps<SVGSVGElement> {
     color?: string;
