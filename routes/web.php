@@ -10,6 +10,7 @@ use App\Http\Controllers\Web\User\ProfileController;
 use App\Http\Controllers\Web\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Web\Admin\AdminUsersController;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 Route::get('/', function () {
     return view('welcome');
@@ -101,4 +102,9 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/{categoryId}', 'update')->name('categories.update');
         Route::delete('/{categoryId}', 'destroy')->name('categories.destroy');
     });
+
+    // FEEDBACK
+    Route::get('/feedback', function () {
+        return Inertia::render('Feedback/Create');
+    })->name('feedback.create');
 });
