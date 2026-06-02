@@ -9,6 +9,7 @@ use App\Http\Controllers\Web\Budgeting\OnboardingController;
 use App\Http\Controllers\Web\Budgeting\TransactionController;
 use App\Http\Controllers\Web\Category\CategoryController;
 use App\Http\Controllers\Web\FixedCost\FixedCostController;
+use App\Http\Controllers\Web\User\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -41,7 +42,7 @@ Route::prefix('auth')->group(function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::middleware('isUser')->group(function () {
-        // budgeting domain endpoints
+        
         Route::prefix('/onboarding')->middleware(['notOnboarded'])->controller(OnboardingController::class)->group(function () {
             Route::get('/', 'showOnboarding')->name('onboarding-show');
             Route::post('/', 'completeOnboarding');
@@ -56,19 +57,15 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/transaction/{transaction}/edit', [TransactionController::class, 'edit'])->name('transactions.edit');
         });
 
-        // fixed costs domain endpoints
+        // FIXED COSTS
         Route::prefix('/fixed-costs')->controller(FixedCostController::class)->group(function () {
+            // ... (kode occurrences & templates tetap sama) ...
             Route::prefix('/occurrences')->group(function () {
-                Route::get('/', 'indexOccurrence')
-                    ->name('fixed-costs.occurrences.index');
-                Route::post('/{occurrenceId}/confirm-payment', 'confirmPayment')
-                    ->name('fixed-costs.occurrences.confirm-payment');
-                Route::post('/{occurrenceId}/cancel-payment', 'cancelPayment')
-                    ->name('fixed-costs.occurrences.cancel-payment');
-                Route::post('/{occurrenceId}/skip', 'skipOccurrence')
-                    ->name('fixed-costs.occurrences.skip');
+                Route::get('/', 'indexOccurrence')->name('fixed-costs.occurrences.index');
+                Route::post('/{occurrenceId}/confirm-payment', 'confirmPayment')->name('fixed-costs.occurrences.confirm-payment');
+                Route::post('/{occurrenceId}/cancel-payment', 'cancelPayment')->name('fixed-costs.occurrences.cancel-payment');
+                Route::post('/{occurrenceId}/skip', 'skipOccurrence')->name('fixed-costs.occurrences.skip');
             });
-
             Route::prefix('/templates')->group(function () {
                 Route::get('/', 'index')->name('fixed-costs.index');
                 Route::post('/', 'store')->name('fixed-costs.store');
@@ -78,10 +75,15 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
-    // admin domain endpoints
+    // SETTINGS:
+    Route::get('/settings', [ProfileController::class, 'edit'])->name('settings');
+    Route::post('/settings/update-budget', [ProfileController::class, 'updateBudget'])->name('settings.update-budget');
+    Route::delete('/settings/delete-account', [ProfileController::class, 'deleteAccount'])->name('settings.delete-account');
+    Route::post('/settings/send-verification', [ProfileController::class, 'sendVerification'])->name('settings.send-verification');
+
+    // ADMIN
     Route::prefix('/admin')->middleware(['isAdmin'])->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
-
         Route::prefix('/users')->controller(AdminUsersController::class)->group(function () {
             Route::get('/', 'index')->name('admin.users.index');
             Route::put('/{user}', 'update')->name('admin.users.update');
@@ -90,16 +92,11 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
-    // categories domain endpoints
+    // CATEGORIES
     Route::prefix('/categories')->controller(CategoryController::class)->group(function () {
         Route::get('/', 'index')->name('categories.index');
         Route::post('/', 'store')->name('categories.store');
         Route::patch('/{categoryId}', 'update')->name('categories.update');
         Route::delete('/{categoryId}', 'destroy')->name('categories.destroy');
     });
-});
-
-Route::middleware('throttle:analytics')->controller(LandingPageAnalyticController::class)->group(function () {
-    Route::post('/analytics/visit', 'trackVisit');
-    Route::post('/analytics/scroll', 'trackScroll');
 });
