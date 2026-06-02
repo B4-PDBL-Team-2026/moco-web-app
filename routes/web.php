@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\LandingPageAnalyticController;
 use App\Http\Controllers\Web\Auth\AuthController;
 use App\Http\Controllers\Web\Budgeting\DashboardController;
 use App\Http\Controllers\Web\Budgeting\OnboardingController;
@@ -100,5 +101,10 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/', 'store')->name('categories.store');
         Route::patch('/{categoryId}', 'update')->name('categories.update');
         Route::delete('/{categoryId}', 'destroy')->name('categories.destroy');
+    });
+
+    Route::middleware('throttle:analytics')->controller(LandingPageAnalyticController::class)->group(function () {
+        Route::post('/analytics/visit', 'trackVisit');
+        Route::post('/analytics/scroll', 'trackScroll');
     });
 });
