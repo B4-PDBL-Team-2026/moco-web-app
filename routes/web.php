@@ -27,6 +27,7 @@ Route::prefix('auth')->group(function () {
                 Route::get('/callback', 'callback');
             });
         });
+        Route::get('/banned', 'showBanned')->name('banned');
         Route::get('/account/delete', 'showDeleteInfo');
         Route::get('/forget-password', 'showForgetPassword');
         Route::post('/forget-password', 'forgotPassword');

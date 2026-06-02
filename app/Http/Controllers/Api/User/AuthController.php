@@ -10,6 +10,7 @@ use App\Domains\User\Actions\Auth\LogoutUserAction;
 use App\Domains\User\Actions\Auth\RegisterUserAction;
 use App\Domains\User\Actions\Auth\ResetPasswordAction;
 use App\Domains\User\Actions\Auth\SendEmailVerificationAction;
+use App\Domains\User\Exceptions\UserBannedException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\Auth\ConfirmDeleteUserRequest;
 use App\Http\Requests\User\Auth\ForgotPasswordRequest;
@@ -53,7 +54,14 @@ class AuthController extends Controller
      */
     public function login(LoginRequest $request, LoginUserAction $action): ApiResponse
     {
-        $result = $action->execute($request->toDTO());
+        try {
+            $result = $action->execute($request->toDTO());
+        } catch (UserBannedException $e) {
+            return $this->errorResponse(
+                message: 'Your account has been banned.',
+                status: 403,
+            );
+        }
 
         return $this->successResponse(
             data: AuthResource::make($result),

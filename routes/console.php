@@ -17,3 +17,8 @@ Schedule::command('fixed-cost:remind')
 Schedule::command('fixed-cost:mark-overdue')
     ->timezone('Asia/Jakarta')
     ->daily();
+
+Schedule::command('users:release-bans')
+    ->timezone('Asia/Jakarta')
+    ->hourly();
+

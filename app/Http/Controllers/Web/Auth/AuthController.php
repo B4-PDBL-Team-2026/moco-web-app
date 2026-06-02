@@ -8,6 +8,7 @@ use App\Domains\User\Actions\Auth\LoginUserAction;
 use App\Domains\User\Actions\Auth\RegisterUserAction;
 use App\Domains\User\Actions\Auth\ResetPasswordAction;
 use App\Domains\User\Actions\Auth\VerifyEmailAction;
+use App\Domains\User\Exceptions\UserBannedException;
 use App\Domains\User\Models\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\Auth\ForgotPasswordRequest;
@@ -49,7 +50,13 @@ class AuthController extends Controller
 
     public function handleLogin(LoginRequest $request, LoginUserAction $action): RedirectResponse
     {
-        $result = $action->execute($request->toDTO());
+        try {
+            $result = $action->execute($request->toDTO());
+        } catch (UserBannedException $e) {
+            return redirect()->route('banned', [
+                'bannedUntil' => $e->bannedUntil?->toIso8601String(),
+            ]);
+        }
 
         auth()->login($result['user']);
 
@@ -60,9 +67,13 @@ class AuthController extends Controller
         return redirect('/dashboard');
     }
 
-    /**
-     * Verify the user's email address using the signed route hash.
-     */
+    public function showBanned(Request $request): Response
+    {
+        return Inertia::render('Auth/Banned', [
+            'bannedUntil' => $request->query('bannedUntil'),
+        ]);
+    }
+
     public function verifyEmail(Request $request, VerifyEmailAction $action): Response
     {
         $user = User::query()->findOrFail($request->route('id'));
@@ -83,14 +94,6 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * GET /account/delete
-     *
-     * Renders the static account deletion instructions page.
-     * No authentication required — this is a public-facing page
-     * so unauthenticated users (e.g. ex-users) can also access
-     * the deletion instructions.
-     */
     public function showDeleteInfo(): Response
     {
         return Inertia::render('Auth/DeleteAccountInformation');

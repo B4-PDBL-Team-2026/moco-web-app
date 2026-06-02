@@ -1,6 +1,7 @@
 <?php
 
 use App\Commons\Exceptions\BusinessRuleException;
+use App\Console\Commands\ReleaseBannedUsers;
 use App\Console\Commands\SendFixedCostReminders;
 use App\Http\Middleware\CheckDailyBudgetRecalculation;
 use App\Http\Middleware\EnsureNotAuthenticated;
@@ -87,5 +88,6 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withCommands([
         SendFixedCostReminders::class,
+        ReleaseBannedUsers::class,
     ])
     ->create();

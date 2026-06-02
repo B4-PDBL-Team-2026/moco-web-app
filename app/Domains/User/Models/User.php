@@ -35,6 +35,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'has_onboarded',
         'status',
         'ban_duration',
+        'banned_until',
         'role',
     ];
 
@@ -63,6 +64,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'has_onboarded' => 'boolean',
             'email_verified_at' => 'datetime',
+            'banned_until' => 'datetime',
             'password' => 'hashed',
         ];
     }
@@ -91,6 +93,22 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isRequireOnboarding(): bool
     {
         return ! $this->has_onboarded;
+    }
+
+    /**
+     * Returns true when the user is currently under an active ban.
+     *
+     * A ban is active when status === 'banned' AND either:
+     *   - banned_until is null  (permanent / no expiry set yet), or
+     *   - banned_until is in the future (time-limited ban not yet expired).
+     */
+    public function isBanned(): bool
+    {
+        if ($this->status !== 'banned') {
+            return false;
+        }
+
+        return $this->banned_until === null || $this->banned_until->isFuture();
     }
 
     public function devices(): HasMany
