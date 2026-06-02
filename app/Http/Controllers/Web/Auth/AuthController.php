@@ -149,6 +149,10 @@ class AuthController extends Controller
             Auth::login($user);
 
             return redirect()->route('dashboard');
+        } catch (UserBannedException $e) {
+            return redirect()->route('banned', [
+                'bannedUntil' => $e->bannedUntil?->toIso8601String(),
+            ]);
         } catch (Throwable $error) {
             \Log::error('[WEB] Auth Controller: SSO attempt fails '.$error->getMessage());
 

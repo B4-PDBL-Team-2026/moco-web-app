@@ -2,6 +2,7 @@
 
 namespace App\Domains\User\Actions\Auth;
 
+use App\Domains\User\Exceptions\UserBannedException;
 use App\Domains\User\Models\User;
 use Illuminate\Support\Facades\DB;
 use Laravel\Socialite\Contracts\User as ProviderUser;
@@ -11,6 +12,7 @@ class HandleGoogleLoginUserAction
 {
     /**
      * @throws Throwable
+     * @throws UserBannedException
      */
     public function execute(ProviderUser $providerUser)
     {
@@ -33,6 +35,10 @@ class HandleGoogleLoginUserAction
                     'avatar_url' => $providerUser->getAvatar(),
                 ]);
             } else {
+                if ($user->isBanned()) {
+                    throw new UserBannedException($user->banned_until);
+                }
+                
                 if (! $user->google_id) {
                     $user->update(['google_id' => $providerUser->getId()]);
                 }

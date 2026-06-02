@@ -2,14 +2,23 @@
 
 namespace App\Domains\User\Exceptions;
 
-use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use RuntimeException;
 
 class UserBannedException extends RuntimeException
 {
+    public ?CarbonInterface $bannedUntilAttr;
+
     public function __construct(
-        public readonly ?Carbon $bannedUntil = null,
+        public readonly ?CarbonInterface $bannedUntil = null,
     ) {
-        parent::__construct('Your account has been banned.');
+        $this->bannedUntilAttr = $bannedUntil;
+
+        $message = 'Akun kamu telah ditangguhkan.';
+        if ($bannedUntil) {
+            $message .= ' Sampai dengan: '.$bannedUntil->translatedFormat('d M Y H:i');
+        }
+
+        parent::__construct($message);
     }
 }

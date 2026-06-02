@@ -78,7 +78,14 @@ class AuthController extends Controller
             ->stateless()
             ->userFromToken($request->google_token);
 
-        $user = $action->execute($providerUser);
+        try {
+            $user = $action->execute($providerUser);
+        } catch (UserBannedException $e) {
+            return $this->errorResponse(
+                message: 'Your account has been banned.',
+                status: 403,
+            );
+        }
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
