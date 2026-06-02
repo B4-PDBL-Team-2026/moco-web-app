@@ -47,8 +47,8 @@ return [
 
     'accounts' => [
         'email_trap' => env('TESTABLE_EMAIL_TRAP'),
-        'admin_mail' => env('ADMIN_EMAIL'),
-        'admin_pass' => env('ADMIN_PASS'),
+        'admin_mail' => env('ADMIN_EMAIL', 'admin@example.com'),
+        'admin_pass' => env('ADMIN_PASS', 'password'),
     ],
 
 ];
