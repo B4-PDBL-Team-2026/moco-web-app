@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web\Admin;
 
 use App\Domains\User\Models\User;
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -44,6 +45,7 @@ class AdminUsersController extends Controller
                     'avatarInitials' => $initials ?: 'U',
                     'emailVerified' => $user->email_verified_at !== null,
                     'banDuration' => $user->ban_duration,
+                    'bannedUntil' => $user->banned_until?->toIso8601String(),
                 ];
             });
 
@@ -61,10 +63,19 @@ class AdminUsersController extends Controller
             'banDuration' => ['nullable', 'string', 'max:255'],
         ]);
 
+        $bannedUntil = null;
+        $banDuration = null;
+
+        if ($validated['status'] === 'banned' && ! empty($validated['banDuration'])) {
+            $banDuration = $validated['banDuration'];
+            $bannedUntil = $this->computeBannedUntil($user, $banDuration);
+        }
+
         $user->update([
             'name' => $validated['name'],
             'status' => $validated['status'],
-            'ban_duration' => $validated['status'] === 'banned' ? $validated['banDuration'] : null,
+            'ban_duration' => $validated['status'] === 'banned' ? $banDuration : null,
+            'banned_until' => $validated['status'] === 'banned' ? $bannedUntil : null,
         ]);
 
         if ($validated['status'] === 'banned') {
@@ -86,6 +97,34 @@ class AdminUsersController extends Controller
         $user->delete();
 
         return back();
+    }
+
+    private function computeBannedUntil(User $user, string $duration): ?Carbon
+    {
+        $timezone = $user->budgetSetting?->timezone ?? 'Asia/Jakarta';
+
+        $now = Carbon::now($timezone);
+
+        $normalized = strtolower(trim(preg_replace('/\s+/', ' ', $duration)));
+
+        // Expects "<integer> <unit>" e.g. "3 hari", "1 minggu"
+        if (! preg_match('/^(\d+)\s+(\w+)$/', $normalized, $matches)) {
+            return null;
+        }
+
+        $amount = (int) $matches[1];
+        $unit = $matches[2];
+
+        $bannedUntil = match (true) {
+            $unit === 'jam' => $now->addHours($amount),
+            $unit === 'hari' => $now->addDays($amount),
+            $unit === 'minggu' => $now->addWeeks($amount),
+            $unit === 'bulan' => $now->addMonths($amount),
+            $unit === 'tahun' => $now->addYears($amount),
+            default => null,
+        };
+
+        return $bannedUntil?->utc();
     }
 
     private function revokeUserAccess($userId)
