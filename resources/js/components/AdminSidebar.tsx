@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutDashboard, LogOut, Users, X } from 'lucide-react';
+import { LayoutDashboard, LogOut, Users, X, MessageSquare } from 'lucide-react';
 
 const NAV_ITEMS = [
     {
@@ -11,6 +11,11 @@ const NAV_ITEMS = [
         label: 'Kelola Pengguna',
         href: '/admin/users',
         icon: Users,
+    },
+    {
+        label: 'Kelola Feedback',
+        href: '/admin/feedback',
+        icon: MessageSquare,
     },
 ];
 

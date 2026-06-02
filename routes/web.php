@@ -87,6 +87,9 @@ Route::middleware(['auth'])->group(function () {
     // ADMIN
     Route::prefix('/admin')->middleware(['isAdmin'])->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+        Route::get('/feedback', function () {
+            return Inertia::render('Admin/Feedback/Index');
+        })->name('admin.feedback.index');
         Route::prefix('/users')->controller(AdminUsersController::class)->group(function () {
             Route::get('/', 'index')->name('admin.users.index');
             Route::put('/{user}', 'update')->name('admin.users.update');
