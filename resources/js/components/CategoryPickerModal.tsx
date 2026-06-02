@@ -1,6 +1,6 @@
 import { ArrowLeft, Check, Sparkles } from 'lucide-react';
-import { CategoryPhosphorIcon } from '@/utils/phosphorIconMap';
 import { getIconColorTheme } from '@/utils/categoryColors';
+import { CategoryPhosphorIcon } from '@/utils/phosphorIconMap';
 
 export interface Category {
     id: number;

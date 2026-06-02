@@ -15,15 +15,9 @@ interface Props {
 }
 
 function formatRp(value: string | number) {
-    const num = Number(value);
-    if (isNaN(num)) return 'Rp0';
-    return (
-        'Rp ' +
-        num.toLocaleString('id-ID', {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-        })
-    );
+    const num = typeof value === 'number' ? value : parseFloat(value);
+    if (isNaN(num)) return 'Rp 0';
+    return 'Rp ' + Math.round(num).toLocaleString('id-ID');
 }
 
 function formatDueDay(template: Template): string {
