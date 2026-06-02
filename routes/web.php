@@ -1,8 +1,5 @@
 <?php
 
-use App\Http\Controllers\LandingPageAnalyticController;
-use App\Http\Controllers\Web\Admin\AdminUsersController;
-use App\Http\Controllers\Web\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Web\Auth\AuthController;
 use App\Http\Controllers\Web\Budgeting\DashboardController;
 use App\Http\Controllers\Web\Budgeting\OnboardingController;
@@ -10,6 +7,8 @@ use App\Http\Controllers\Web\Budgeting\TransactionController;
 use App\Http\Controllers\Web\Category\CategoryController;
 use App\Http\Controllers\Web\FixedCost\FixedCostController;
 use App\Http\Controllers\Web\User\ProfileController;
+use App\Http\Controllers\Web\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Web\Admin\AdminUsersController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -42,7 +41,7 @@ Route::prefix('auth')->group(function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::middleware('isUser')->group(function () {
-        
+
         Route::prefix('/onboarding')->middleware(['notOnboarded'])->controller(OnboardingController::class)->group(function () {
             Route::get('/', 'showOnboarding')->name('onboarding-show');
             Route::post('/', 'completeOnboarding');
@@ -51,21 +50,23 @@ Route::middleware(['auth'])->group(function () {
 
         Route::middleware(['hasOnboarded'])->group(function () {
             Route::get('/dashboard', [DashboardController::class, 'showDashboard'])->name('dashboard');
-            Route::get('/history', [TransactionController::class, 'index'])->name('transactions.index');
-            Route::get('/transaction/create', [TransactionController::class, 'create'])->name('transactions.create');
-            Route::get('/transaction/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
-            Route::get('/transaction/{transaction}/edit', [TransactionController::class, 'edit'])->name('transactions.edit');
+            Route::get('/transactions/create', [TransactionController::class, 'create'])->name('transactions.create');
+            Route::post('/transactions', [TransactionController::class, 'store'])->name('transactions.store');
         });
 
-        // FIXED COSTS
+        // fixed costs domain endpoints
         Route::prefix('/fixed-costs')->controller(FixedCostController::class)->group(function () {
-            // ... (kode occurrences & templates tetap sama) ...
             Route::prefix('/occurrences')->group(function () {
-                Route::get('/', 'indexOccurrence')->name('fixed-costs.occurrences.index');
-                Route::post('/{occurrenceId}/confirm-payment', 'confirmPayment')->name('fixed-costs.occurrences.confirm-payment');
-                Route::post('/{occurrenceId}/cancel-payment', 'cancelPayment')->name('fixed-costs.occurrences.cancel-payment');
-                Route::post('/{occurrenceId}/skip', 'skipOccurrence')->name('fixed-costs.occurrences.skip');
+                Route::get('/', 'indexOccurrence')
+                    ->name('fixed-costs.occurrences.index');
+                Route::post('/{occurrenceId}/confirm-payment', 'confirmPayment')
+                    ->name('fixed-costs.occurrences.confirm-payment');
+                Route::post('/{occurrenceId}/cancel-payment', 'cancelPayment')
+                    ->name('fixed-costs.occurrences.cancel-payment');
+                Route::post('/{occurrenceId}/skip', 'skipOccurrence')
+                    ->name('fixed-costs.occurrences.skip');
             });
+
             Route::prefix('/templates')->group(function () {
                 Route::get('/', 'index')->name('fixed-costs.index');
                 Route::post('/', 'store')->name('fixed-costs.store');

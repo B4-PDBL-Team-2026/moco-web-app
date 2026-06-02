@@ -1,356 +1,211 @@
-import { Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import {
-    CalendarClock,
-    Pencil,
+    Eye,
+    EyeOff,
     Plus,
-    TrendingDown,
-    TrendingUp,
-    Wallet,
+    X,
+    Mic,
+    Scan,
+    PenLine
 } from 'lucide-react';
-
-import { useState } from 'react';
-
+import React, { useState } from 'react';
 import AppLayout from '@/layouts/AppLayout';
+import MainMetricCard from './Components/MainMetricCard';
+import RecentTransactions from './Components/RecentTransactions';
+import SideBannerCard from './Components/SideBannerCard';
+import type { DashboardSummary, TransactionItem } from './types';
+import { calculateDashboardState } from './utils/dashboardState';
 
-interface UnpaidFixedCost {
-    name: string;
-    amount: number;
-    cycle: string;
-    due_value: number;
+interface DashboardProps {
+    summary: DashboardSummary;
+    recentTransactions: TransactionItem[];
+    budgetStatus: 'stabil' | 'defisit' | 'kritis' | 'surplus';
 }
 
-interface Category {
-    id: number;
-    name: string;
-    icon: string | null;
-    type: string;
-}
+export default function Dashboard({ summary, recentTransactions, budgetStatus }: DashboardProps) {
+    const { auth } = usePage().props as any;
+    const userName = auth.user.name;
 
-interface Props {
-    status: 'stabil' | 'defisit' | 'kritis' | 'surplus';
-    currentBalance: number;
-    todaySpent: number;
-    todayLimit: number;
-    rawTodayLimit: number;
-    tomorrowLimitPrediction: number;
-    safetyCeiling: number;
-    safetyFlooring: number;
-    budgetCycle: string;
-    unpaidFixedCosts: UnpaidFixedCost[];
-    categories: Category[];
-}
+    // State to toggle actual balance visibility
+    const [showBalance, setShowBalance] = useState(false);
 
-function formatRp(value: string | number) {
-    const num = typeof value === 'number' ? value : parseFloat(value);
-    if (isNaN(num)) return 'Rp 0';
-    return 'Rp ' + Math.round(num).toLocaleString('id-ID');
-}
+    // State to toggle Floating Action Button (FAB) quick menu
+    const [isFabOpen, setIsFabOpen] = useState(false);
 
-export default function Dashboard({
-    status,
-    currentBalance,
-    todaySpent,
-    todayLimit,
-    rawTodayLimit,
-    tomorrowLimitPrediction,
-    safetyCeiling,
-    safetyFlooring,
-    budgetCycle,
-    unpaidFixedCosts,
-}: Props) {
-    const spendPercent =
-        todayLimit > 0
-            ? (todaySpent / todayLimit) * 100
-            : 0;
+    // Compute the dynamic states based on props
+    const state = calculateDashboardState(summary, userName, budgetStatus);
 
-    const remaining = todayLimit - todaySpent;
-
-
-
-    const [openFabMenu, setOpenFabMenu] =
-        useState(false);
+    const formatRupiah = (value: number) => {
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+        }).format(value).replace('IDR', 'Rp');
+    };
 
     return (
-        <AppLayout status={status}>
-            <div className="space-y-6 p-6 lg:p-8">
-                {/* Saldo */}
-                <div className="rounded-2xl bg-gradient-to-br from-primary to-primary/80 p-6 text-white shadow-lg lg:p-8">
-                    <p className="text-sm font-medium text-white/70">
-                        Saldo Saat Ini
+        <AppLayout status={budgetStatus}>
+            <Head title="Dashboard - Moco" />
+
+            <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+
+                {/* Greeting Header Section */}
+                <div className="mb-8">
+                    <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+                        {state.greetingTitle}
+                    </h1>
+                    <p className="mt-1 text-sm font-semibold text-gray-500">
+                        {state.greetingSubtitle}
                     </p>
-
-                    <p className="mt-1 text-4xl font-bold tracking-tight">
-                        {formatRp(currentBalance)}
-                    </p>
-
-                    <div className="mt-4 flex flex-wrap gap-4 text-sm">
-                        <div className="rounded-xl bg-white/15 px-4 py-2">
-                            <span className="text-white/60">
-                                Batas Atas
-                            </span>
-
-                            <p className="font-semibold">
-                                {formatRp(
-                                    safetyCeiling,
-                                )}
-                            </p>
-                        </div>
-
-                        <div className="rounded-xl bg-white/15 px-4 py-2">
-                            <span className="text-white/60">
-                                Batas Bawah
-                            </span>
-
-                            <p className="font-semibold">
-                                {formatRp(
-                                    safetyFlooring,
-                                )}
-                            </p>
-                        </div>
-
-                        <div className="rounded-xl bg-white/15 px-4 py-2">
-                            <span className="text-white/60">
-                                Siklus
-                            </span>
-
-                            <p className="font-semibold capitalize">
-                                {budgetCycle}
-                            </p>
-                        </div>
-                    </div>
                 </div>
 
-                {/* Pengeluaran */}
-                <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-gray-500">
-                                Pengeluaran Hari Ini
-                            </p>
+                {/* Dashboard Grid System */}
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 
-                            <p className="mt-1 text-3xl font-bold text-gray-900">
-                                {formatRp(todaySpent)}
-                            </p>
-                        </div>
+                    {/* LEFT & CENTER PANEL: Main Balance, Metrics and History */}
+                    <div className="space-y-6 lg:col-span-2">
 
-                        <div className="flex size-14 items-center justify-center rounded-xl bg-red-50 text-red-500">
-                            <TrendingDown size={28} />
-                        </div>
-                    </div>
-
-                    <div className="mt-4">
-                        <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-500">
-                                {formatRp(todaySpent)} /{' '}
-                                {formatRp(todayLimit)}
-                            </span>
-
-                            <span
-                                className={`font-semibold ${
-                                    remaining < 0
-                                        ? 'text-red-500'
-                                        : 'text-green-600'
-                                }`}
-                            >
-                                {remaining >= 0
-                                    ? `Sisa ${formatRp(
-                                          remaining,
-                                      )}`
-                                    : `Lebih ${formatRp(
-                                          Math.abs(
-                                              remaining,
-                                          ),
-                                      )}`}
-                            </span>
-                        </div>
-
-                        <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-gray-100">
-                            <div
-                                className={`h-full rounded-full transition-all ${
-                                    spendPercent > 100
-                                        ? 'bg-red-500'
-                                        : spendPercent > 80
-                                          ? 'bg-orange-500'
-                                          : 'bg-secondary'
-                                }`}
-                                style={{
-                                    width: `${Math.min(
-                                        spendPercent,
-                                        100,
-                                    )}%`,
-                                }}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-                        <div className="rounded-xl bg-gray-50 p-3">
-                            <span className="text-gray-500">
-                                Batas Mentah
-                            </span>
-
-                            <p className="font-semibold text-gray-800">
-                                {formatRp(
-                                    rawTodayLimit,
-                                )}
-                            </p>
-                        </div>
-
-                        <div className="rounded-xl bg-gray-50 p-3">
-                            <span className="text-gray-500">
-                                Prediksi Besok
-                            </span>
-
-                            <p className="font-semibold text-gray-800">
-                                {formatRp(
-                                    tomorrowLimitPrediction,
-                                )}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Fixed Cost */}
-                {unpaidFixedCosts.length > 0 && (
-                    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-                        <div className="flex items-center gap-2">
-                            <CalendarClock
-                                size={20}
-                                className="text-orange-500"
-                            />
-
-                            <h2 className="text-lg font-semibold text-gray-800">
-                                Biaya Tetap Belum
-                                Dibayar
-                            </h2>
-                        </div>
-
-                        <div className="mt-4 space-y-3">
-                            {unpaidFixedCosts.map(
-                                (cost, i) => (
-                                    <div
-                                        key={i}
-                                        className="flex items-center justify-between rounded-xl border border-gray-100 p-4"
-                                    >
-                                        <div>
-                                            <p className="font-semibold text-gray-800">
-                                                {
-                                                    cost.name
-                                                }
-                                            </p>
-
-                                            <p className="text-xs text-gray-400 capitalize">
-                                                {
-                                                    cost.cycle
-                                                }{' '}
-                                                — tiap
-                                                tanggal{' '}
-                                                {
-                                                    cost.due_value
-                                                }
-                                            </p>
-                                        </div>
-
-                                        <p className="font-bold text-orange-600">
-                                            {formatRp(
-                                                cost.amount,
-                                            )}
-                                        </p>
-                                    </div>
-                                ),
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {/* Info */}
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-                        <div className="flex size-10 items-center justify-center rounded-lg bg-green-50 text-green-600">
-                            <TrendingUp size={20} />
-                        </div>
-
-                        <p className="mt-3 text-sm text-gray-500">
-                            Sisa Bulan Ini
-                        </p>
-
-                        <p className="text-xl font-bold text-gray-900">
-                            {formatRp(
-                                currentBalance -
-                                    todaySpent,
-                            )}
-                        </p>
-                    </div>
-
-                    <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-                        <div className="flex size-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-                            <Wallet size={20} />
-                        </div>
-
-                        <p className="mt-3 text-sm text-gray-500">
-                            Prediksi Akhir Siklus
-                        </p>
-
-                        <p className="text-xl font-bold text-gray-900">
-                            {formatRp(
-                                currentBalance -
-                                    todaySpent,
-                            )}
-                        </p>
-                    </div>
-                </div>
-
-
-
-                {/* Floating Action Button */}
-                <div className="fixed bottom-6 right-6 z-50">
-                    {/* Menu */}
-                    {openFabMenu && (
-                        <div className="mb-4 flex flex-col items-end gap-4">
-
-                            {/* Manual */}
-                            <Link
-                                href="/transaction/create"
-                                className="group flex items-center gap-3 cursor-pointer"
-                                onClick={() => {
-                                    setOpenFabMenu(
-                                        false,
-                                    );
-                                }}
-                            >
-                                <div className="rounded-full bg-white px-4 py-2 text-sm font-medium text-[#1E1E1E] shadow-[0_4px_12px_rgba(0,0,0,0.12)]">
-                                    Tambah Manual
+                        {/* Real-time Balance Display Card */}
+                        <div className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                            <div>
+                                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                    Saldo sebenarnya
+                                </span>
+                                <div className="mt-1.5 text-2xl font-black text-gray-900 tracking-tight">
+                                    {showBalance ? formatRupiah(summary.currentBalance) : 'Rp •••••••'}
                                 </div>
+                            </div>
+                            <button
+                                onClick={() => setShowBalance(!showBalance)}
+                                className="rounded-full p-2.5 text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition duration-200"
+                                aria-label={showBalance ? "Sembunyikan saldo" : "Tampilkan saldo"}
+                            >
+                                {showBalance ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
+                        </div>
 
-                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-[0_4px_12px_rgba(0,0,0,0.12)] transition group-hover:scale-105">
-                                    <Pencil
-                                        size={18}
-                                        className="text-[#2F5FBF]"
-                                    />
+                        {/* Large Metric Progress Card OR Serious Warning Card */}
+                        {state.isSeriousWarning ? (
+                            <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-blue-700 to-blue-900 p-8 text-white shadow-xl transition-all duration-300 hover:scale-[1.005]">
+                                <h2 className="text-4xl font-black tracking-tight mb-4">Serius!</h2>
+                                <p className="text-lg font-bold text-blue-100/90 leading-relaxed mb-6">
+                                    Saldo Anda habis dan hutang Anda masih ada. Apakah Anda lari dari tanggung jawab?
+                                </p>
+                                <div className="text-sm font-black text-red-300 uppercase tracking-widest">
+                                    Tidak ada transaksi lebih lanjut!
+                                </div>
+                            </div>
+                        ) : (
+                            <MainMetricCard
+                                todaySpent={summary.todaySpent}
+                                todayLimit={summary.todayLimit}
+                                progressPercentage={state.progressPercentage}
+                                rawPercentage={state.rawPercentage}
+                                limitLabel={state.mainCardLimitLabel}
+                                progressBarColor={state.progressBarColor}
+                            />
+                        )}
+
+                        {/* Recent Transactions List */}
+                        <RecentTransactions transactions={recentTransactions} />
+
+                    </div>
+
+                    {/* RIGHT PANEL: Dynamic Safety Badges and Projections */}
+                    <div className="space-y-6">
+
+                        {/* Dynamic Budget Safety banner (Mockup 3 vs Mockup 1/2 vs Defisit) */}
+                        {budgetStatus === 'defisit' ? (
+                            <SideBannerCard
+                                variant="pink"
+                                title="Total Defisit Saat Ini"
+                                value={formatRupiah(summary.currentBalance)}
+                            />
+                        ) : state.isOverbudget ? (
+                            <SideBannerCard
+                                variant="red"
+                                value="Overbudget!"
+                            />
+                        ) : (
+                            <SideBannerCard
+                                variant="blue"
+                                title="Saldo aman untuk"
+                                value={`${state.safetyDays} Hari`}
+                            />
+                        )}
+
+                        {/* Dynamic Savings or Allowance Prediction Card based on status */}
+                        {budgetStatus === 'defisit' ? (
+                            state.isSeriousWarning ? (
+                                <SideBannerCard
+                                    variant="pink"
+                                    title="Saldo rill"
+                                    value="Rp 0"
+                                />
+                            ) : null
+                        ) : (
+                            <SideBannerCard
+                                variant="blue"
+                                title={
+                                    budgetStatus === 'surplus'
+                                        ? (state.isOverbudget ? 'Estimasi Tabungan' : 'Proyeksi Tabungan')
+                                        : budgetStatus === 'kritis'
+                                            ? 'Sisa Jatah Ekstrem'
+                                            : 'Prediksi Jatah Besok'
+                                }
+                                value={formatRupiah(summary.tomorrowLimitPrediction)}
+                            />
+                        )}
+
+                    </div>
+
+
+                </div>
+
+                {/* PREMIUM FLOATING ACTION BUTTON (FAB) MENU */}
+                <div className="fixed bottom-6 right-6 z-30 flex flex-col items-end gap-3">
+                    {/* Collapsible Action Items */}
+                    {isFabOpen && (
+                        <div className="flex flex-col items-end gap-3 transition-all duration-300 ease-in-out">
+                            {/* Voice input option */}
+                            <button className="flex items-center gap-3 rounded-full bg-white px-4 py-2 text-sm font-extrabold text-gray-700 shadow-md transition hover:bg-gray-50 hover:scale-105">
+                                <span>Voice</span>
+                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                                    <Mic size={18} />
+                                </div>
+                            </button>
+
+                            {/* Scan receipt option */}
+                            <button className="flex items-center gap-3 rounded-full bg-white px-4 py-2 text-sm font-extrabold text-gray-700 shadow-md transition hover:bg-gray-50 hover:scale-105">
+                                <span>Scan Struk</span>
+                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                                    <Scan size={18} />
+                                </div>
+                            </button>
+
+                            {/* Manual input option */}
+                            <Link
+                                href="/transactions/create"
+                                className="flex items-center gap-3 rounded-full bg-white px-4 py-2 text-sm font-extrabold text-gray-700 shadow-md transition hover:bg-gray-50 hover:scale-105"
+                            >
+                                <span>Tambah Manual</span>
+                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                                    <PenLine size={18} />
                                 </div>
                             </Link>
                         </div>
                     )}
 
-                    {/* Main FAB */}
+                    {/* Primary Toggle Orange FAB */}
                     <button
-                        onClick={() =>
-                            setOpenFabMenu(
-                                (prev) => !prev,
-                            )
-                        }
-                        className={`flex h-14 w-14 items-center justify-center rounded-full bg-[#FF9800] text-white shadow-[0_10px_20px_rgba(255,152,0,0.35)] transition-all duration-300 ${
-                            openFabMenu
-                                ? 'rotate-45'
-                                : 'rotate-0'
-                        }`}
+                        onClick={() => setIsFabOpen(!isFabOpen)}
+                        className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-500 text-white shadow-lg shadow-amber-500/20 transition-all duration-300 hover:bg-amber-600 hover:scale-110 active:scale-95"
+                        aria-label="Aksi Cepat"
                     >
-                        <Plus
-                            size={28}
-                            strokeWidth={2.5}
-                        />
+                        {isFabOpen ? <X size={24} /> : <Plus size={24} />}
                     </button>
                 </div>
+
             </div>
         </AppLayout>
     );
