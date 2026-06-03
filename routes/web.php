@@ -89,7 +89,7 @@ Route::middleware(['auth'])->group(function () {
     // ADMIN
     Route::prefix('/admin')->middleware(['isAdmin'])->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
-        
+
         Route::prefix('/feedback')->controller(AdminFeedbackController::class)->group(function () {
             Route::get('/', 'index')->name('admin.feedback.index');
             Route::post('/{feedback}/respond', 'respond')->name('admin.feedback.respond');
@@ -116,4 +116,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/feedback', 'create')->name('feedback.create');
         Route::post('/feedback', 'store')->name('feedback.store');
     });
+});
+
+Route::middleware('throttle:analytics')->controller(LandingPageAnalyticController::class)->group(function () {
+    Route::post('/analytics/visit', 'trackVisit');
+    Route::post('/analytics/scroll', 'trackScroll');
 });
