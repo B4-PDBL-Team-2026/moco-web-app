@@ -1,5 +1,5 @@
-import { Link, usePage } from '@inertiajs/react';
-
+import React, { useState } from 'react';
+import { Link, usePage, router } from '@inertiajs/react';
 import {
     LayoutDashboard,
     ScrollText,
@@ -46,18 +46,16 @@ const BOTTOM_ITEMS = [
     },
     {
         label: 'Keluar',
-        href: '/auth/logout',
+        action: 'logout', 
         icon: LogOut,
-        routeName: null,
-        method: 'delete' as const,
     },
 ];
 
 interface SidebarProps {
     open: boolean;
     onClose: () => void;
+    onLogout?: () => void; // 
 }
-
 function NavLink({
     item,
     onClick,
@@ -87,6 +85,14 @@ function NavLink({
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
     const { url } = usePage();
+    
+    const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+    const handleLogout = () => {
+        router.delete('/auth/logout', {
+            onSuccess: () => setIsLogoutModalOpen(false),
+        });
+    };
 
     return (
         <>
@@ -142,23 +148,25 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                 <div className="space-y-1 border-t border-gray-100 px-3 py-4">
                     {BOTTOM_ITEMS.map((item) => {
                         const Icon = item.icon;
-                        const isActive = item.href && url.startsWith(item.href);
 
-                        if (item.method === 'delete') {
+                        // Jika item adalah tombol Keluar, gunakan <button> untuk membuka modal
+                        if (item.action === 'logout') {
                             return (
-                                <Link
-                                    key={item.href}
-                                    href={item.href}
-                                    method={item.method}
-                                    as="button"
+                                <button
+                                    key="logout"
+                                    onClick={() => {
+                                        setIsLogoutModalOpen(true);
+                                        onClose(); // Tutup sidebar di versi mobile saat modal terbuka
+                                    }}
                                     className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-gray-500 transition hover:bg-red-50 hover:text-red-500"
                                 >
                                     <Icon size={18} strokeWidth={1.8} />
                                     {item.label}
-                                </Link>
+                                </button>
                             );
                         }
 
+                        const isActive = item.href && url.startsWith(item.href);
                         return (
                             <Link
                                 key={item.href}
@@ -177,6 +185,34 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                     })}
                 </div>
             </aside>
+
+            {/* MODAL KONFIRMASI KELUAR */}
+            {isLogoutModalOpen && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50">
+                    <div className="w-full max-w-sm rounded-[24px] bg-white p-8 text-center shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+                        <h2 className="mb-3 text-xl font-bold text-[#101010]">Keluar dari akun?</h2>
+                        <p className="mb-8 text-sm leading-relaxed text-[#595D62]">
+                            Sesi login akan dihapus dari perangkat ini.
+                        </p>
+                        <div className="flex gap-4">
+                            <button
+                                type="button"
+                                onClick={() => setIsLogoutModalOpen(false)}
+                                className="flex-1 rounded-xl border border-[#2E5AA7] py-3 font-semibold text-[#2E5AA7] transition hover:bg-blue-50"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleLogout}
+                                className="flex-1 rounded-xl bg-[#FF4E64] py-3 font-semibold text-white shadow-md shadow-red-100 transition hover:bg-[#e04455]"
+                            >
+                                Keluar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

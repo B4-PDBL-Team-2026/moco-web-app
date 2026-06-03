@@ -1,14 +1,15 @@
 <?php
 
 use App\Http\Controllers\LandingPageAnalyticController;
-use App\Http\Controllers\Web\Admin\AdminUsersController;
-use App\Http\Controllers\Web\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Web\Auth\AuthController;
 use App\Http\Controllers\Web\Budgeting\DashboardController;
 use App\Http\Controllers\Web\Budgeting\OnboardingController;
 use App\Http\Controllers\Web\Budgeting\TransactionController;
 use App\Http\Controllers\Web\Category\CategoryController;
 use App\Http\Controllers\Web\FixedCost\FixedCostController;
+use App\Http\Controllers\Web\User\ProfileController;
+use App\Http\Controllers\Web\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Web\Admin\AdminUsersController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -27,6 +28,7 @@ Route::prefix('auth')->group(function () {
                 Route::get('/callback', 'callback');
             });
         });
+        Route::get('/banned', 'showBanned')->name('banned');
         Route::get('/account/delete', 'showDeleteInfo');
         Route::get('/forget-password', 'showForgetPassword');
         Route::post('/forget-password', 'forgotPassword');
@@ -41,7 +43,7 @@ Route::prefix('auth')->group(function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::middleware('isUser')->group(function () {
-        // budgeting domain endpoints
+
         Route::prefix('/onboarding')->middleware(['notOnboarded'])->controller(OnboardingController::class)->group(function () {
             Route::get('/', 'showOnboarding')->name('onboarding-show');
             Route::post('/', 'completeOnboarding');
@@ -50,10 +52,8 @@ Route::middleware(['auth'])->group(function () {
 
         Route::middleware(['hasOnboarded'])->group(function () {
             Route::get('/dashboard', [DashboardController::class, 'showDashboard'])->name('dashboard');
-            Route::get('/history', [TransactionController::class, 'index'])->name('transactions.index');
-            Route::get('/transaction/create', [TransactionController::class, 'create'])->name('transactions.create');
-            Route::get('/transaction/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
-            Route::get('/transaction/{transaction}/edit', [TransactionController::class, 'edit'])->name('transactions.edit');
+            Route::get('/transactions/create', [TransactionController::class, 'create'])->name('transactions.create');
+            Route::post('/transactions', [TransactionController::class, 'store'])->name('transactions.store');
         });
 
         // fixed costs domain endpoints
@@ -78,10 +78,15 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
-    // admin domain endpoints
+    // SETTINGS:
+    Route::get('/settings', [ProfileController::class, 'edit'])->name('settings');
+    Route::post('/settings/update-budget', [ProfileController::class, 'updateBudget'])->name('settings.update-budget');
+    Route::delete('/settings/delete-account', [ProfileController::class, 'deleteAccount'])->name('settings.delete-account');
+    Route::post('/settings/send-verification', [ProfileController::class, 'sendVerification'])->name('settings.send-verification');
+
+    // ADMIN
     Route::prefix('/admin')->middleware(['isAdmin'])->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
-
         Route::prefix('/users')->controller(AdminUsersController::class)->group(function () {
             Route::get('/', 'index')->name('admin.users.index');
             Route::put('/{user}', 'update')->name('admin.users.update');
@@ -90,7 +95,7 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
-    // categories domain endpoints
+    // CATEGORIES
     Route::prefix('/categories')->controller(CategoryController::class)->group(function () {
         Route::get('/', 'index')->name('categories.index');
         Route::post('/', 'store')->name('categories.store');

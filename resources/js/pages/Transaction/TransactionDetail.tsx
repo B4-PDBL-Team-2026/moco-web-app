@@ -1,8 +1,8 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { ArrowLeft, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import AppLayout from '@/layouts/AppLayout';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
+import AppLayout from '@/layouts/AppLayout';
 import { api } from '@/lib/api';
 import { CategoryPhosphorIcon } from '@/utils/phosphorIconMap';
 
@@ -64,7 +64,7 @@ function formatSource(src: string) {
 }
 
 /* ── Component ───────────────────────────────────────────── */
-export default function TransactionDetail({ transaction, categories }: Props) {
+export default function TransactionDetail({ transaction }: Props) {
     const [showDelete, setShowDelete] = useState(false);
     const [deleting, setDeleting] = useState(false);
 

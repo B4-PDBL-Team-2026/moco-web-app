@@ -2,8 +2,8 @@ import { useForm } from '@inertiajs/react';
 import { ArrowLeft, Check, Sparkles, AlertCircle, Trash2, Search, AlertTriangle, X } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
-import { CategoryPhosphorIcon } from '@/utils/phosphorIconMap';
 import { getIconColorTheme } from '@/utils/categoryColors';
+import { CategoryPhosphorIcon } from '@/utils/phosphorIconMap';
 
 export interface Category {
     id: number;

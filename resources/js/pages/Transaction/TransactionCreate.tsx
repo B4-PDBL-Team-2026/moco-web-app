@@ -1,12 +1,12 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { ArrowLeft, Calendar, Sparkles } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import AppLayout from '@/layouts/AppLayout';
-import { api, ApiError } from '@/lib/api';
-import { CategoryPhosphorIcon } from '@/utils/phosphorIconMap';
 import CategoryPickerModal from '@/components/CategoryPickerModal';
 import type { Category } from '@/components/CategoryPickerModal';
+import AppLayout from '@/layouts/AppLayout';
+import { api, ApiError } from '@/lib/api';
 import DatePickerModal from '@/pages/Transaction/DatePickerModal';
+import { CategoryPhosphorIcon } from '@/utils/phosphorIconMap';
 
 interface Props {
   categories: Category[];

@@ -1,10 +1,10 @@
-import { ArrowLeft, Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ArrowLeft, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { api, ApiError } from '@/lib/api';
-import { CategoryPhosphorIcon } from '@/utils/phosphorIconMap';
 import CategoryPickerModal from '@/components/CategoryPickerModal';
 import type { Category } from '@/components/CategoryPickerModal';
+import { api, ApiError } from '@/lib/api';
+import { CategoryPhosphorIcon } from '@/utils/phosphorIconMap';
 
 interface TransactionFormData {
     id?: number;
