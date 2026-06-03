@@ -3,7 +3,6 @@
 use App\Http\Controllers\LandingPageAnalyticController;
 use App\Http\Controllers\Web\Admin\AdminUsersController;
 use App\Http\Controllers\Web\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Web\Admin\FeedbackController as AdminFeedbackController;
 use App\Http\Controllers\Web\Auth\AuthController;
 use App\Http\Controllers\Web\Budgeting\DashboardController;
 use App\Http\Controllers\Web\Budgeting\OnboardingController;
@@ -90,7 +89,7 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('/admin')->middleware(['isAdmin'])->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
 
-        Route::prefix('/feedback')->controller(AdminFeedbackController::class)->group(function () {
+        Route::prefix('/feedback')->controller(App\Http\Controllers\Web\Admin\FeedbackController::class)->group(function () {
             Route::get('/', 'index')->name('admin.feedback.index');
             Route::post('/{feedback}/respond', 'respond')->name('admin.feedback.respond');
         });
