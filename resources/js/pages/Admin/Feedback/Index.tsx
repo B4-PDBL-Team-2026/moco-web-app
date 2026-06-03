@@ -26,8 +26,9 @@ import {
     YAxis
 } from 'recharts';
 
-import DataTable from '@/components/DataTable';
+import Badge from '@/components/Badge';
 import type { Column } from '@/components/DataTable';
+import DataTable from '@/components/DataTable';
 import Pagination from '@/components/Pagination';
 import StatCard from '@/components/StatCard';
 import AdminLayout from '@/layouts/AdminLayout';
@@ -329,25 +330,22 @@ export default function Index() {
     const getCategoryBadge = (category: string) => {
         if (category.includes('Bug')) {
             return (
-                <span className="inline-flex items-center gap-1.5 text-xs text-red-700 bg-red-50 border border-red-200 rounded-full px-2.5 py-1 font-bold">
-                    <Tag size={12} className="text-red-400" />
+                <Badge color="red" icon={<Tag size={12} className="text-red-400" />}>
                     Bug
-                </span>
+                </Badge>
             );
         }
         if (category.includes('Fitur')) {
             return (
-                <span className="inline-flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-1 font-bold">
-                    <Tag size={12} className="text-emerald-400" />
+                <Badge color="emerald" icon={<Tag size={12} className="text-emerald-400" />}>
                     Fitur Baru
-                </span>
+                </Badge>
             );
         }
         return (
-            <span className="inline-flex items-center gap-1.5 text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-full px-2.5 py-1 font-bold">
-                <Tag size={12} className="text-blue-400" />
+            <Badge color="blue" icon={<Tag size={12} className="text-blue-400" />}>
                 Saran Umum
-            </span>
+            </Badge>
         );
     };
 
@@ -449,15 +447,13 @@ export default function Index() {
             className: 'whitespace-nowrap',
             render: (item) => (
                 item.status === 'replied' ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-xs font-bold text-emerald-700">
-                        <CheckCircle2 size={12} />
+                    <Badge color="emerald" icon={<CheckCircle2 size={12} />}>
                         Replied
-                    </span>
+                    </Badge>
                 ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-1 text-xs font-bold text-amber-700">
-                        <Clock size={12} />
+                    <Badge color="amber" icon={<Clock size={12} />}>
                         Pending
-                    </span>
+                    </Badge>
                 )
             ),
         },

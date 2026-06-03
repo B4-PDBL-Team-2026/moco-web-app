@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react';
 import { PencilLine, Power, Search, Trash, Verified } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import Badge from '@/components/Badge';
 import type { Column } from '@/components/DataTable';
 import DataTable from '@/components/DataTable';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
@@ -160,15 +161,13 @@ export default function Users({ users, filters }: UsersPageProps) {
             label: 'Status',
             render: (user) =>
                 user.status === 'active' ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-1 text-xs font-bold text-green-600">
-                        <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                    <Badge color="emerald" dot={true}>
                         Aktif
-                    </span>
+                    </Badge>
                 ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-1 text-xs font-bold text-red-600">
-                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500" />
+                    <Badge color="red" dot={true} dotPulse={true}>
                         Banned ({user.banDuration})
-                    </span>
+                    </Badge>
                 ),
         },
         {
@@ -177,14 +176,13 @@ export default function Users({ users, filters }: UsersPageProps) {
             align: 'center',
             render: (user) =>
                 user.isLoggedIn ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-primary-light px-2.5 py-1 text-xs font-bold text-primary">
-                        <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                    <Badge color="primary" dot={true}>
                         Online
-                    </span>
+                    </Badge>
                 ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-gray-100 bg-gray-50 px-2.5 py-1 text-xs font-bold text-gray-400">
+                    <Badge color="gray">
                         Offline
-                    </span>
+                    </Badge>
                 ),
         },
         {
