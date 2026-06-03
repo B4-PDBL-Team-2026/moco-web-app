@@ -6,6 +6,7 @@ import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
 import type { User } from '@/components/EditUserDrawer';
 import EditUserDrawer from '@/components/EditUserDrawer';
 import ForceLogoutDialog from '@/components/ForceLogoutDialog';
+import Pagination from '@/components/Pagination';
 import AdminLayout from '@/layouts/AdminLayout';
 
 interface PaginatedData {
@@ -306,55 +307,16 @@ export default function Users({ users, filters }: UsersPageProps) {
                     </div>
 
                     {/* Pagination Bar bawaan Laravel/Inertia */}
-                    {users.total > 0 && (
-                        <div className="flex flex-col gap-4 border-t border-gray-50 bg-white px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-                            <p className="text-xs font-semibold text-gray-400">
-                                Menampilkan{' '}
-                                <span className="font-bold text-gray-700">
-                                    {users.from}
-                                </span>{' '}
-                                hingga{' '}
-                                <span className="font-bold text-gray-700">
-                                    {users.to}
-                                </span>{' '}
-                                dari{' '}
-                                <span className="font-bold text-gray-700">
-                                    {users.total}
-                                </span>{' '}
-                                pengguna
-                            </p>
-                            <div className="flex gap-2">
-                                <button
-                                    disabled={users.current_page === 1}
-                                    onClick={() =>
-                                        changePage(users.current_page - 1)
-                                    }
-                                    className={`rounded-xl border px-4 py-2.5 text-xs font-bold transition ${
-                                        users.current_page === 1
-                                            ? 'cursor-not-allowed border-gray-100 text-gray-300'
-                                            : 'border-gray-200 text-gray-500 hover:bg-gray-50'
-                                    }`}
-                                >
-                                    Sebelumnya
-                                </button>
-                                <button
-                                    disabled={
-                                        users.current_page === users.last_page
-                                    }
-                                    onClick={() =>
-                                        changePage(users.current_page + 1)
-                                    }
-                                    className={`rounded-xl border px-4 py-2.5 text-xs font-bold transition ${
-                                        users.current_page === users.last_page
-                                            ? 'cursor-not-allowed border-gray-100 text-gray-300'
-                                            : 'border-gray-200 text-gray-500 hover:bg-gray-50'
-                                    }`}
-                                >
-                                    Selanjutnya
-                                </button>
-                            </div>
-                        </div>
-                    )}
+                    <Pagination
+                        currentPage={users.current_page}
+                        totalPages={users.last_page}
+                        totalItems={users.total}
+                        from={users.from}
+                        to={users.to}
+                        onPageChange={changePage}
+                        itemLabel="pengguna"
+                        showPageNumbers={true}
+                    />
                 </div>
             </div>
 

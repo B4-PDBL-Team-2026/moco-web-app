@@ -29,6 +29,7 @@ import {
     Legend
 } from 'recharts';
 
+import Pagination from '@/components/Pagination';
 import AdminLayout from '@/layouts/AdminLayout';
 
 // Interface Feedback
@@ -718,42 +719,16 @@ export default function Index() {
                     </div>
 
                     {/* Pagination UI */}
-                    {totalPages > 1 && (
-                        <div className="border-t border-gray-100 bg-white px-6 py-4 flex items-center justify-between">
-                            <div className="text-xs text-gray-500 font-bold">
-                                Menampilkan <span className="text-gray-900">{startIndex + 1}</span> sampai <span className="text-gray-900">{endIndex}</span> dari <span className="text-gray-900">{totalFiltered}</span> masukan
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                                    disabled={currentPage === 1}
-                                    className="px-3 py-1.5 text-xs font-bold rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                                >
-                                    Sebelumnya
-                                </button>
-                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                                    <button
-                                        key={page}
-                                        onClick={() => setCurrentPage(page)}
-                                        className={`px-3 py-1.5 text-xs font-bold rounded-lg transition ${
-                                            currentPage === page
-                                                ? 'bg-primary text-white'
-                                                : 'border border-gray-200 bg-white hover:bg-gray-50'
-                                        }`}
-                                    >
-                                        {page}
-                                    </button>
-                                ))}
-                                <button
-                                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                                    disabled={currentPage === totalPages}
-                                    className="px-3 py-1.5 text-xs font-bold rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                                >
-                                    Selanjutnya
-                                </button>
-                            </div>
-                        </div>
-                    )}
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        totalItems={totalFiltered}
+                        from={totalFiltered > 0 ? startIndex + 1 : 0}
+                        to={endIndex}
+                        onPageChange={setCurrentPage}
+                        itemLabel="masukan"
+                        showPageNumbers={true}
+                    />
                 </div>
 
                 {/* Bagian 3: Panel Detail & Balasan */}
