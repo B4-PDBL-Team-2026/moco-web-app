@@ -9,6 +9,8 @@ use App\Http\Controllers\Web\FixedCost\FixedCostController;
 use App\Http\Controllers\Web\User\ProfileController;
 use App\Http\Controllers\Web\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Web\Admin\AdminUsersController;
+use App\Http\Controllers\Web\Admin\FeedbackController as AdminFeedbackController;
+use App\Http\Controllers\Web\Feedback\FeedbackController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -87,9 +89,12 @@ Route::middleware(['auth'])->group(function () {
     // ADMIN
     Route::prefix('/admin')->middleware(['isAdmin'])->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
-        Route::get('/feedback', function () {
-            return Inertia::render('Admin/Feedback/Index');
-        })->name('admin.feedback.index');
+        
+        Route::prefix('/feedback')->controller(AdminFeedbackController::class)->group(function () {
+            Route::get('/', 'index')->name('admin.feedback.index');
+            Route::post('/{feedback}/respond', 'respond')->name('admin.feedback.respond');
+        });
+
         Route::prefix('/users')->controller(AdminUsersController::class)->group(function () {
             Route::get('/', 'index')->name('admin.users.index');
             Route::put('/{user}', 'update')->name('admin.users.update');
@@ -107,7 +112,8 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // FEEDBACK
-    Route::get('/feedback', function () {
-        return Inertia::render('Feedback/Create');
-    })->name('feedback.create');
+    Route::controller(FeedbackController::class)->group(function () {
+        Route::get('/feedback', 'create')->name('feedback.create');
+        Route::post('/feedback', 'store')->name('feedback.store');
+    });
 });

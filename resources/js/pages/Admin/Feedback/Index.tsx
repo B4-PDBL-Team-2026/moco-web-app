@@ -1,4 +1,4 @@
-﻿import { Head, useForm } from '@inertiajs/react';
+﻿import { Head, router, useForm } from '@inertiajs/react';
 import {
     Calendar,
     CheckCircle2,
@@ -13,7 +13,7 @@ import {
     User,
     X
 } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Bar,
     BarChart,
@@ -50,247 +50,64 @@ interface Feedback {
     replied_at?: string;
 }
 
-// Data Dummy List Feedback
-const DUMMY_FEEDBACK_LIST: Feedback[] = [
-    {
-        id: 1,
-        created_at: '2026-06-03 10:30',
-        user: {
-            name: 'Budi Santoso',
-            email: 'budi.santoso@example.com'
-        },
-        platform: 'Web App',
-        category: 'Laporan Masalah (Bug)',
-        rating: 2,
-        message: 'Aplikasi sering logout sendiri saat saya membuka halaman riwayat transaksi. Mohon segera diperbaiki karena cukup mengganggu.',
-        status: 'pending'
-    },
-    {
-        id: 2,
-        created_at: '2026-06-02 14:15',
-        user: {
-            name: 'Siti Rahma',
-            email: 'siti.rahma@example.com'
-        },
-        platform: 'Mobile App (Android)',
-        category: 'Permintaan Fitur Baru',
-        rating: 5,
-        message: 'Sangat bagus! Bisakah ditambahkan fitur ekspor laporan keuangan mingguan ke format Excel (.xlsx)? Ini akan sangat membantu.',
-        status: 'replied',
-        admin_reply: 'Halo Siti, terima kasih atas sarannya! Fitur ekspor laporan ke Excel saat ini sedang dalam tahap pengembangan dan direncanakan rilis pada versi berikutnya.',
-        replied_at: '2026-06-02 16:00'
-    },
-    {
-        id: 3,
-        created_at: '2026-06-01 09:45',
-        user: {
-            name: 'Andi Wijaya',
-            email: 'andi.wijaya@example.com'
-        },
-        platform: 'Web App',
-        category: 'Saran / Masukan Umum',
-        rating: 4,
-        message: 'Tampilan dashboard-nya bersih dan mudah dipahami. Warna branding primary hijau-nya juga segar di mata.',
-        status: 'pending'
-    },
-    {
-        id: 4,
-        created_at: '2026-05-30 11:20',
-        user: {
-            name: 'Dewi Lestari',
-            email: 'dewi.lestari@example.com'
-        },
-        platform: 'Mobile App (Android)',
-        category: 'Laporan Masalah (Bug)',
-        rating: 1,
-        message: 'Gagal melakukan verifikasi email. Kode OTP tidak pernah masuk ke inbox maupun spam saya.',
-        status: 'pending'
-    },
-    {
-        id: 5,
-        created_at: '2026-05-28 15:40',
-        user: {
-            name: 'Rian Hidayat',
-            email: 'rian.hidayat@example.com'
-        },
-        platform: 'Web App',
-        category: 'Permintaan Fitur Baru',
-        rating: 4,
-        message: 'Apakah ada rencana integrasi dengan e-wallet lokal seperti GoPay atau OVO untuk pencatatan otomatis?',
-        status: 'replied',
-        admin_reply: 'Halo Rian, terima kasih! Integrasi e-wallet lokal masuk dalam roadmap kuartal ke-4 tahun ini. Tetap pantau update kami ya.',
-        replied_at: '2026-05-29 09:15'
-    },
-    {
-        id: 6,
-        created_at: '2026-05-27 10:00',
-        user: {
-            name: 'Eko Prasetyo',
-            email: 'eko.prasetyo@example.com'
-        },
-        platform: 'Web App',
-        category: 'Laporan Masalah (Bug)',
-        rating: 3,
-        message: 'Grafik pengeluaran bulanan tidak muncul jika data transaksi di atas 50 item.',
-        status: 'pending'
-    },
-    {
-        id: 7,
-        created_at: '2026-05-26 16:30',
-        user: {
-            name: 'Fitriani Lestari',
-            email: 'fitriani.lestari@example.com'
-        },
-        platform: 'Mobile App (Android)',
-        category: 'Saran / Masukan Umum',
-        rating: 5,
-        message: 'User interface-nya sangat intuitif! Sangat membantu saya mengelola keuangan bulanan keluarga kecil saya.',
-        status: 'replied',
-        admin_reply: 'Halo Fitriani, senang mendengarnya! Terima kasih atas dukungannya.',
-        replied_at: '2026-05-27 08:30'
-    },
-    {
-        id: 8,
-        created_at: '2026-05-25 09:15',
-        user: {
-            name: 'Hadi Wibowo',
-            email: 'hadi.wibowo@example.com'
-        },
-        platform: 'Web App',
-        category: 'Permintaan Fitur Baru',
-        rating: 4,
-        message: 'Tolong buat fitur budget sharing antar akun agar bisa kelola keuangan bareng istri.',
-        status: 'pending'
-    },
-    {
-        id: 9,
-        created_at: '2026-05-24 14:20',
-        user: {
-            name: 'Indah Permata',
-            email: 'indah.permata@example.com'
-        },
-        platform: 'Mobile App (Android)',
-        category: 'Laporan Masalah (Bug)',
-        rating: 2,
-        message: 'Aplikasi crash terus saat memotret struk belanja menggunakan kamera internal.',
-        status: 'pending'
-    },
-    {
-        id: 10,
-        created_at: '2026-05-23 11:10',
-        user: {
-            name: 'Joko Widodo',
-            email: 'joko.widodo@example.com'
-        },
-        platform: 'Web App',
-        category: 'Saran / Masukan Umum',
-        rating: 4,
-        message: 'Dokumentasi API kurang lengkap bagi pengembang independen. Mohon diperluas.',
-        status: 'replied',
-        admin_reply: 'Halo Joko, kami sedang menyusun dokumentasi API versi 2 yang lebih lengkap dan ramah developer. Terima kasih masukannya.',
-        replied_at: '2026-05-24 10:00'
-    },
-    {
-        id: 11,
-        created_at: '2026-05-22 08:45',
-        user: {
-            name: 'Kartika Sari',
-            email: 'kartika.sari@example.com'
-        },
-        platform: 'Mobile App (Android)',
-        category: 'Permintaan Fitur Baru',
-        rating: 5,
-        message: 'Semoga ke depannya bisa ditambahkan fitur chart investasi emas juga.',
-        status: 'pending'
-    },
-    {
-        id: 12,
-        created_at: '2026-05-21 13:05',
-        user: {
-            name: 'Lukman Hakim',
-            email: 'lukman.hakim@example.com'
-        },
-        platform: 'Web App',
-        category: 'Laporan Masalah (Bug)',
-        rating: 2,
-        message: 'Tombol reset filter tanggal pada history transaksi tidak berfungsi.',
-        status: 'pending'
-    },
-    {
-        id: 13,
-        created_at: '2026-05-20 15:50',
-        user: {
-            name: 'Maria Ulfah',
-            email: 'maria.ulfah@example.com'
-        },
-        platform: 'Mobile App (Android)',
-        category: 'Saran / Masukan Umum',
-        rating: 3,
-        message: 'Ukuran font di beberapa bagian dashboard terasa kekecilan untuk dibaca.',
-        status: 'replied',
-        admin_reply: 'Halo Maria, terima kasih masukannya. Kami akan menyesuaikan kontras dan ukuran font pada rilis minor berikutnya.',
-        replied_at: '2026-05-21 09:30'
-    },
-    {
-        id: 14,
-        created_at: '2026-05-19 10:25',
-        user: {
-            name: 'Nugroho',
-            email: 'nugroho@example.com'
-        },
-        platform: 'Web App',
-        category: 'Permintaan Fitur Baru',
-        rating: 4,
-        message: 'Apakah bisa ditambahkan notifikasi WhatsApp sebagai alternatif pengingat tagihan bulanan?',
-        status: 'pending'
-    },
-    {
-        id: 15,
-        created_at: '2026-05-18 16:15',
-        user: {
-            name: 'Oki Setiawan',
-            email: 'oki.setiawan@example.com'
-        },
-        platform: 'Mobile App (Android)',
-        category: 'Laporan Masalah (Bug)',
-        rating: 3,
-        message: 'Sinkronisasi data cloud kadang memakan waktu sangat lama jika jaringan internet tidak stabil.',
-        status: 'pending'
-    }
-];
+interface Stats {
+    total_masukan: number;
+    avg_rating: string;
+    platform_data: { name: string; value: number; color: string }[];
+    category_data: { name: string; value: number }[];
+}
 
-// Data Dummy Grafik Platform
-const PLATFORM_DATA = [
-    { name: 'Web App', value: 70, color: '#10B981' }, // emerald-500
-    { name: 'Mobile Android', value: 30, color: '#3B82F6' } // blue-500
-];
+interface IndexProps {
+    feedbacks: {
+        data: Feedback[];
+        current_page: number;
+        last_page: number;
+        total: number;
+        from: number;
+        to: number;
+        links: any[];
+    };
+    filters: {
+        search?: string;
+        status?: string;
+        category?: string;
+        start_date?: string;
+        end_date?: string;
+    };
+    stats: Stats;
+}
 
-// Data Dummy Grafik Kategori
-const CATEGORY_DATA = [
-    { name: 'Bug', value: 45 },
-    { name: 'Fitur Baru', value: 60 },
-    { name: 'Saran Umum', value: 19 }
-];
-
-export default function Index() {
+export default function Index({ feedbacks, filters, stats }: IndexProps) {
     const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
     const [isOpen, setIsOpen] = useState(false);
-    const [listData, setListData] = useState<Feedback[]>(DUMMY_FEEDBACK_LIST);
 
-    // Filter states
-    const [searchQuery, setSearchQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState('');
-    const [categoryFilter, setCategoryFilter] = useState('');
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
+    const [searchQuery, setSearchQuery] = useState(filters.search || '');
+    const [statusFilter, setStatusFilter] = useState(filters.status || '');
+    const [categoryFilter, setCategoryFilter] = useState(filters.category || '');
+    const [startDate, setStartDate] = useState(filters.start_date || '');
+    const [endDate, setEndDate] = useState(filters.end_date || '');
 
-    // Pagination state
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10;
-
-    const { data, setData, processing, reset } = useForm({
+    const { data, setData, post, processing, reset } = useForm({
         admin_reply: '',
     });
+
+    useEffect(() => {
+        const debounce = setTimeout(() => {
+            router.get('/admin/feedback', {
+                search: searchQuery,
+                status: statusFilter,
+                category: categoryFilter,
+                start_date: startDate,
+                end_date: endDate,
+            }, {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+            });
+        }, 300);
+
+        return () => clearTimeout(debounce);
+    }, [searchQuery, statusFilter, categoryFilter, startDate, endDate]);
 
     const handleOpenReply = (feedback: Feedback) => {
         setSelectedFeedback(feedback);
@@ -307,24 +124,13 @@ export default function Index() {
     const handleSubmitReply = (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Simulasi pengiriman form (static-preview interactivity)
-        setTimeout(() => {
-            if (selectedFeedback) {
-                const updatedList = listData.map((item) => {
-                    if (item.id === selectedFeedback.id) {
-                        return {
-                            ...item,
-                            status: 'replied' as const,
-                            admin_reply: data.admin_reply,
-                            replied_at: new Date().toISOString().replace('T', ' ').substring(0, 16),
-                        };
-                    }
-                    return item;
-                });
-                setListData(updatedList);
-                handleCloseReply();
-            }
-        }, 1000);
+        if (selectedFeedback) {
+            post(`/admin/feedback/${selectedFeedback.id}/respond`, {
+                onSuccess: () => {
+                    handleCloseReply();
+                },
+            });
+        }
     };
 
     const getCategoryBadge = (category: string) => {
@@ -368,37 +174,6 @@ export default function Index() {
     };
 
     // Filter logic
-    const filteredListData = listData.filter((item) => {
-        if (searchQuery) {
-            const query = searchQuery.toLowerCase();
-            const matchName = item.user.name.toLowerCase().includes(query);
-            const matchEmail = item.user.email.toLowerCase().includes(query);
-            const matchMessage = item.message.toLowerCase().includes(query);
-            if (!matchName && !matchEmail && !matchMessage) return false;
-        }
-        if (statusFilter && item.status !== statusFilter) {
-            return false;
-        }
-        if (categoryFilter) {
-            if (categoryFilter === 'Bug' && !item.category.includes('Bug')) return false;
-            if (categoryFilter === 'Fitur' && !item.category.includes('Fitur')) return false;
-            if (categoryFilter === 'Saran' && !item.category.includes('Saran') && !item.category.includes('Masukan')) return false;
-        }
-        if (startDate || endDate) {
-            const itemDateStr = item.created_at.substring(0, 10); // 'YYYY-MM-DD'
-            if (startDate && itemDateStr < startDate) return false;
-            if (endDate && itemDateStr > endDate) return false;
-        }
-        return true;
-    });
-
-    // Pagination calculations
-    const totalFiltered = filteredListData.length;
-    const totalPages = Math.ceil(totalFiltered / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = Math.min(startIndex + itemsPerPage, totalFiltered);
-    const paginatedData = filteredListData.slice(startIndex, startIndex + itemsPerPage);
-
     const columns: Column<Feedback>[] = [
         {
             key: 'created_at',
@@ -492,7 +267,7 @@ export default function Index() {
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
                     <StatCard
                         title="Total Masukan"
-                        value="124"
+                        value={stats.total_masukan.toString()}
                         description="Dari semua platform & kategori"
                         icon={<MessageSquare className="size-6" />}
                         accent="emerald"
@@ -500,11 +275,11 @@ export default function Index() {
 
                     <StatCard
                         title="Rata-rata Rating"
-                        value="4.2"
+                        value={stats.avg_rating}
                         footer={
                             <div className="flex items-center gap-2">
-                                {renderStars(4)}
-                                <span className="text-xs font-bold text-gray-400">(Bintang Statis)</span>
+                                {renderStars(Math.round(parseFloat(stats.avg_rating)))}
+                                <span className="text-xs font-bold text-gray-400">/ 5.0</span>
                             </div>
                         }
                         icon={<Star className="size-6 fill-amber-400 text-amber-500" />}
@@ -518,7 +293,7 @@ export default function Index() {
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Pie
-                                        data={PLATFORM_DATA}
+                                        data={stats.platform_data}
                                         cx="50%"
                                         cy="50%"
                                         innerRadius={45}
@@ -526,7 +301,7 @@ export default function Index() {
                                         paddingAngle={4}
                                         dataKey="value"
                                     >
-                                        {PLATFORM_DATA.map((entry, index) => (
+                                        {stats.platform_data.map((entry, index) => (
                                             <Cell key={`cell-${index}`} fill={entry.color} />
                                         ))}
                                     </Pie>
@@ -538,7 +313,7 @@ export default function Index() {
                             </ResponsiveContainer>
                         </div>
                         <div className="flex justify-center gap-3 text-[11px] font-bold text-gray-500 mt-2">
-                            {PLATFORM_DATA.map((p) => (
+                            {stats.platform_data.map((p) => (
                                 <div key={p.name} className="flex items-center gap-1.5">
                                     <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: p.color }} />
                                     <span>{p.name} ({p.value}%)</span>
@@ -553,7 +328,7 @@ export default function Index() {
                         <div className="h-44 w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart
-                                    data={CATEGORY_DATA}
+                                    data={stats.category_data}
                                     margin={{ top: 10, right: 10, left: -15, bottom: 10 }}
                                 >
                                     <XAxis
@@ -589,7 +364,7 @@ export default function Index() {
                     <div className="border-b border-gray-100 px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <h2 className="text-lg font-black text-gray-900 tracking-tight">Daftar Masukan Terbaru</h2>
                         <span className="text-xs font-bold text-gray-400 bg-gray-50 px-2.5 py-1 rounded-lg">
-                            Menampilkan {filteredListData.length} dari {listData.length} masukan
+                            Menampilkan {feedbacks.data.length} dari {feedbacks.total} masukan
                         </span>
                     </div>
 
@@ -605,7 +380,6 @@ export default function Index() {
                                     value={searchQuery}
                                     onChange={(e) => {
                                         setSearchQuery(e.target.value);
-                                        setCurrentPage(1);
                                     }}
                                     placeholder="Cari nama, email, pesan..."
                                     className="w-full pl-9 pr-8 py-2 text-xs font-bold rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
@@ -614,7 +388,6 @@ export default function Index() {
                                     <button
                                         onClick={() => {
                                             setSearchQuery('');
-                                            setCurrentPage(1);
                                         }}
                                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                                     >
@@ -631,7 +404,6 @@ export default function Index() {
                                 value={statusFilter}
                                 onChange={(e) => {
                                     setStatusFilter(e.target.value);
-                                    setCurrentPage(1);
                                 }}
                                 className="w-full px-3 py-2 text-xs font-bold rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
                             >
@@ -648,7 +420,6 @@ export default function Index() {
                                 value={categoryFilter}
                                 onChange={(e) => {
                                     setCategoryFilter(e.target.value);
-                                    setCurrentPage(1);
                                 }}
                                 className="w-full px-3 py-2 text-xs font-bold rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
                             >
@@ -670,7 +441,6 @@ export default function Index() {
                                         value={startDate}
                                         onChange={(e) => {
                                             setStartDate(e.target.value);
-                                            setCurrentPage(1);
                                         }}
                                         className="w-full p-0 text-xs font-bold border-none bg-transparent focus:ring-0 focus:outline-none"
                                         placeholder="Mulai"
@@ -681,7 +451,6 @@ export default function Index() {
                                         value={endDate}
                                         onChange={(e) => {
                                             setEndDate(e.target.value);
-                                            setCurrentPage(1);
                                         }}
                                         className="w-full p-0 text-xs font-bold border-none bg-transparent focus:ring-0 focus:outline-none"
                                         placeholder="Selesai"
@@ -692,7 +461,6 @@ export default function Index() {
                                         onClick={() => {
                                             setStartDate('');
                                             setEndDate('');
-                                            setCurrentPage(1);
                                         }}
                                         className="text-gray-400 hover:text-gray-600 shrink-0 ml-1"
                                     >
@@ -705,18 +473,26 @@ export default function Index() {
 
                     <DataTable
                         columns={columns}
-                        data={paginatedData}
+                        data={feedbacks.data}
                         emptyMessage="Tidak ada masukan yang sesuai dengan filter."
                     />
 
                     {/* Pagination UI */}
                     <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        totalItems={totalFiltered}
-                        from={totalFiltered > 0 ? startIndex + 1 : 0}
-                        to={endIndex}
-                        onPageChange={setCurrentPage}
+                        currentPage={feedbacks.current_page}
+                        totalPages={feedbacks.last_page}
+                        totalItems={feedbacks.total}
+                        from={feedbacks.from || 0}
+                        to={feedbacks.to || 0}
+                        onPageChange={(page) => {
+                            router.get(feedbacks.links[page]?.url || '/admin/feedback', {
+                                search: searchQuery,
+                                status: statusFilter,
+                                category: categoryFilter,
+                                start_date: startDate,
+                                end_date: endDate,
+                            }, { preserveState: true, preserveScroll: true });
+                        }}
                         itemLabel="masukan"
                         showPageNumbers={true}
                     />

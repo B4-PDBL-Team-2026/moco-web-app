@@ -116,6 +116,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(UserDevice::class, 'user_id', 'id');
     }
 
+    public function feedbacks(): HasMany
+    {
+        return $this->hasMany(\App\Domains\Feedback\Models\Feedback::class);
+    }
+
     public function routeNotificationForFcm(): array
     {
         return $this->devices()->pluck('fcm_token')->toArray();
