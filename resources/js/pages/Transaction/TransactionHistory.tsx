@@ -258,16 +258,16 @@ export default function TransactionHistory({ categories }: { categories: Categor
     <AppLayout>
       <Head title="Riwayat Transaksi - MOCO" />
 
-      <div className="px-4 py-6 lg:px-8 lg:py-8 mx-auto max-w-4xl space-y-6">
+      <div className="px-6 py-8 lg:px-9 space-y-6 w-full">
         {/* Header */}
-        <div className="flex items-center justify-between pb-2">
+        <div className="flex items-center justify-between">
           <h1 className="text-2xl font-black text-[#2F5FBF]">
             Riwayat Transaksi
           </h1>
         </div>
 
         {/* Filters Card */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="rounded-[28px] border border-gray-100 bg-white p-4 md:p-5 flex flex-col lg:flex-row gap-4 items-stretch lg:items-center">
           {/* Search Input */}
           <div className="relative w-full md:flex-1">
             <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
