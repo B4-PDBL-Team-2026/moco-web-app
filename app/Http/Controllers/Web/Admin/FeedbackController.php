@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Feedback\RespondFeedbackRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use App\Mail\FeedbackReplyMail;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -119,6 +121,8 @@ class FeedbackController extends Controller
             'replied_at' => now(),
         ]);
 
-        return redirect()->back()->with('success', 'Balasan berhasil dikirim.');
+        Mail::to($feedback->user->email)->send(new FeedbackReplyMail($feedback));
+
+        return redirect()->back()->with('success', 'Balasan berhasil dikirim ke email pengguna.');
     }
 }
