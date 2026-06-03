@@ -27,7 +27,7 @@ class FeedbackController extends Controller
                 $sub->where('message', 'ilike', "%{$search}%")
                     ->orWhereHas('user', function ($uq) use ($search) {
                         $uq->where('name', 'ilike', "%{$search}%")
-                           ->orWhere('email', 'ilike', "%{$search}%");
+                            ->orWhere('email', 'ilike', "%{$search}%");
                     });
             });
         });
@@ -58,7 +58,7 @@ class FeedbackController extends Controller
         $feedbacks = $query->latest()
             ->paginate(10)
             ->withQueryString()
-            ->through(fn($item) => [
+            ->through(fn ($item) => [
                 'id' => $item->id,
                 'created_at' => $item->created_at->format('Y-m-d H:i'),
                 'user' => [
@@ -76,9 +76,9 @@ class FeedbackController extends Controller
 
         // Aggregate Data for Charts
         $totalMasukan = Feedback::count();
-        
+
         $avgRatingRow = Feedback::selectRaw('avg(rating) as avg_rating')->first();
-        $avgRating = $avgRatingRow && $avgRatingRow->avg_rating !== null ? number_format((float)$avgRatingRow->avg_rating, 1) : "0.0";
+        $avgRating = $avgRatingRow && $avgRatingRow->avg_rating !== null ? number_format((float) $avgRatingRow->avg_rating, 1) : '0.0';
 
         $webAppCount = Feedback::where('platform', 'like', '%Web App%')->count();
         $mobileCount = Feedback::where('platform', 'like', '%Mobile App%')->count();
@@ -107,7 +107,7 @@ class FeedbackController extends Controller
                 'avg_rating' => $avgRating,
                 'platform_data' => $platformData,
                 'category_data' => $categoryData,
-            ]
+            ],
         ]);
     }
 

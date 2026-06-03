@@ -16,8 +16,8 @@ class StoreFeedbackRequest extends FormRequest
         return [
             'platform' => ['required', 'string', 'in:Web App,Mobile App (Android)'],
             'category' => ['required', 'string'],
-            'rating'   => ['required', 'integer', 'min:1', 'max:5'],
-            'message'  => ['required', 'string', 'min:10', 'max:1000'],
+            'rating' => ['required', 'integer', 'min:1', 'max:5'],
+            'message' => ['required', 'string', 'min:10', 'max:1000'],
         ];
     }
 }

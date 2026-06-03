@@ -3,6 +3,7 @@
 namespace App\Domains\User\Models;
 
 use App\Domains\Budgeting\Models\UserBudgetSetting;
+use App\Domains\Feedback\Models\Feedback;
 use App\Domains\FixedCost\Models\FixedCostTemplate;
 use App\Domains\Transaction\Models\Transaction;
 use Database\Factories\UserFactory;
@@ -118,7 +119,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function feedbacks(): HasMany
     {
-        return $this->hasMany(\App\Domains\Feedback\Models\Feedback::class);
+        return $this->hasMany(Feedback::class);
     }
 
     public function routeNotificationForFcm(): array

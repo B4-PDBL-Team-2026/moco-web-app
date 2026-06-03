@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Web\Budgeting;
 
-use App\Http\Controllers\Controller;
-use App\Domains\Transaction\Actions\CreateTransactionAction;
-use App\Http\Requests\Transaction\StoreTransactionRequest;
-use App\Domains\Category\Actions\GetAllSystemCategoriesAction;
 use App\Domains\Category\Actions\GetAllCustomCategoriesAction;
+use App\Domains\Category\Actions\GetAllSystemCategoriesAction;
+use App\Domains\Transaction\Actions\CreateTransactionAction;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Transaction\StoreTransactionRequest;
 use App\Http\Resources\Category\CategoryResource;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -37,6 +37,7 @@ class TransactionController extends Controller
 
     /**
      * Store a newly created transaction in storage via Inertia.
+     *
      * @throws Throwable
      */
     public function store(

@@ -1,18 +1,18 @@
 <?php
 
+use App\Http\Controllers\LandingPageAnalyticController;
+use App\Http\Controllers\Web\Admin\AdminUsersController;
+use App\Http\Controllers\Web\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Web\Admin\FeedbackController as AdminFeedbackController;
 use App\Http\Controllers\Web\Auth\AuthController;
 use App\Http\Controllers\Web\Budgeting\DashboardController;
 use App\Http\Controllers\Web\Budgeting\OnboardingController;
 use App\Http\Controllers\Web\Budgeting\TransactionController;
 use App\Http\Controllers\Web\Category\CategoryController;
+use App\Http\Controllers\Web\Feedback\FeedbackController;
 use App\Http\Controllers\Web\FixedCost\FixedCostController;
 use App\Http\Controllers\Web\User\ProfileController;
-use App\Http\Controllers\Web\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Web\Admin\AdminUsersController;
-use App\Http\Controllers\Web\Admin\FeedbackController as AdminFeedbackController;
-use App\Http\Controllers\Web\Feedback\FeedbackController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::get('/', function () {
     return view('welcome');
@@ -110,7 +110,6 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/{categoryId}', 'update')->name('categories.update');
         Route::delete('/{categoryId}', 'destroy')->name('categories.destroy');
     });
-
     // FEEDBACK
     Route::controller(FeedbackController::class)->group(function () {
         Route::get('/feedback', 'create')->name('feedback.create');
