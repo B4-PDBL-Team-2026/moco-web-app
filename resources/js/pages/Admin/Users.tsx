@@ -2,6 +2,8 @@ import { router } from '@inertiajs/react';
 import { PencilLine, Power, Search, Trash, Verified } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import type { Column } from '@/components/DataTable';
+import DataTable from '@/components/DataTable';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
 import type { User } from '@/components/EditUserDrawer';
 import EditUserDrawer from '@/components/EditUserDrawer';
@@ -110,6 +112,127 @@ export default function Users({ users, filters }: UsersPageProps) {
         );
     };
 
+    const columns: Column<User>[] = [
+        {
+            key: 'index',
+            label: '#',
+            align: 'center',
+            className: 'font-semibold text-gray-400',
+            render: (_, idx) => users.from + idx,
+        },
+        {
+            key: 'user',
+            label: 'Pengguna',
+            render: (user) => (
+                <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-light font-bold text-primary">
+                        {user.avatarInitials}
+                    </div>
+                    <div>
+                        <p className="font-bold text-gray-800">{user.name}</p>
+                        <div className="flex items-center gap-1.5">
+                            <p className="text-xs text-gray-400">
+                                {user.email}
+                            </p>
+                            {user.emailVerified && (
+                                <span
+                                    title="Email Terverifikasi"
+                                    className="inline-flex items-center justify-center rounded-full bg-green-50 p-0.5 text-green-500"
+                                >
+                                    <Verified
+                                        size={14}
+                                        className="stroke-[3px]"
+                                    />
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            ),
+        },
+        {
+            key: 'joinedAt',
+            label: 'Terdaftar',
+            className: 'font-medium text-gray-500',
+        },
+        {
+            key: 'status',
+            label: 'Status',
+            render: (user) =>
+                user.status === 'active' ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-1 text-xs font-bold text-green-600">
+                        <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                        Aktif
+                    </span>
+                ) : (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-1 text-xs font-bold text-red-600">
+                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500" />
+                        Banned ({user.banDuration})
+                    </span>
+                ),
+        },
+        {
+            key: 'session',
+            label: 'Sesi',
+            align: 'center',
+            render: (user) =>
+                user.isLoggedIn ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-primary-light px-2.5 py-1 text-xs font-bold text-primary">
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                        Online
+                    </span>
+                ) : (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-gray-100 bg-gray-50 px-2.5 py-1 text-xs font-bold text-gray-400">
+                        Offline
+                    </span>
+                ),
+        },
+        {
+            key: 'actions',
+            label: 'Aksi',
+            align: 'center',
+            render: (user) => (
+                <div className="flex items-center justify-center gap-1.5">
+                    <button
+                        title="Edit Profil"
+                        onClick={() => {
+                            setSelectedUser(user);
+                            setIsEditOpen(true);
+                        }}
+                        className="flex h-9 w-9 items-center justify-center rounded-xl text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
+                    >
+                        <PencilLine size={18} />
+                    </button>
+                    <button
+                        title="Paksa Logout"
+                        disabled={!user.isLoggedIn}
+                        onClick={() => {
+                            setSelectedUser(user);
+                            setIsForceLogoutOpen(true);
+                        }}
+                        className={`flex h-9 w-9 items-center justify-center rounded-xl transition ${
+                            user.isLoggedIn
+                                ? 'text-orange-400 hover:bg-orange-50 hover:text-orange-600'
+                                : 'cursor-not-allowed text-gray-200'
+                        }`}
+                    >
+                        <Power size={18} />
+                    </button>
+                    <button
+                        title="Hapus Pengguna"
+                        onClick={() => {
+                            setSelectedUser(user);
+                            setIsDeleteOpen(true);
+                        }}
+                        className="flex h-9 w-9 items-center justify-center rounded-xl text-gray-400 transition hover:bg-red-50 hover:text-red-500"
+                    >
+                        <Trash size={18} />
+                    </button>
+                </div>
+            ),
+        },
+    ];
+
     return (
         <AdminLayout>
             <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -142,169 +265,11 @@ export default function Users({ users, filters }: UsersPageProps) {
 
                 {/* Table Container */}
                 <div className="mt-8 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm text-gray-600">
-                            <thead className="border-b border-gray-50 bg-gray-50/50 text-[11px] font-bold tracking-wider text-primary uppercase">
-                                <tr>
-                                    <th className="px-6 py-4 text-center">#</th>
-                                    <th className="px-6 py-4">Pengguna</th>
-                                    <th className="px-6 py-4">Terdaftar</th>
-                                    <th className="px-6 py-4">Status</th>
-                                    <th className="px-6 py-4 text-center">
-                                        Sesi
-                                    </th>
-                                    <th className="px-6 py-4 text-center">
-                                        Aksi
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-50">
-                                {users.data.length > 0 ? (
-                                    users.data.map((user, idx) => {
-                                        // Pake 'from' dari server buat nomor urut
-                                        const globalIndex = users.from + idx;
-                                        return (
-                                            <tr
-                                                key={user.id}
-                                                className="transition hover:bg-gray-50/50"
-                                            >
-                                                <td className="px-6 py-5 text-center font-semibold text-gray-400">
-                                                    {globalIndex}
-                                                </td>
-                                                <td className="px-6 py-5">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-light font-bold text-primary">
-                                                            {
-                                                                user.avatarInitials
-                                                            }
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-bold text-gray-800">
-                                                                {user.name}
-                                                            </p>
-                                                            <div className="flex items-center gap-1.5">
-                                                                <p className="text-xs text-gray-400">
-                                                                    {user.email}
-                                                                </p>
-                                                                {user.emailVerified && (
-                                                                    <span
-                                                                        title="Email Terverifikasi"
-                                                                        className="inline-flex items-center justify-center rounded-full bg-green-50 p-0.5 text-green-500"
-                                                                    >
-                                                                        <Verified
-                                                                            size={
-                                                                                14
-                                                                            }
-                                                                            className="stroke-[3px]"
-                                                                        />
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-5 font-medium text-gray-500">
-                                                    {user.joinedAt}
-                                                </td>
-                                                <td className="px-6 py-5">
-                                                    {user.status ===
-                                                    'active' ? (
-                                                        <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-1 text-xs font-bold text-green-600">
-                                                            <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                                                            Aktif
-                                                        </span>
-                                                    ) : (
-                                                        <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-1 text-xs font-bold text-red-600">
-                                                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500" />
-                                                            Banned (
-                                                            {user.banDuration})
-                                                        </span>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-5 text-center">
-                                                    {user.isLoggedIn ? (
-                                                        <span className="inline-flex items-center gap-1 rounded-full bg-primary-light px-2.5 py-1 text-xs font-bold text-primary">
-                                                            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                                                            Online
-                                                        </span>
-                                                    ) : (
-                                                        <span className="inline-flex items-center gap-1 rounded-full border border-gray-100 bg-gray-50 px-2.5 py-1 text-xs font-bold text-gray-400">
-                                                            Offline
-                                                        </span>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-5">
-                                                    <div className="flex items-center justify-center gap-1.5">
-                                                        <button
-                                                            title="Edit Profil"
-                                                            onClick={() => {
-                                                                setSelectedUser(
-                                                                    user,
-                                                                );
-                                                                setIsEditOpen(
-                                                                    true,
-                                                                );
-                                                            }}
-                                                            className="flex h-9 w-9 items-center justify-center rounded-xl text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
-                                                        >
-                                                            <PencilLine
-                                                                size={18}
-                                                            />
-                                                        </button>
-                                                        <button
-                                                            title="Paksa Logout"
-                                                            disabled={
-                                                                !user.isLoggedIn
-                                                            }
-                                                            onClick={() => {
-                                                                setSelectedUser(
-                                                                    user,
-                                                                );
-                                                                setIsForceLogoutOpen(
-                                                                    true,
-                                                                );
-                                                            }}
-                                                            className={`flex h-9 w-9 items-center justify-center rounded-xl transition ${
-                                                                user.isLoggedIn
-                                                                    ? 'text-orange-400 hover:bg-orange-50 hover:text-orange-600'
-                                                                    : 'cursor-not-allowed text-gray-200'
-                                                            }`}
-                                                        >
-                                                            <Power size={18} />
-                                                        </button>
-                                                        <button
-                                                            title="Hapus Pengguna"
-                                                            onClick={() => {
-                                                                setSelectedUser(
-                                                                    user,
-                                                                );
-                                                                setIsDeleteOpen(
-                                                                    true,
-                                                                );
-                                                            }}
-                                                            className="flex h-9 w-9 items-center justify-center rounded-xl text-gray-400 transition hover:bg-red-50 hover:text-red-500"
-                                                        >
-                                                            <Trash size={18} />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })
-                                ) : (
-                                    <tr>
-                                        <td
-                                            colSpan={6}
-                                            className="px-6 py-12 text-center text-sm text-gray-400"
-                                        >
-                                            Tidak ada pengguna ditemukan untuk
-                                            pencarian "{searchQuery}"
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                    <DataTable
+                        columns={columns}
+                        data={users.data}
+                        emptyMessage={`Tidak ada pengguna ditemukan untuk pencarian "${searchQuery}"`}
+                    />
 
                     {/* Pagination Bar bawaan Laravel/Inertia */}
                     <Pagination

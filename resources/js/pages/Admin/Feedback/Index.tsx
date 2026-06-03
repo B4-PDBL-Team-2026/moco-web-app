@@ -29,6 +29,7 @@ import {
     Legend
 } from 'recharts';
 
+import DataTable, { Column } from '@/components/DataTable';
 import Pagination from '@/components/Pagination';
 import AdminLayout from '@/layouts/AdminLayout';
 
@@ -401,6 +402,82 @@ export default function Index() {
     const endIndex = Math.min(startIndex + itemsPerPage, totalFiltered);
     const paginatedData = filteredListData.slice(startIndex, startIndex + itemsPerPage);
 
+    const columns: Column<Feedback>[] = [
+        {
+            key: 'created_at',
+            label: 'Tanggal',
+            className: 'whitespace-nowrap text-xs text-gray-400',
+        },
+        {
+            key: 'user',
+            label: 'Pengguna',
+            render: (item) => (
+                <div className="flex flex-col">
+                    <span className="text-gray-900 font-extrabold">{item.user.name}</span>
+                    <span className="text-xs font-normal text-gray-400 mt-0.5">{item.user.email}</span>
+                </div>
+            ),
+        },
+        {
+            key: 'platform',
+            label: 'Platform',
+            className: 'whitespace-nowrap',
+            render: (item) => (
+                <span className="inline-flex items-center gap-1.5 text-xs">
+                    {item.platform.includes('Web') ? (
+                        <Laptop size={14} className="text-gray-400" />
+                    ) : (
+                        <Smartphone size={14} className="text-gray-400" />
+                    )}
+                    {item.platform}
+                </span>
+            ),
+        },
+        {
+            key: 'category',
+            label: 'Kategori',
+            render: (item) => getCategoryBadge(item.category),
+        },
+        {
+            key: 'rating',
+            label: 'Rating',
+            className: 'whitespace-nowrap',
+            render: (item) => renderStars(item.rating),
+        },
+        {
+            key: 'status',
+            label: 'Status',
+            className: 'whitespace-nowrap',
+            render: (item) => (
+                item.status === 'replied' ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-xs font-bold text-emerald-700">
+                        <CheckCircle2 size={12} />
+                        Replied
+                    </span>
+                ) : (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-1 text-xs font-bold text-amber-700">
+                        <Clock size={12} />
+                        Pending
+                    </span>
+                )
+            ),
+        },
+        {
+            key: 'actions',
+            label: 'Aksi',
+            align: 'right',
+            className: 'whitespace-nowrap',
+            render: (item) => (
+                <button
+                    onClick={() => handleOpenReply(item)}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                >
+                    Lihat & Balas
+                </button>
+            ),
+        },
+    ];
+
     return (
         <AdminLayout>
             <Head title="Kelola Feedback Pengguna" />
@@ -642,81 +719,11 @@ export default function Index() {
                         </div>
                     </div>
 
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="border-b border-gray-100 bg-gray-50/70 text-xs font-black uppercase tracking-wider text-gray-500">
-                                    <th className="px-6 py-4">Tanggal</th>
-                                    <th className="px-6 py-4">Pengguna</th>
-                                    <th className="px-6 py-4">Platform</th>
-                                    <th className="px-6 py-4">Kategori</th>
-                                    <th className="px-6 py-4">Rating</th>
-                                    <th className="px-6 py-4">Status</th>
-                                    <th className="px-6 py-4 text-right">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100 text-sm font-bold text-gray-700">
-                                {paginatedData.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={7} className="px-6 py-10 text-center text-gray-400 font-medium">
-                                            Tidak ada masukan yang sesuai dengan filter.
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    paginatedData.map((item) => (
-                                        <tr key={item.id} className="hover:bg-gray-50/50 transition duration-150">
-                                            <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-400">
-                                                {item.created_at}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex flex-col">
-                                                    <span className="text-gray-900 font-extrabold">{item.user.name}</span>
-                                                    <span className="text-xs font-normal text-gray-400 mt-0.5">{item.user.email}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className="inline-flex items-center gap-1.5 text-xs">
-                                                    {item.platform.includes('Web') ? (
-                                                        <Laptop size={14} className="text-gray-400" />
-                                                    ) : (
-                                                        <Smartphone size={14} className="text-gray-400" />
-                                                    )}
-                                                    {item.platform}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                {getCategoryBadge(item.category)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                {renderStars(item.rating)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                {item.status === 'replied' ? (
-                                                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-xs font-bold text-emerald-700">
-                                                        <CheckCircle2 size={12} />
-                                                        Replied
-                                                    </span>
-                                                ) : (
-                                                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-1 text-xs font-bold text-amber-700">
-                                                        <Clock size={12} />
-                                                        Pending
-                                                    </span>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4 text-right whitespace-nowrap">
-                                                <button
-                                                    onClick={() => handleOpenReply(item)}
-                                                    className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20"
-                                                >
-                                                    Lihat & Balas
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                    <DataTable
+                        columns={columns}
+                        data={paginatedData}
+                        emptyMessage="Tidak ada masukan yang sesuai dengan filter."
+                    />
 
                     {/* Pagination UI */}
                     <Pagination
