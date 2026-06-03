@@ -8,7 +8,7 @@ export interface Column<T> {
     render?: (item: T, index: number) => React.ReactNode;
 }
 
-interface DataTableProps<T> {
+interface DataTableProps {
     columns: Column<any>[];
     data: any[];
     emptyMessage?: string;

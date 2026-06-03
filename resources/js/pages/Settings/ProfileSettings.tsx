@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import AppLayout from '@/layouts/AppLayout';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { Wallet, Lock, Mail, Trash2, User, ChevronRight, MessageSquare } from 'lucide-react';
+import React, { useState } from 'react';
+import AppLayout from '@/layouts/AppLayout';
 
 export default function Settings() {
     const { auth, budget_setting } = usePage().props as any;
