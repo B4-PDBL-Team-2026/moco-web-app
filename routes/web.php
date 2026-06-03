@@ -55,6 +55,9 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/dashboard', [DashboardController::class, 'showDashboard'])->name('dashboard');
             Route::get('/transactions/create', [TransactionController::class, 'create'])->name('transactions.create');
             Route::post('/transactions', [TransactionController::class, 'store'])->name('transactions.store');
+            Route::get('/history', [TransactionController::class, 'history'])->name('history');
+            Route::get('/transaction/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
+            Route::get('/transaction/{transaction}/edit', [TransactionController::class, 'edit'])->name('transactions.edit');
         });
 
         // fixed costs domain endpoints
