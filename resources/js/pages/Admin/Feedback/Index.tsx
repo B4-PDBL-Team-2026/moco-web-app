@@ -1,36 +1,35 @@
 ﻿import { Head, useForm } from '@inertiajs/react';
-import { 
-    Star, 
-    MessageSquare, 
-    X, 
-    Send, 
-    Mail, 
-    User, 
-    Smartphone, 
-    Laptop, 
-    Tag, 
-    Clock, 
+import {
+    Calendar,
     CheckCircle2,
+    Clock,
+    Laptop,
+    Mail,
+    MessageSquare,
     Search,
-    Filter,
-    Calendar
+    Smartphone,
+    Star,
+    Tag,
+    User,
+    X
 } from 'lucide-react';
 import React, { useState } from 'react';
-import { 
-    ResponsiveContainer, 
-    PieChart, 
-    Pie, 
-    Cell, 
-    Tooltip, 
-    BarChart, 
-    Bar, 
-    XAxis, 
-    YAxis,
-    Legend
+import {
+    Bar,
+    BarChart,
+    Cell,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis
 } from 'recharts';
 
-import DataTable, { Column } from '@/components/DataTable';
+import DataTable from '@/components/DataTable';
+import type { Column } from '@/components/DataTable';
 import Pagination from '@/components/Pagination';
+import StatCard from '@/components/StatCard';
 import AdminLayout from '@/layouts/AdminLayout';
 
 // Interface Feedback
@@ -288,7 +287,7 @@ export default function Index() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
-    const { data, setData, post, processing, reset } = useForm({
+    const { data, setData, processing, reset } = useForm({
         admin_reply: '',
     });
 
@@ -306,7 +305,7 @@ export default function Index() {
 
     const handleSubmitReply = (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         // Simulasi pengiriman form (static-preview interactivity)
         setTimeout(() => {
             if (selectedFeedback) {
@@ -495,37 +494,26 @@ export default function Index() {
 
                 {/* Bagian 1: Tinjauan Statistik */}
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-                    {/* Metrik: Total Masukan */}
-                    <div className="flex flex-col justify-between rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-                        <div>
-                            <span className="rounded-xl bg-emerald-500/10 p-3 text-emerald-600 inline-flex">
-                                <MessageSquare className="size-6" />
-                            </span>
-                            <h3 className="mt-4 text-sm font-bold text-gray-400">Total Masukan</h3>
-                            <p className="mt-2 text-3xl font-black text-gray-950">124</p>
-                        </div>
-                        <p className="mt-4 text-xs font-semibold text-gray-400">
-                            Dari semua platform & kategori
-                        </p>
-                    </div>
+                    <StatCard
+                        title="Total Masukan"
+                        value="124"
+                        description="Dari semua platform & kategori"
+                        icon={<MessageSquare className="size-6" />}
+                        accent="emerald"
+                        />
 
-                    {/* Metrik: Rata-rata Rating */}
-                    <div className="flex flex-col justify-between rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-                        <div>
-                            <span className="rounded-xl bg-amber-50 p-3 text-amber-500 border border-amber-100 inline-flex">
-                                <Star className="size-6 fill-amber-400 text-amber-500" />
-                            </span>
-                            <h3 className="mt-4 text-sm font-bold text-gray-400">Rata-rata Rating</h3>
-                            <div className="mt-2 flex items-baseline gap-2">
-                                <span className="text-3xl font-black text-gray-950">4.2</span>
-                                <span className="text-sm font-bold text-gray-400">/ 5.0</span>
+                    <StatCard
+                        title="Rata-rata Rating"
+                        value="4.2"
+                        footer={
+                            <div className="flex items-center gap-2">
+                                {renderStars(4)}
+                                <span className="text-xs font-bold text-gray-400">(Bintang Statis)</span>
                             </div>
-                        </div>
-                        <div className="mt-4 flex items-center gap-2">
-                            {renderStars(4)}
-                            <span className="text-xs font-bold text-gray-400">(Bintang Statis)</span>
-                        </div>
-                    </div>
+                        }
+                        icon={<Star className="size-6 fill-amber-400 text-amber-500" />}
+                        accent="amber"
+                    />
 
                     {/* Grafik Platform (PieChart) */}
                     <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
@@ -546,7 +534,7 @@ export default function Index() {
                                             <Cell key={`cell-${index}`} fill={entry.color} />
                                         ))}
                                     </Pie>
-                                    <Tooltip 
+                                    <Tooltip
                                         formatter={(value) => [`${value}%`, 'Persentase']}
                                         contentStyle={{ borderRadius: '12px', borderColor: '#F3F4F6' }}
                                     />
@@ -572,21 +560,21 @@ export default function Index() {
                                     data={CATEGORY_DATA}
                                     margin={{ top: 10, right: 10, left: -15, bottom: 10 }}
                                 >
-                                    <XAxis 
-                                        dataKey="name" 
-                                        stroke="#9CA3AF" 
-                                        fontSize={9} 
-                                        tickLine={false} 
+                                    <XAxis
+                                        dataKey="name"
+                                        stroke="#9CA3AF"
+                                        fontSize={9}
+                                        tickLine={false}
                                         axisLine={false}
                                         interval={0}
                                     />
-                                    <YAxis 
-                                        stroke="#9CA3AF" 
-                                        fontSize={10} 
-                                        tickLine={false} 
-                                        axisLine={false} 
+                                    <YAxis
+                                        stroke="#9CA3AF"
+                                        fontSize={10}
+                                        tickLine={false}
+                                        axisLine={false}
                                     />
-                                    <Tooltip 
+                                    <Tooltip
                                         cursor={{ fill: 'transparent' }}
                                         contentStyle={{ borderRadius: '12px', borderColor: '#F3F4F6' }}
                                     />
@@ -627,7 +615,7 @@ export default function Index() {
                                     className="w-full pl-9 pr-8 py-2 text-xs font-bold rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
                                 />
                                 {searchQuery && (
-                                    <button 
+                                    <button
                                         onClick={() => {
                                             setSearchQuery('');
                                             setCurrentPage(1);
@@ -704,7 +692,7 @@ export default function Index() {
                                     />
                                 </div>
                                 {(startDate || endDate) && (
-                                    <button 
+                                    <button
                                         onClick={() => {
                                             setStartDate('');
                                             setEndDate('');
@@ -741,7 +729,7 @@ export default function Index() {
                 {/* Bagian 3: Panel Detail & Balasan */}
                 {isOpen && selectedFeedback && (
                     <div className="fixed inset-0 z-50 flex justify-end">
-                        <div 
+                        <div
                             className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
                             onClick={handleCloseReply}
                         />

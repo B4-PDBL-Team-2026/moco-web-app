@@ -72,18 +72,21 @@ export default function Dashboard({ landingPageStats, userStats, chartData }: Da
                             value={landingPageStats.totalVisitors}
                             icon={<Eye className="size-6" />}
                             accent="green"
+                            layout="horizontal"
                         />
                         <StatCard
                             title="Pengunjung Unik"
                             value={landingPageStats.uniqueVisitors}
                             icon={<UsersRound className="size-6" />}
                             accent="purple"
+                            layout="horizontal"
                         />
                         <StatCard
                             title="Lihat sampai akhir"
                             value={landingPageStats.scrollDepthReached}
                             icon={<FileCheck className="size-6" />}
                             accent="blue"
+                            layout="horizontal"
                         />
                     </div>
                 </div>
