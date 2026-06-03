@@ -1,7 +1,7 @@
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Wallet, Lock, Mail, Trash2, User, ChevronRight, MessageSquare } from 'lucide-react';
 import React, { useState } from 'react';
 import AppLayout from '@/layouts/AppLayout';
-import { Head, useForm, usePage } from '@inertiajs/react';
-import { Wallet, Lock, Mail, Trash2, User, ChevronRight } from 'lucide-react';
 
 export default function Settings() {
     const { auth, budget_setting } = usePage().props as any;
@@ -144,6 +144,21 @@ export default function Settings() {
                                 </div>
                                 <ChevronRight className="text-[#595D62]" size={20} />
                              </button>
+
+                             {/* Menu Feedback */}
+                             <Link 
+                                href="/feedback" 
+                                className="flex justify-between items-center p-6 w-full hover:bg-gray-50 transition-colors"
+                             >
+                                <div className="flex gap-4">
+                                    <div className="w-10 h-10 bg-[#E3EAF7] rounded-xl flex items-center justify-center"><MessageSquare size={20} className="text-[#2E5AA7]" /></div>
+                                    <div className="text-left">
+                                        <h3 className="font-semibold text-lg text-[#101010]">Kirim Masukan</h3>
+                                        <p className="text-[#595D62]">Bantu kami meningkatkan kualitas layanan aplikasi</p>
+                                    </div>
+                                </div>
+                                <ChevronRight className="text-[#595D62]" size={20} />
+                             </Link>
 
                              {/* Menu Hapus Akun */}
                              <button onClick={() => setIsDeleteModalOpen(true)} className="flex justify-between items-center p-6 w-full hover:bg-red-50 transition-colors">

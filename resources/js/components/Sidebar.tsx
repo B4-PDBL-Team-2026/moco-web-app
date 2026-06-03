@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { Link, usePage, router } from '@inertiajs/react';
 import {
     LayoutDashboard,
@@ -9,6 +8,7 @@ import {
     LogOut,
     X,
 } from 'lucide-react';
+import React, { useState } from 'react';
 
 const NAV_ITEMS = [
     {

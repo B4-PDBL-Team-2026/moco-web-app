@@ -1,15 +1,16 @@
 <?php
 
 use App\Http\Controllers\LandingPageAnalyticController;
+use App\Http\Controllers\Web\Admin\AdminUsersController;
+use App\Http\Controllers\Web\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Web\Auth\AuthController;
 use App\Http\Controllers\Web\Budgeting\DashboardController;
 use App\Http\Controllers\Web\Budgeting\OnboardingController;
 use App\Http\Controllers\Web\Budgeting\TransactionController;
 use App\Http\Controllers\Web\Category\CategoryController;
+use App\Http\Controllers\Web\Feedback\FeedbackController;
 use App\Http\Controllers\Web\FixedCost\FixedCostController;
 use App\Http\Controllers\Web\User\ProfileController;
-use App\Http\Controllers\Web\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Web\Admin\AdminUsersController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -90,6 +91,12 @@ Route::middleware(['auth'])->group(function () {
     // ADMIN
     Route::prefix('/admin')->middleware(['isAdmin'])->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+
+        Route::prefix('/feedback')->controller(App\Http\Controllers\Web\Admin\FeedbackController::class)->group(function () {
+            Route::get('/', 'index')->name('admin.feedback.index');
+            Route::post('/{feedback}/respond', 'respond')->name('admin.feedback.respond');
+        });
+
         Route::prefix('/users')->controller(AdminUsersController::class)->group(function () {
             Route::get('/', 'index')->name('admin.users.index');
             Route::put('/{user}', 'update')->name('admin.users.update');
@@ -104,6 +111,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/', 'store')->name('categories.store');
         Route::patch('/{categoryId}', 'update')->name('categories.update');
         Route::delete('/{categoryId}', 'destroy')->name('categories.destroy');
+    });
+    // FEEDBACK
+    Route::controller(FeedbackController::class)->group(function () {
+        Route::get('/feedback', 'create')->name('feedback.create');
+        Route::post('/feedback', 'store')->name('feedback.store');
     });
 });
 

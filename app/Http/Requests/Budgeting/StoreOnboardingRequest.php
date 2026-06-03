@@ -19,11 +19,15 @@ class StoreOnboardingRequest extends FormRequest
 
     public function rules(): array
     {
+        $maxLimit = 'max:9999999999999.99';
+
         return [
             'budgetCycle' => ['required', Rule::enum(CycleType::class)],
-            'initialBalance' => ['required', 'numeric', 'min:1'],
-            'flooringLimit' => ['required', 'numeric', 'min:0'],
-            'ceilingLimit' => ['required', 'numeric', 'gte:flooringLimit'],
+
+            'initialBalance' => ['required', 'numeric', 'min:1', $maxLimit],
+            'flooringLimit' => ['required', 'numeric', 'min:0', $maxLimit],
+            'ceilingLimit' => ['required', 'numeric', 'gte:flooringLimit', $maxLimit],
+
             'timezone' => ['sometimes', 'required', 'string', 'timezone'],
 
             'fixedCosts' => ['present', 'array'],
@@ -32,10 +36,12 @@ class StoreOnboardingRequest extends FormRequest
                 'required',
                 'string',
             ],
+
             'fixedCosts.*.amount' => [
                 'required',
                 'numeric',
                 'gt:0',
+                $maxLimit,
             ],
             'fixedCosts.*.cycleType' => [
                 'required',
