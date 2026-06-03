@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers\Web\User;
 
-use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Inertia\Response;
-
 use App\Domains\Budgeting\Actions\UpdateDailyLimitAction;
 use App\Domains\Budgeting\DTOs\UpdateDailyLimitData;
 use App\Domains\User\Actions\Auth\DeleteUserAction;
 use App\Domains\User\Actions\Auth\SendEmailVerificationAction;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class ProfileController extends Controller
 {
@@ -24,7 +23,7 @@ class ProfileController extends Controller
             'budget_setting' => [
                 'min_allocation' => $budgetSetting->flooring_limit ?? 0,
                 'max_allocation' => $budgetSetting->ceiling_limit ?? 0,
-            ]
+            ],
         ]);
     }
 
@@ -36,7 +35,7 @@ class ProfileController extends Controller
         ]);
 
         $action->execute(
-            $request->user(), 
+            $request->user(),
             new UpdateDailyLimitData(
                 flooringLimit: (string) $validated['min_allocation'],
                 ceilingLimit: (string) $validated['max_allocation']
@@ -68,7 +67,7 @@ class ProfileController extends Controller
         return redirect()->route('login');
     }
 
-    public function sendVerification(Request $request, SendEmailVerificationAction $action) 
+    public function sendVerification(Request $request, SendEmailVerificationAction $action)
     {
         // Eksekusi Action untuk mengirim email
         $action->execute($request->user());

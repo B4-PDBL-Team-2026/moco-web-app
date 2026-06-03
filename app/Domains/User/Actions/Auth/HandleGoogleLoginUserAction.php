@@ -38,7 +38,7 @@ class HandleGoogleLoginUserAction
                 if ($user->isBanned()) {
                     throw new UserBannedException($user->banned_until);
                 }
-                
+
                 if (! $user->google_id) {
                     $user->update(['google_id' => $providerUser->getId()]);
                 }
